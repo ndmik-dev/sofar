@@ -44,6 +44,7 @@
       return;
     }
     select(all[Math.min(all.length - 1, Math.max(0, i + step))], true);
+    if (panelOpen()) loadPanel();
   }
 
   // Selection lives in the client, but htmx replaces rows underneath it, so it
@@ -54,6 +55,8 @@
     select(selected() || all[0], false);
   }
 
+  // Every keyboard action lands here, so this is the one place that keeps an
+  // open panel in sync with the row it describes.
   function post(url, body) {
     var row = selected();
     if (!row) return;
@@ -61,6 +64,8 @@
       target: "#entry-" + row.dataset.entry,
       swap: "outerHTML",
       values: body || {},
+    }).then(function () {
+      window.reloadPanel();
     });
   }
 
@@ -101,6 +106,31 @@
       return s;
     }
     return statusFromEvent(e);
+  };
+
+  function panelOpen() {
+    return !!document.getElementById("panel");
+  }
+
+  window.closePanel = function () {
+    var slot = document.getElementById("panel-slot");
+    if (slot) slot.innerHTML = "";
+  };
+
+  // The panel follows the cursor: opening it and moving the selection are the
+  // same action, so there is never a panel showing a row you are not on.
+  function loadPanel() {
+    var row = selected();
+    var slot = document.getElementById("panel-slot");
+    if (!row || !slot) return;
+    window.htmx.ajax("GET", "/entry/" + row.dataset.entry + "/panel", {
+      target: "#panel-slot",
+      swap: "innerHTML",
+    });
+  }
+
+  window.reloadPanel = function () {
+    if (panelOpen()) loadPanel();
   };
 
   window.closePalette = function () {
@@ -154,15 +184,27 @@
       return;
     }
 
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !isTyping(e.target)) {
       var palette = document.getElementById("palette");
-      if (!palette || !palette.open) return;
+      if (!palette || !palette.open) {
+        if (!selected()) return;
+        e.preventDefault();
+        if (panelOpen()) window.closePanel(); else loadPanel();
+        return;
+      }
       if (palette.querySelector("form") && isTyping(e.target)) return;
       var first = palette.querySelector(".res.on") || palette.querySelector(".res");
       if (!first) return;
       e.preventDefault();
       pendingStatus = statusFromEvent(e);
       first.click();
+      return;
+    }
+
+    if (e.key === "Escape" && panelOpen() && !dialogOpen()) {
+      e.preventDefault();
+      window.closePanel();
+      if (isTyping(e.target)) e.target.blur();
       return;
     }
 
@@ -233,6 +275,12 @@
     if ((key === "e" || key === "у") && selected()) {
       e.preventDefault();
       awaitingRating = true;
+      return;
+    }
+
+    if ((key === "n" || key === "т") && panelOpen()) {
+      var note = document.getElementById("panel-note");
+      if (note) { e.preventDefault(); note.focus(); }
     }
   });
 

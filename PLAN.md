@@ -100,21 +100,21 @@ time left = `(total_units - position) * runtime_min`.
 | ✅ | **M5** Filling up | 6 h | Flow mode, backlog, archive |
 | ✅ | **M5.5** Other catalogs | 6 h | Books, games, podcasts |
 | ✅ | **M6** Keyboard | 5 h | A full session without the mouse |
-| | **M7** Panel | 5 h | Description, episodes, pace, note |
+| ✅ | **M7** Panel | 5 h | Description, episodes, pace, note |
 | | **M8** Streak and year | 6 h | Gamification, per-type depth |
 | | **M9** Deploy | 5 h | Live on a domain, with backups |
 | | **M10** Pocket and night | 5 h | PWA, dark theme |
 
-About 44 hours spent of roughly 59.
+About 49 hours spent of roughly 59.
 
-### M7 · Panel — 5 h
+### M7 · Panel — 5 h ✅
 
-`↵` opens a panel on the right. The list stays put and `↑↓` keep working, with
-the panel following the cursor. Inside: the large track with season labels, what
-is next, the synopsis (already in the database, nowhere to show it), the episode
-list, pace, note, rating.
-
-**Done when:** `↵` opens it, `↑↓` moves it, `Esc` closes it.
+Done. `↵` opens it, `↑↓` drags it along the cursor, `Esc` closes it. Inside:
+the large track, next episode with a season-finish shortcut, synopsis, the
+current season's episode list (each row clickable to jump there), pace from the
+progress log, an inline note, rating as ten clickable dots. Every keyboard
+action funnels through one `post()` helper, which is the single place that keeps
+an open panel in sync with the row it describes.
 
 ### M8 · Streak and year — 6 h
 

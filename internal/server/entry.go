@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ndmik-dev/sofar/internal/store"
@@ -75,4 +76,20 @@ func (s *Server) handleRestore(w http.ResponseWriter, r *http.Request) {
 		Text:    entry.Media.Title + " · повернуто",
 		EntryID: entry.ID,
 	}, false, true)
+}
+
+func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {
+	id, ok := s.entryID(w, r)
+	if !ok {
+		return
+	}
+	now, today, _ := s.now()
+
+	entry, err := s.store.SetNote(r.Context(), id, strings.TrimSpace(r.FormValue("note")), now)
+	if err != nil {
+		s.failEntry(w, r, err)
+		return
+	}
+	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, today,
+		toastView{Text: entry.Media.Title + " · нотатку збережено", EntryID: entry.ID})
 }

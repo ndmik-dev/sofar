@@ -1,0 +1,122 @@
+{{define "panel"}}
+<aside class="pn" id="panel" data-entry="{{.EntryID}}">
+  <div class="pnh">
+    <button class="x" type="button" onclick="closePanel()" aria-label="Закрити">Esc ✕</button>
+    <h2>{{.Title}}</h2>
+    {{with .Original}}<div class="orig">{{.}}</div>{{end}}
+    <div class="mt">{{.KindLabel}}{{with .Meta}} · {{.}}{{end}}</div>
+    <div class="rt2">
+      <span class="dots">
+        {{range $i, $on := .Dots}}
+        <button type="button" class="{{if $on}}f{{end}}"
+                hx-post="/entry/{{$.EntryID}}/rating"
+                hx-vals='{"rating": {{inc $i}}}'
+                hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML"
+                hx-on::after-request="reloadPanel()"
+                aria-label="Оцінка {{inc $i}}"></button>
+        {{end}}
+      </span>
+      {{if .Rating}}<b>{{.Rating}}</b>{{else}}<span class="hint">E, потім цифра</span>{{end}}
+    </div>
+  </div>
+
+  <div class="pns">
+    {{if .Blocks}}
+    <div class="pg"><span>Прогрес</span><b>{{.Position}}</b></div>
+    <div class="ptrk">
+      <span class="tier big">
+      {{- range .Blocks -}}
+        {{- if eq .Kind "done" -}}
+          <span class="blk done" style="--n: {{.Count}}">S{{.Season}}</span>
+        {{- else if eq .Kind "later" -}}
+          <span class="blk later{{if .Aired}} out{{end}}" style="--n: {{.Count}}">S{{.Season}}</span>
+        {{- else if eq .Kind "bar" -}}
+          <span class="blk barblk"><i style="width: {{.Percent}}%"></i></span>
+        {{- else -}}
+          <span class="trk cur{{if .Dense}} dense{{end}}">
+          {{- range .Cells -}}
+            {{- if .Sep -}}<i class="sn"></i>{{- else -}}
+            <button type="button" class="{{.State}}" title="{{.Hint}}" tabindex="-1"
+                    hx-post="/entry/{{$.EntryID}}/advance"
+                    hx-vals='{"abs": {{.Idx}}}'
+                    hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML"
+                    hx-on::after-request="reloadPanel()"></button>
+            {{- end -}}
+          {{- end -}}
+          </span>
+        {{- end -}}
+      {{- end -}}
+      </span>
+    </div>
+    {{end}}
+
+    {{with .NextLabel}}
+    <div class="nxt">
+      <div class="l">Далі</div>
+      <div class="t">{{.}}</div>
+      <div class="d">{{$.NextMeta}}</div>
+      <div class="go">
+        <button type="button"
+                hx-post="/entry/{{$.EntryID}}/advance"
+                hx-vals='{"n": {{$.Step}}}'
+                hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML"
+                hx-on::after-request="reloadPanel()">Space — позначити</button>
+        {{if $.SeasonEnd}}
+        <button type="button"
+                hx-post="/entry/{{$.EntryID}}/advance"
+                hx-vals='{"abs": {{$.SeasonEnd}}}'
+                hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML"
+                hx-on::after-request="reloadPanel()">⇧S — увесь сезон</button>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+
+    {{with .Overview}}
+    <div class="pg"><span>Опис</span></div>
+    <p class="pp">{{.}}</p>
+    {{end}}
+
+    {{if .Episodes}}
+    <div class="pg"><span>{{.SeasonTitle}}</span></div>
+    <div class="eps">
+      {{range .Episodes}}
+      <button type="button" class="ep{{if .Current}} now{{end}}"
+              hx-post="/entry/{{$.EntryID}}/advance"
+              hx-vals='{"abs": {{.Idx}}}'
+              hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML"
+              hx-on::after-request="reloadPanel()">
+        <s>{{.Label}}</s>
+        <span class="t2">{{if .Title}}{{.Title}}{{else}}—{{end}}</span>
+        <span class="d2b">{{.Date}}</span>
+        <span class="c {{.State}}"></span>
+      </button>
+      {{end}}
+    </div>
+    {{end}}
+
+    {{if .Facts}}
+    <div class="pg"><span>Мій темп</span></div>
+    <div class="hs">
+      {{range .Facts}}<div><span>{{.Label}}</span><b>{{.Value}}</b></div>{{end}}
+    </div>
+    {{end}}
+
+    <div class="pg"><span>Нотатка</span><b>N</b></div>
+    <form class="ntz" hx-post="/entry/{{.EntryID}}/note"
+          hx-target="#entry-{{.EntryID}}" hx-swap="outerHTML">
+      <textarea name="note" id="panel-note" rows="3"
+                placeholder="Що варто памʼятати, коли повернешся">{{.Note}}</textarea>
+      <button type="submit">Зберегти</button>
+    </form>
+    <div style="height: 20px"></div>
+  </div>
+
+  <div class="pnf">
+    <span><b>Space</b> +{{.Step}}</span>
+    <span><b>E</b> оцінка</span>
+    <span><b>N</b> нотатка</span>
+    <span><b>Esc</b> закрити</span>
+  </div>
+</aside>
+{{end}}

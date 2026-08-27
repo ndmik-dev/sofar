@@ -14,12 +14,13 @@ import (
 
 var pages = []string{"active.html", "backlog.html", "done.html"}
 
-var partials = []string{"row.html", "fragments.html", "nav.html"}
+var partials = []string{"row.html", "fragments.html", "nav.html", "panel.html"}
 
 const devTemplateDir = "internal/server/templates"
 
 var funcs = template.FuncMap{
 	"plural": domain.Plural,
+	"inc":    func(i int) int { return i + 1 },
 }
 
 func templateFS(dev bool) (fs.FS, error) {
