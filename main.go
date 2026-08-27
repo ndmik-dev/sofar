@@ -46,6 +46,16 @@ func run(log *slog.Logger) error {
 		return err
 	}
 
+	if cfg.Dev {
+		n, err := st.SeedFixtures(ctx, 1, time.Now().In(cfg.Loc))
+		if err != nil {
+			return err
+		}
+		if n > 0 {
+			log.Info("seeded fixtures", "entries", n)
+		}
+	}
+
 	srv, err := server.New(cfg, st, log)
 	if err != nil {
 		return err

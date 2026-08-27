@@ -12,6 +12,8 @@ import (
 
 var pages = []string{"active.html"}
 
+var partials = []string{"row.html"}
+
 const devTemplateDir = "internal/server/templates"
 
 func loadTemplates(dev bool) (map[string]*template.Template, error) {
@@ -28,7 +30,8 @@ func loadTemplates(dev bool) (map[string]*template.Template, error) {
 
 	out := make(map[string]*template.Template, len(pages))
 	for _, page := range pages {
-		t, err := template.New("layout.html").ParseFS(tfs, "layout.html", page)
+		files := append([]string{"layout.html", page}, partials...)
+		t, err := template.New("layout.html").ParseFS(tfs, files...)
 		if err != nil {
 			return nil, fmt.Errorf("parse %s: %w", page, err)
 		}

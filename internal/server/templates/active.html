@@ -11,13 +11,44 @@
     <span>Додати те, що дивлюсь</span>
   </div>
 </div>
+{{else}}
+
+<div class="sum">
+  <div>
+    <div class="n">{{.Summary.Waiting}} <s>серій</s></div>
+    <div class="u">вийшло й чекає</div>
+  </div>
+  {{with .Summary.WaitingTime}}
+  <div>
+    <div class="n">{{.}}</div>
+    <div class="u">якщо все додивитись</div>
+  </div>
+  {{end}}
+  <div>
+    <div class="n">{{.Summary.Airing}}</div>
+    <div class="u">ще виходять</div>
+  </div>
+  <div>
+    <div class="n">{{len .Rows}}</div>
+    <div class="u">у процесі</div>
+  </div>
+</div>
+
+{{range .Rows}}{{template "row" .}}{{end}}
+
+{{if .Stale}}
+<div class="gl">Застоялось · без руху 30+ днів</div>
+{{range .Stale}}{{template "row" .}}{{end}}
+{{end}}
+
 {{end}}
 
 <div class="ft">
   <span><b>↑↓</b> рядок</span>
   <span><b>Space</b> +1</span>
+  <span><b>клік по клітинці</b> прогрес сюди</span>
   <span><b>↵</b> опис</span>
   <span><b>⌘K</b> додати</span>
-  <span class="rt">M0 · скелет</span>
+  <span class="rt">M1 · дані з бази</span>
 </div>
 {{end}}
