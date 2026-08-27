@@ -1,0 +1,19 @@
+{{define "content"}}
+{{if .Years}}
+{{range .Years}}
+<div class="gl">{{if .Year}}{{.Year}}{{else}}Без дати{{end}} · {{.Count}}</div>
+<div{{if eq .Year 0}}{{else}} class="yr-rows"{{end}}>{{range .Rows}}{{template "row" .}}{{end}}</div>
+{{end}}
+{{else}}
+<div class="empty">
+  <div class="trk"><i class="u"></i><i class="u"></i><i class="u"></i><i class="u"></i><i class="u"></i></div>
+  <h1>Порожньо</h1>
+  <p>Тут з'являтиметься все, що ти довів до кінця.</p>
+</div>
+{{end}}
+
+<div class="ft">
+  <span><b>⌘K</b> додати</span>
+  <span class="rt">{{.Summary.Active}} записів</span>
+</div>
+{{end}}

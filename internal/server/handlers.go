@@ -75,6 +75,7 @@ type row struct {
 	Pos       string
 	PosSub    string
 	Btn       string
+	Rating    int
 	Step      int
 	Statuses  []statusOption
 	Stale     bool
@@ -121,6 +122,14 @@ type addedRow struct {
 	Summary summaryView
 	Nav     navView
 	Step    *positionStep
+	Flow    *flowItem
+}
+
+type flowItem struct {
+	Title  string
+	Kind   string
+	Status string
+	Label  string
 }
 
 type positionStep struct {
@@ -137,6 +146,8 @@ type listPage struct {
 	Now     time.Time
 	Rows    []row
 	Stale   []row
+	Years   []yearGroup
+	Filters []filterChip
 	Summary summaryView
 	Empty   bool
 }
@@ -335,13 +346,28 @@ func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry stor
 		s.fail(w, r, err)
 		return
 	}
-	s.renderFragment(w, r, "added-row", addedRow{
+
+	resp := addedRow{
 		Row:     buildRow(entry, today),
 		Toast:   toast,
 		Summary: sum,
 		Nav:     nav,
 		Step:    positionStepFor(entry, created),
-	})
+	}
+
+	// Backfilling the archive is a rhythm, not a dialogue: anything that does
+	// not land in "active" clears the field and waits for the next title.
+	if created && entry.Status != "active" {
+		resp.Flow = &flowItem{
+			Title:  entry.Media.Title,
+			Kind:   entry.Media.Kind,
+			Status: entry.Status,
+			Label:  statusWords[entry.Status],
+		}
+		w.Header().Set("HX-Trigger", "sofar:flow")
+	}
+
+	s.renderFragment(w, r, "added-row", resp)
 }
 
 // Asking "where did you stop" only makes sense for something you are actually
@@ -443,6 +469,7 @@ func buildRow(e store.Entry, today string) row {
 	rw := row{
 		EntryID:   e.ID,
 		Title:     e.Media.Title,
+		Rating:    int(e.Rating.Int64),
 		Kind:      e.Media.Kind,
 		KindLabel: kindLabels[e.Media.Kind],
 		Step:      max(e.Step, 1),
@@ -500,7 +527,7 @@ func remainingLabel(rem domain.Remaining) string {
 		return "завершено"
 	}
 	if rem.Waiting > 0 && rem.Waiting < rem.Left {
-		return fmt.Sprintf("%d чекають", rem.Waiting)
+		return domain.Count(rem.Waiting, "чекає", "чекають", "чекають")
 	}
 	if t := domain.HoursMins(rem.LeftMins); t != "" {
 		return fmt.Sprintf("%d · %s", rem.Left, t)

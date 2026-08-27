@@ -8,13 +8,19 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/ndmik-dev/sofar/internal/domain"
 )
 
-var pages = []string{"active.html"}
+var pages = []string{"active.html", "backlog.html", "done.html"}
 
 var partials = []string{"row.html", "fragments.html", "nav.html"}
 
 const devTemplateDir = "internal/server/templates"
+
+var funcs = template.FuncMap{
+	"plural": domain.Plural,
+}
 
 func templateFS(dev bool) (fs.FS, error) {
 	if dev {
@@ -36,7 +42,7 @@ func loadTemplates(dev bool) (map[string]*template.Template, error) {
 	out := make(map[string]*template.Template, len(pages))
 	for _, page := range pages {
 		files := append([]string{"layout.html", page}, partials...)
-		t, err := template.New("layout.html").ParseFS(tfs, files...)
+		t, err := template.New("layout.html").Funcs(funcs).ParseFS(tfs, files...)
 		if err != nil {
 			return nil, fmt.Errorf("parse %s: %w", page, err)
 		}
@@ -50,7 +56,7 @@ func loadFragments(dev bool) (*template.Template, error) {
 	if err != nil {
 		return nil, err
 	}
-	t, err := template.New("fragments").ParseFS(tfs, partials...)
+	t, err := template.New("fragments").Funcs(funcs).ParseFS(tfs, partials...)
 	if err != nil {
 		return nil, fmt.Errorf("parse fragments: %w", err)
 	}

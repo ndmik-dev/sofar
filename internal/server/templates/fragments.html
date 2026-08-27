@@ -7,7 +7,7 @@
 {{define "summary"}}
 <div class="sum" id="summary"{{if .OOB}} hx-swap-oob="true"{{end}}>
   <div>
-    <div class="n">{{.Waiting}} <s>серій</s></div>
+    <div class="n">{{.Waiting}} <s>{{plural .Waiting "серія" "серії" "серій"}}</s></div>
     <div class="u">вийшло й чекає</div>
   </div>
   {{with .WaitingTime}}
@@ -136,11 +136,22 @@
 {{end}}
 
 {{define "added-row"}}
-<div hx-swap-oob="afterbegin:#rows">{{template "row" .Row}}</div>
+{{if not .Flow}}<div hx-swap-oob="afterbegin:#rows">{{template "row" .Row}}</div>{{end}}
 {{template "summary" .Summary}}
 {{template "nav" .Nav}}
-{{template "toast" .Toast}}
-{{if .Step}}{{template "position-step" .Step}}{{else}}<div class="hintline">Готово. Пиши далі або закрий на Esc.</div>{{end}}
+{{if .Flow}}
+  <div hx-swap-oob="afterbegin:#flow-log">
+    <div class="flow-item">
+      <span class="st k-{{.Flow.Kind}}"></span>
+      <span class="nn">{{.Flow.Title}}</span>
+      <span class="tg">{{.Flow.Label}}</span>
+      <span class="ok">✓</span>
+    </div>
+  </div>
+{{else}}
+  {{template "toast" .Toast}}
+{{end}}
+{{if .Step}}{{template "position-step" .Step}}{{else if not .Flow}}<div class="hintline">Готово. Пиши далі або закрий на Esc.</div>{{end}}
 {{end}}
 
 {{define "removed-row"}}

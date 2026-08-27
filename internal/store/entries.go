@@ -24,19 +24,20 @@ type Media struct {
 }
 
 type Entry struct {
-	ID        int64
-	Status    string
-	Position  int
-	Rating    sql.NullInt64
-	UpdatedAt int64
-	Media     Media
-	Units     []domain.Unit
-	Depth     string
-	Step      int
+	ID         int64
+	Status     string
+	Position   int
+	Rating     sql.NullInt64
+	UpdatedAt  int64
+	FinishedAt int64
+	Media      Media
+	Units      []domain.Unit
+	Depth      string
+	Step       int
 }
 
 const entrySelect = `
-SELECT e.id, e.status, e.position, e.rating, e.updated_at,
+SELECT e.id, e.status, e.position, e.rating, e.updated_at, COALESCE(e.finished_at,0),
        m.id, m.kind, m.source, m.title, COALESCE(m.title_orig,''), COALESCE(m.year,0),
        COALESCE(m.overview,''), COALESCE(m.runtime_min,0), m.total_units, m.unit,
        COALESCE(m.airing,''),
@@ -75,7 +76,7 @@ func (s *Store) queryEntries(ctx context.Context, q string, args ...any) ([]Entr
 	for rows.Next() {
 		var e Entry
 		err := rows.Scan(
-			&e.ID, &e.Status, &e.Position, &e.Rating, &e.UpdatedAt,
+			&e.ID, &e.Status, &e.Position, &e.Rating, &e.UpdatedAt, &e.FinishedAt,
 			&e.Media.ID, &e.Media.Kind, &e.Media.Source, &e.Media.Title,
 			&e.Media.TitleOrig, &e.Media.Year, &e.Media.Overview,
 			&e.Media.RuntimeMin, &e.Media.TotalUnits, &e.Media.Unit, &e.Media.Airing,

@@ -13,8 +13,17 @@
   <button class="del" type="button" title="Видалити" aria-label="Видалити {{.Title}}"
           hx-post="/entry/{{.EntryID}}/delete"
           hx-swap="none">✕</button>
-  {{if eq .Mode "status"}}
+  {{if not .Btn}}
+    {{if .Rating}}<span class="pl ghost">{{.Rating}}</span>{{else}}<span></span>{{end}}
+  {{else if eq .Mode "status"}}
     <span class="pl ghost">{{.Btn}}</span>
+  {{else if eq .Btn "↵"}}
+    <button class="pl" type="button"
+            hx-post="/entry/{{.EntryID}}/status"
+            hx-vals='{"status": "active"}'
+            hx-swap="none"
+            hx-on::after-request="window.location.reload()"
+            aria-label="Почати">↵</button>
   {{else}}
     <button class="pl" type="button"
             hx-post="/entry/{{.EntryID}}/advance"

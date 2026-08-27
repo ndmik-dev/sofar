@@ -123,6 +123,11 @@ func (s *Store) AddEntry(ctx context.Context, userID, mediaID int64, status stri
 	}
 	if status == "done" {
 		finished = now.Unix()
+		// Finished means finished: an archive entry with a zero track would
+		// read as a bug every time you opened the list.
+		if position == 0 {
+			position = totalUnitsOf(ctx, tx, mediaID)
+		}
 	}
 
 	// A previously deleted entry for the same title still occupies the unique
@@ -162,4 +167,13 @@ func nullIfZero(n int) any {
 		return nil
 	}
 	return n
+}
+
+func totalUnitsOf(ctx context.Context, tx *sql.Tx, mediaID int64) int {
+	var total sql.NullInt64
+	if err := tx.QueryRowContext(ctx,
+		`SELECT total_units FROM media WHERE id = ?`, mediaID).Scan(&total); err != nil {
+		return 0
+	}
+	return int(total.Int64)
 }

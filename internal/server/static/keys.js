@@ -35,6 +35,18 @@
     if (dialog && dialog.open) dialog.close();
   };
 
+  // The server fires this after a flow-mode add: clear the field, keep focus,
+  // and let the running log below show what has landed so far.
+  document.body.addEventListener("sofar:flow", function () {
+    var input = document.getElementById("palette-input");
+    var results = document.getElementById("palette-results");
+    if (results) results.innerHTML = "";
+    if (input) {
+      input.value = "";
+      input.focus();
+    }
+  });
+
   function openPalette() {
     var dialog = document.getElementById("palette");
     if (!dialog || dialog.open) return;
@@ -46,6 +58,8 @@
     }
     var results = document.getElementById("palette-results");
     if (results) results.innerHTML = "";
+    var log = document.getElementById("flow-log");
+    if (log) log.innerHTML = "";
   }
 
   document.addEventListener("keydown", function (e) {

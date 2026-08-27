@@ -137,15 +137,36 @@ func applyPosition(ctx context.Context, tx *sql.Tx, id int64, to, total int, has
 }
 
 func (s *Store) SetStatus(ctx context.Context, id int64, status string, now time.Time) (Entry, error) {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return Entry{}, err
+	}
+	defer tx.Rollback()
+
 	finished := any(nil)
+	position, total, hasTotal, err := positionOf(ctx, tx, id)
+	if err != nil {
+		return Entry{}, err
+	}
 	if status == "done" {
 		finished = now.Unix()
+		if hasTotal && position < total {
+			if _, err := tx.ExecContext(ctx, `
+				INSERT INTO progress (entry_id, from_pos, to_pos, at, source)
+				VALUES (?,?,?,?,'manual')`, id, position, total, now.Unix()); err != nil {
+				return Entry{}, fmt.Errorf("log completion: %w", err)
+			}
+			position = total
+		}
 	}
-	_, err := s.DB.ExecContext(ctx, `
-		UPDATE entry SET status = ?, finished_at = ?, updated_at = ? WHERE id = ?`,
-		status, finished, now.Unix(), id)
-	if err != nil {
+
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE entry SET status = ?, position = ?, finished_at = ?, updated_at = ? WHERE id = ?`,
+		status, position, finished, now.Unix(), id); err != nil {
 		return Entry{}, fmt.Errorf("set status %d: %w", id, err)
+	}
+	if err := tx.Commit(); err != nil {
+		return Entry{}, err
 	}
 	return s.GetEntry(ctx, id)
 }

@@ -1,0 +1,37 @@
+{{define "content"}}
+<div class="tp sub">
+  <span class="q">У мене є:</span>
+  {{range .Filters}}
+  <a class="chp{{if .On}} on{{end}}" href="/backlog?t={{.Key}}">{{.Label}}</a>
+  {{end}}
+</div>
+
+{{if .Rows}}
+<div class="sum" id="summary">
+  <div>
+    <div class="n">{{.Summary.Waiting}} <s>з {{.Summary.Active}}</s></div>
+    <div class="u">підходить під фільтр</div>
+  </div>
+  {{with .Summary.WaitingTime}}
+  <div>
+    <div class="n">{{.}}</div>
+    <div class="u">увесь беклог</div>
+  </div>
+  {{end}}
+</div>
+
+<div id="rows">{{range .Rows}}{{template "row" .}}{{end}}</div>
+{{else}}
+<div class="empty">
+  <div class="trk"><i class="u"></i><i class="u"></i><i class="u"></i><i class="u"></i><i class="u"></i></div>
+  <h1>Нічого не підходить</h1>
+  <p>Спробуй інший проміжок часу або додай щось через <b>⌘K</b>.</p>
+</div>
+{{end}}
+
+<div class="ft">
+  <span><b>↵</b> перекласти в «у процесі»</span>
+  <span><b>⌘K</b> додати</span>
+  <span class="rt">M5 · наповнення</span>
+</div>
+{{end}}
