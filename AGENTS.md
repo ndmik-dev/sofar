@@ -12,7 +12,7 @@ SOFAR_DEV=1 go run .                  # templates and static read from disk
 go test ./...
 ```
 
-Env: `SOFAR_ADDR` `SOFAR_DB` `SOFAR_DEV` `SOFAR_TZ` `SOFAR_DAY_START`.
+Env: `SOFAR_ADDR` (типово `:8099`) `SOFAR_DB` `SOFAR_DEV` `SOFAR_TZ` `SOFAR_DAY_START`.
 
 ## Layout
 

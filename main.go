@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -59,6 +60,9 @@ func run(log *slog.Logger) error {
 
 	ln, err := net.Listen("tcp", cfg.Addr)
 	if err != nil {
+		if errors.Is(err, syscall.EADDRINUSE) {
+			return fmt.Errorf("%s is taken — free it or run with SOFAR_ADDR=:PORT (see who has it: lsof -nP -iTCP%s -sTCP:LISTEN)", cfg.Addr, cfg.Addr)
+		}
 		return err
 	}
 	log.Info("listening", "addr", ln.Addr().String(), "db", cfg.DBPath, "dev", cfg.Dev)

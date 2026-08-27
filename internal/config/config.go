@@ -17,7 +17,7 @@ type Config struct {
 
 func Load() (Config, error) {
 	cfg := Config{
-		Addr:     env("SOFAR_ADDR", ":8080"),
+		Addr:     env("SOFAR_ADDR", ":8099"),
 		DBPath:   env("SOFAR_DB", "sofar.db"),
 		Dev:      env("SOFAR_DEV", "") != "",
 		DayStart: 4,
