@@ -440,3 +440,105 @@ button.pl:hover { border-color: var(--fg); color: var(--fg); }
   .toast { animation: toast-out .01s 5s forwards; }
   .trk button { transition: none; }
 }
+
+#palette {
+  width: min(560px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--ln);
+  border-radius: 5px;
+  background: var(--el);
+  color: var(--fg);
+  margin-top: 12vh;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, .5);
+}
+#palette::backdrop { background: rgba(0, 0, 0, .35); }
+
+#palette-input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--ln);
+  background: none;
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 16px;
+  padding: 15px 17px;
+  outline: none;
+}
+#palette-input::placeholder { color: var(--mut); }
+
+#palette-results:not(:empty) { padding: 6px 0; }
+
+.sc {
+  padding: 8px 17px 5px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .19em;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+
+.res {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 17px;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--mid);
+  cursor: pointer;
+  text-align: left;
+}
+.res.on, .res:hover { background: var(--sel); color: var(--fg); box-shadow: inset 2px 0 0 var(--ac); }
+.res .st { width: 3px; height: 16px; border-radius: 1px; flex: 0 0 3px; }
+.res .nn { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.res .nn s { text-decoration: none; color: var(--mut); }
+.res .tg {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+.res .yy {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mut);
+  width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.hintline {
+  padding: 14px 17px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--mut);
+}
+.hintline.warn { color: var(--k-anime); }
+
+.pfoot {
+  display: flex;
+  gap: 15px;
+  padding: 9px 17px;
+  border-top: 1px solid var(--ln);
+  background: var(--bar);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--mut);
+}
+.pfoot b { color: var(--mid); font-weight: 500; }
+.pfoot .rt { margin-left: auto; }
+
+.sb { display: flex; flex-direction: column; }
+.attr {
+  margin: auto 18px 0;
+  padding-top: 20px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.6;
+  color: var(--mut);
+}
+.attr a { color: var(--mid); text-decoration: underline; }

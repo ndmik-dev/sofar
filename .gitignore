@@ -4,3 +4,4 @@
 /sofar
 .env
 .DS_Store
+cache/

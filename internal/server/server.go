@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/ndmik-dev/sofar/internal/catalog"
 	"github.com/ndmik-dev/sofar/internal/config"
 	"github.com/ndmik-dev/sofar/internal/store"
 )
@@ -18,13 +19,14 @@ var assetsFS embed.FS
 type Server struct {
 	cfg       config.Config
 	store     *store.Store
+	catalog   *catalog.Catalog
 	log       *slog.Logger
 	templates map[string]*template.Template
 	fragments *template.Template
 	mux       *http.ServeMux
 }
 
-func New(cfg config.Config, st *store.Store, log *slog.Logger) (*Server, error) {
+func New(cfg config.Config, st *store.Store, cat *catalog.Catalog, log *slog.Logger) (*Server, error) {
 	if cfg.Dev && !devTemplatesPresent() {
 		return nil, fmt.Errorf("SOFAR_DEV is set but %s is missing — run from the repo root", devTemplateDir)
 	}
@@ -41,6 +43,7 @@ func New(cfg config.Config, st *store.Store, log *slog.Logger) (*Server, error) 
 	s := &Server{
 		cfg:       cfg,
 		store:     st,
+		catalog:   cat,
 		log:       log,
 		templates: tmpls,
 		fragments: frags,
@@ -65,6 +68,8 @@ func (s *Server) routes() error {
 	s.mux.HandleFunc("POST /entry/{id}/advance", s.handleAdvance)
 	s.mux.HandleFunc("POST /entry/{id}/undo", s.handleUndo)
 	s.mux.HandleFunc("POST /entry/{id}/status", s.handleStatus)
+	s.mux.HandleFunc("GET /search", s.handleSearch)
+	s.mux.HandleFunc("POST /add", s.handleAdd)
 	return nil
 }
 

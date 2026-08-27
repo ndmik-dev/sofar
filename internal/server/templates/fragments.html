@@ -42,3 +42,22 @@
   {{end}}
 </div>
 {{end}}
+
+{{define "search-results"}}
+{{if .Results}}
+  <div class="sc">TMDB · {{len .Results}}</div>
+  {{range .Results}}
+  <button type="button" class="res{{if .First}} on{{end}}"
+          hx-post="/add"
+          hx-vals='{"tmdb_type": "{{.TMDBType}}", "tmdb_id": {{.TMDBID}}, "status": "active"}'
+          hx-swap="none">
+    <span class="st k-{{.Kind}}"></span>
+    <span class="nn">{{.Title}}{{with .Original}} <s>· {{.}}</s>{{end}}</span>
+    <span class="tg">{{.KindLabel}}</span>
+    <span class="yy">{{.Meta}}</span>
+  </button>
+  {{end}}
+{{else if .Message}}
+  <div class="hintline{{if .Disabled}} warn{{end}}">{{.Message}}</div>
+{{end}}
+{{end}}

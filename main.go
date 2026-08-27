@@ -14,9 +14,11 @@ import (
 
 	_ "time/tzdata"
 
+	"github.com/ndmik-dev/sofar/internal/catalog"
 	"github.com/ndmik-dev/sofar/internal/config"
 	"github.com/ndmik-dev/sofar/internal/server"
 	"github.com/ndmik-dev/sofar/internal/store"
+	"github.com/ndmik-dev/sofar/internal/tmdb"
 )
 
 func main() {
@@ -56,7 +58,12 @@ func run(log *slog.Logger) error {
 		}
 	}
 
-	srv, err := server.New(cfg, st, log)
+	cat := catalog.New(tmdb.New(cfg.TMDBToken, cfg.CacheDir), st)
+	if !cat.Enabled() {
+		log.Warn("TMDB_TOKEN is not set — catalog search is disabled")
+	}
+
+	srv, err := server.New(cfg, st, cat, log)
 	if err != nil {
 		return err
 	}

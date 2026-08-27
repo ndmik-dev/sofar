@@ -24,6 +24,8 @@
     {{range .Kinds}}
     <a class="nv" href="#"><span><i class="d k-{{.Kind}}"></i>{{.Label}}</span><b>{{.Count}}</b></a>
     {{end}}
+
+    <p class="attr">Дані про фільми й серіали — <a href="https://www.themoviedb.org/" target="_blank" rel="noreferrer">TMDB</a>. Цей продукт використовує TMDB API, але не схвалений і не сертифікований TMDB.</p>
   </aside>
 
   <main class="mn">
@@ -35,6 +37,19 @@
     {{template "content" .}}
     <div id="toast"></div>
   </main>
+
+<dialog id="palette" aria-label="Знайти або додати">
+  <input type="search" id="palette-input" name="q" autocomplete="off" spellcheck="false"
+         placeholder="Знайти або додати…"
+         hx-get="/search" hx-trigger="input changed delay:250ms, search"
+         hx-target="#palette-results" hx-swap="innerHTML">
+  <div id="palette-results"></div>
+  <div class="pfoot">
+    <span><b>↵</b> у процесі</span>
+    <span><b>Esc</b> закрити</span>
+    <span class="rt">модифікатори статусу — M4</span>
+  </div>
+</dialog>
 </div>
 </body>
 </html>

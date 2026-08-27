@@ -8,19 +8,27 @@ import (
 )
 
 type Config struct {
-	Addr     string
-	DBPath   string
-	Dev      bool
-	Loc      *time.Location
-	DayStart int
+	Addr      string
+	DBPath    string
+	Dev       bool
+	Loc       *time.Location
+	DayStart  int
+	TMDBToken string
+	CacheDir  string
 }
 
 func Load() (Config, error) {
+	if err := LoadDotEnv(env("SOFAR_ENV_FILE", ".env")); err != nil {
+		return Config{}, fmt.Errorf("read .env: %w", err)
+	}
+
 	cfg := Config{
-		Addr:     env("SOFAR_ADDR", ":8099"),
-		DBPath:   env("SOFAR_DB", "sofar.db"),
-		Dev:      env("SOFAR_DEV", "") != "",
-		DayStart: 4,
+		Addr:      env("SOFAR_ADDR", ":8099"),
+		DBPath:    env("SOFAR_DB", "sofar.db"),
+		Dev:       env("SOFAR_DEV", "") != "",
+		DayStart:  4,
+		TMDBToken: env("TMDB_TOKEN", ""),
+		CacheDir:  env("SOFAR_CACHE", "cache"),
 	}
 
 	tz := env("SOFAR_TZ", "Europe/Kyiv")
