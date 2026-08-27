@@ -102,7 +102,7 @@ func (s *Store) UpsertMedia(ctx context.Context, in MediaInput, units []domain.U
 func (s *Store) AddEntry(ctx context.Context, userID, mediaID int64, status string, position int, now time.Time) (int64, bool, error) {
 	var id int64
 	err := s.DB.QueryRowContext(ctx,
-		`SELECT id FROM entry WHERE user_id = ? AND media_id = ? AND run = 1`,
+		`SELECT id FROM entry WHERE user_id = ? AND media_id = ? AND run = 1 AND deleted_at IS NULL`,
 		userID, mediaID).Scan(&id)
 	if err == nil {
 		return id, false, nil
@@ -123,6 +123,14 @@ func (s *Store) AddEntry(ctx context.Context, userID, mediaID int64, status stri
 	}
 	if status == "done" {
 		finished = now.Unix()
+	}
+
+	// A previously deleted entry for the same title still occupies the unique
+	// key, so make room before inserting a fresh one.
+	if _, err := tx.ExecContext(ctx,
+		`DELETE FROM entry WHERE user_id = ? AND media_id = ? AND run = 1 AND deleted_at IS NOT NULL`,
+		userID, mediaID); err != nil {
+		return 0, false, fmt.Errorf("clear deleted entry: %w", err)
 	}
 
 	res, err := tx.ExecContext(ctx, `

@@ -92,12 +92,32 @@ type toastView struct {
 	Text    string
 	EntryID int64
 	Undo    bool
+	Restore bool
+}
+
+type removedRow struct {
+	EntryID int64
+	Toast   toastView
+	Summary summaryView
+	Nav     navView
+}
+
+type navView struct {
+	Nav   []navItem
+	Kinds []kindItem
+	OOB   bool
+}
+
+type addedRow struct {
+	Row     row
+	Toast   toastView
+	Summary summaryView
+	Nav     navView
 }
 
 type listPage struct {
 	Title   string
-	Nav     []navItem
-	Kinds   []kindItem
+	NavView navView
 	Now     time.Time
 	Rows    []row
 	Stale   []row
@@ -156,18 +176,10 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := listPage{
-		Title: "У процесі",
-		Nav: []navItem{
-			{Label: "У процесі", Href: "/active", Count: statusCounts["active"], Active: true},
-			{Label: "Колись", Href: "/backlog", Count: statusCounts["backlog"]},
-			{Label: "Завершено", Href: "/done", Count: statusCounts["done"]},
-			{Label: "Кинуто", Href: "/dropped", Count: statusCounts["dropped"]},
-		},
+		Title:   "У процесі",
+		NavView: navViewFrom(statusCounts, kindCounts, "/active", false),
 		Now:     now,
 		Summary: summaryFrom(sum),
-	}
-	for _, k := range kindNav {
-		page.Kinds = append(page.Kinds, kindItem{Label: k.Label, Kind: k.Kind, Count: kindCounts[k.Kind]})
 	}
 
 	for i, e := range entries {
@@ -252,6 +264,69 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	s.respondMove(w, r, store.Move{Entry: entry, Changed: true}, today)
 }
 
+func (s *Server) sidebands(r *http.Request, today string) (summaryView, navView, error) {
+	_, _, staleBefore := s.now()
+	sum, err := s.store.Summary(r.Context(), defaultUserID, today, staleBefore)
+	if err != nil {
+		return summaryView{}, navView{}, err
+	}
+	statusCounts, err := s.store.CountsByStatus(r.Context(), defaultUserID)
+	if err != nil {
+		return summaryView{}, navView{}, err
+	}
+	kindCounts, err := s.store.CountsByKind(r.Context(), defaultUserID)
+	if err != nil {
+		return summaryView{}, navView{}, err
+	}
+
+	view := summaryFrom(sum)
+	view.OOB = true
+	return view, navViewFrom(statusCounts, kindCounts, "/active", true), nil
+}
+
+func navViewFrom(statusCounts, kindCounts map[string]int, active string, oob bool) navView {
+	nv := navView{OOB: oob}
+	for _, n := range []struct{ Label, Href, Key string }{
+		{"У процесі", "/active", "active"},
+		{"Колись", "/backlog", "backlog"},
+		{"Завершено", "/done", "done"},
+		{"Кинуто", "/dropped", "dropped"},
+	} {
+		nv.Nav = append(nv.Nav, navItem{
+			Label: n.Label, Href: n.Href, Count: statusCounts[n.Key], Active: n.Href == active,
+		})
+	}
+	for _, k := range kindNav {
+		nv.Kinds = append(nv.Kinds, kindItem{Label: k.Label, Kind: k.Kind, Count: kindCounts[k.Kind]})
+	}
+	return nv
+}
+
+func (s *Server) renderSidebands(w http.ResponseWriter, r *http.Request, removed removedRow) {
+	_, today, _ := s.now()
+	sum, nav, err := s.sidebands(r, today)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	removed.Summary, removed.Nav = sum, nav
+	s.renderFragment(w, r, "removed-row", removed)
+}
+
+func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry store.Entry, today string, toast toastView) {
+	sum, nav, err := s.sidebands(r, today)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	s.renderFragment(w, r, "added-row", addedRow{
+		Row:     buildRow(entry, today),
+		Toast:   toast,
+		Summary: sum,
+		Nav:     nav,
+	})
+}
+
 func (s *Server) respondMove(w http.ResponseWriter, r *http.Request, move store.Move, today string) {
 	_, _, staleBefore := s.now()
 	sum, err := s.store.Summary(r.Context(), defaultUserID, today, staleBefore)
@@ -262,12 +337,11 @@ func (s *Server) respondMove(w http.ResponseWriter, r *http.Request, move store.
 
 	view := summaryFrom(sum)
 	view.OOB = true
-	resp := moveResponse{
+	s.renderFragment(w, r, "move-response", moveResponse{
 		Row:     buildRow(move.Entry, today),
 		Summary: view,
 		Toast:   toastFor(move),
-	}
-	s.renderFragment(w, r, "move-response", resp)
+	})
 }
 
 func toastFor(move store.Move) toastView {

@@ -37,6 +37,11 @@
             hx-post="/entry/{{.EntryID}}/undo"
             hx-target="#entry-{{.EntryID}}"
             hx-swap="outerHTML">⌘Z скасувати</button>
+    {{else if .Restore}}
+    <button type="button"
+            hx-post="/entry/{{.EntryID}}/restore"
+            hx-target="#rows"
+            hx-swap="afterbegin">⌘Z повернути</button>
     {{end}}
   </div>
   {{end}}
@@ -50,7 +55,8 @@
   <button type="button" class="res{{if .First}} on{{end}}"
           hx-post="/add"
           hx-vals='{"tmdb_type": "{{.TMDBType}}", "tmdb_id": {{.TMDBID}}, "status": "active"}'
-          hx-swap="none">
+          hx-target="#rows" hx-swap="afterbegin"
+          onclick="document.getElementById('palette').close()">
     <span class="st k-{{.Kind}}"></span>
     <span class="nn">{{.Title}}{{with .Original}} <s>· {{.}}</s>{{end}}</span>
     <span class="tg">{{.KindLabel}}</span>
@@ -60,4 +66,18 @@
 {{else if .Message}}
   <div class="hintline{{if .Disabled}} warn{{end}}">{{.Message}}</div>
 {{end}}
+{{end}}
+
+{{define "added-row"}}
+{{template "row" .Row}}
+{{template "summary" .Summary}}
+{{template "nav" .Nav}}
+{{template "toast" .Toast}}
+{{end}}
+
+{{define "removed-row"}}
+<div id="entry-{{.EntryID}}" hx-swap-oob="delete"></div>
+{{template "summary" .Summary}}
+{{template "nav" .Nav}}
+{{template "toast" .Toast}}
 {{end}}

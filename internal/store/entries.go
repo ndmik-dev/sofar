@@ -47,7 +47,7 @@ LEFT JOIN type_settings ts ON ts.user_id = e.user_id AND ts.kind = m.kind
 `
 
 func (s *Store) GetEntry(ctx context.Context, id int64) (Entry, error) {
-	entries, err := s.queryEntries(ctx, entrySelect+`WHERE e.id = ?`, id)
+	entries, err := s.queryEntries(ctx, entrySelect+`WHERE e.id = ? AND e.deleted_at IS NULL`, id)
 	if err != nil {
 		return Entry{}, err
 	}
@@ -59,7 +59,8 @@ func (s *Store) GetEntry(ctx context.Context, id int64) (Entry, error) {
 
 func (s *Store) ListEntries(ctx context.Context, userID int64, status string) ([]Entry, error) {
 	return s.queryEntries(ctx,
-		entrySelect+`WHERE e.user_id = ? AND e.status = ? ORDER BY e.updated_at DESC`,
+		entrySelect+`WHERE e.user_id = ? AND e.status = ? AND e.deleted_at IS NULL
+		             ORDER BY e.updated_at DESC`,
 		userID, status)
 }
 
@@ -134,12 +135,13 @@ func (s *Store) attachUnits(ctx context.Context, entries []Entry) error {
 }
 
 func (s *Store) CountsByStatus(ctx context.Context, userID int64) (map[string]int, error) {
-	return s.countBy(ctx, `SELECT status, COUNT(*) FROM entry WHERE user_id = ? GROUP BY status`, userID)
+	return s.countBy(ctx, `SELECT status, COUNT(*) FROM entry
+	                       WHERE user_id = ? AND deleted_at IS NULL GROUP BY status`, userID)
 }
 
 func (s *Store) CountsByKind(ctx context.Context, userID int64) (map[string]int, error) {
 	const q = `SELECT m.kind, COUNT(*) FROM entry e JOIN media m ON m.id = e.media_id
-	           WHERE e.user_id = ? GROUP BY m.kind`
+	           WHERE e.user_id = ? AND e.deleted_at IS NULL GROUP BY m.kind`
 	return s.countBy(ctx, q, userID)
 }
 

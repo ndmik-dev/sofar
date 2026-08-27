@@ -15,7 +15,7 @@
 
 {{template "summary" .Summary}}
 
-{{range .Rows}}{{template "row" .}}{{end}}
+<div id="rows">{{range .Rows}}{{template "row" .}}{{end}}</div>
 
 {{if .Stale}}
 <div class="gl">Застоялось · без руху 30+ днів</div>

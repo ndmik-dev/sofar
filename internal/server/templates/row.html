@@ -10,6 +10,9 @@
   <span class="tyc">{{.KindLabel}}</span>
   {{template "progress" .}}
   <span class="pos">{{.Pos}}{{with .PosSub}}<s>{{.}}</s>{{end}}</span>
+  <button class="del" type="button" title="Видалити" aria-label="Видалити {{.Title}}"
+          hx-post="/entry/{{.EntryID}}/delete"
+          hx-swap="none">✕</button>
   {{if eq .Mode "status"}}
     <span class="pl ghost">{{.Btn}}</span>
   {{else}}

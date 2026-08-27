@@ -179,7 +179,7 @@ a { color: inherit; text-decoration: none; }
 
 .rw {
   display: grid;
-  grid-template-columns: minmax(200px, 300px) 62px minmax(0, 1fr) 128px 28px;
+  grid-template-columns: minmax(200px, 300px) 62px minmax(0, 1fr) 128px 22px 28px;
   gap: 18px;
   align-items: center;
   padding: 11px 22px;
@@ -361,7 +361,7 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 720px) {
   .app { flex-direction: column; }
   .sb { width: auto; flex: none; border-right: 0; border-bottom: 1px solid var(--ln); }
-  .rw { grid-template-columns: 1fr 62px; gap: 12px; }
+  .rw { grid-template-columns: 1fr 22px 62px; gap: 12px; }
   .rw .trk, .rw .bar, .rw .stq, .rw .pos { grid-column: 1 / -1; }
 }
 
@@ -542,3 +542,22 @@ button.pl:hover { border-color: var(--fg); color: var(--fg); }
   color: var(--mut);
 }
 .attr a { color: var(--mid); text-decoration: underline; }
+
+.del {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  width: 22px;
+  height: 22px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--mut);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .1s ease;
+}
+.rw:hover .del, .del:focus-visible { opacity: 1; }
+.del:hover { color: var(--k-anime); }
+@media (prefers-reduced-motion: reduce) { .del { transition: none; } }

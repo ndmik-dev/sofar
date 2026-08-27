@@ -12,7 +12,7 @@ import (
 
 var pages = []string{"active.html"}
 
-var partials = []string{"row.html", "fragments.html"}
+var partials = []string{"row.html", "fragments.html", "nav.html"}
 
 const devTemplateDir = "internal/server/templates"
 

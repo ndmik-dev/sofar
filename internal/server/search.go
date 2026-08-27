@@ -88,11 +88,22 @@ func (s *Server) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, err := s.store.AddEntry(r.Context(), defaultUserID, mediaID, status, position, now); err != nil {
+	entryID, created, err := s.store.AddEntry(r.Context(), defaultUserID, mediaID, status, position, now)
+	if err != nil {
 		s.fail(w, r, err)
 		return
 	}
 
-	w.Header().Set("HX-Refresh", "true")
-	w.WriteHeader(http.StatusNoContent)
+	entry, err := s.store.GetEntry(r.Context(), entryID)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+
+	_, today, _ := s.now()
+	toast := toastView{Text: entry.Media.Title + " · вже на полиці", EntryID: entryID}
+	if created {
+		toast = toastView{Text: entry.Media.Title + " · додано", EntryID: entryID, Undo: true}
+	}
+	s.respondAdded(w, r, entry, today, toast)
 }
