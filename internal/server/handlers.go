@@ -16,12 +16,6 @@ import (
 const (
 	defaultUserID = 1
 	staleAfter    = 30 * 24 * time.Hour
-
-	// Cells shrink to fit, so the ceiling is about legibility, not width.
-	// Past denseCells they get thinner and lose the gap; past maxCells a
-	// single bar says more than a smear of hairlines.
-	denseCells = 40
-	maxCells   = 130
 )
 
 var kindLabels = map[string]string{
@@ -85,8 +79,7 @@ type row struct {
 	Kind      string
 	KindLabel string
 	Mode      string
-	Cells     []domain.Cell
-	Dense     bool
+	Blocks    []domain.Block
 	Percent   int
 	Status    string
 	Pos       string
@@ -563,10 +556,9 @@ func buildRow(e store.Entry, today string) row {
 		rw.Pos = strconv.Itoa(e.Position)
 		rw.PosSub = "без межі"
 		rw.Sub = e.Media.TitleOrig
-	case len(e.Units) > 0 && total <= maxCells:
+	case len(e.Units) > 0:
 		rw.Mode = "cells"
-		rw.Dense = total > denseCells
-		rw.Cells = domain.BuildTrack(e.Units, e.Position, today)
+		rw.Blocks = domain.BuildTiered(e.Units, e.Position, today)
 		rw.Pos = fmt.Sprintf("%d / %d", e.Position, total)
 		rw.PosSub = remainingLabel(domain.RemainingFrom(e.Units, e.Position, today))
 		if next := domain.NextLabel(e.Units, e.Position); next != "" {

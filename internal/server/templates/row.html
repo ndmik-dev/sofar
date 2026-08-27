@@ -37,16 +37,29 @@
 
 {{define "progress"}}
 {{if eq .Mode "cells"}}
-  <span class="trk{{if .Dense}} dense{{end}}">
-  {{- range .Cells -}}
-    {{- if .Sep -}}
-      <i class="sn"></i>
+  <span class="tier">
+  {{- range .Blocks -}}
+    {{- if eq .Kind "done" -}}
+      <span class="blk done" style="--n: {{.Count}}" title="Сезон {{.Season}} · переглянуто">S{{.Season}}</span>
+    {{- else if eq .Kind "later" -}}
+      <span class="blk later{{if .Aired}} out{{end}}" style="--n: {{.Count}}"
+            title="Сезон {{.Season}} · {{.Count}} серій{{if .Aired}} · уже вийшов{{else}} · ще не вийшов{{end}}">S{{.Season}}</span>
+    {{- else if eq .Kind "bar" -}}
+      <span class="blk barblk"><i style="width: {{.Percent}}%"></i></span>
     {{- else -}}
-      <button type="button" class="{{.State}}" title="{{.Hint}}" aria-label="{{.Hint}}" tabindex="-1"
-              hx-post="/entry/{{$.EntryID}}/advance"
-              hx-vals='{"abs": {{.Idx}}}'
-              hx-target="#entry-{{$.EntryID}}"
-              hx-swap="outerHTML"></button>
+      <span class="trk cur{{if .Dense}} dense{{end}}">
+      {{- range .Cells -}}
+        {{- if .Sep -}}
+          <i class="sn"></i>
+        {{- else -}}
+          <button type="button" class="{{.State}}" title="{{.Hint}}" aria-label="{{.Hint}}" tabindex="-1"
+                  hx-post="/entry/{{$.EntryID}}/advance"
+                  hx-vals='{"abs": {{.Idx}}}'
+                  hx-target="#entry-{{$.EntryID}}"
+                  hx-swap="outerHTML"></button>
+        {{- end -}}
+      {{- end -}}
+      </span>
     {{- end -}}
   {{- end -}}
   </span>
