@@ -12,13 +12,16 @@ SOFAR_DEV=1 go run .                  # templates and static read from disk
 go test ./...
 ```
 
-Env: `SOFAR_ADDR` (типово `:8099`) `SOFAR_DB` `SOFAR_DEV` `SOFAR_TZ` `SOFAR_DAY_START`.
+Env: `SOFAR_ADDR` (типово `:8099`) `SOFAR_DB` `SOFAR_DEV` `SOFAR_TZ` `SOFAR_DAY_START`
+`SOFAR_CACHE` `TMDB_TOKEN` `GOOGLE_BOOKS_KEY` `RAWG_KEY`. Read from `.env` when present.
 
 ## Layout
 
 ```
 main.go                          config, db, server, graceful shutdown
 internal/config                  env parsing, day-boundary helper
+internal/fetch                   cached JSON GET shared by every catalog adapter
+internal/catalog                 TMDB import plus Google Books, RAWG and iTunes
 internal/store                   SQLite, migrations. No HTML, no external APIs.
   migrations/*.sql               applied in filename order, tracked in schema_migrations
 internal/server                  routing, rendering, handlers

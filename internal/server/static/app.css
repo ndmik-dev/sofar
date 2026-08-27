@@ -804,3 +804,6 @@ button.kb:hover { border-color: var(--mid); color: var(--fg); }
 .trk.cur::-webkit-scrollbar { display: none; }
 .tier .trk.cur:first-child { border-left: 0; padding-left: 0; }
 .tier .trk.cur:last-child { border-right: 0; padding-right: 0; }
+
+.mform.folded { border-top: 1px solid var(--ln2); margin-top: 6px; }
+.res .tg { flex: 0 0 auto; }

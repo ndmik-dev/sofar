@@ -14,6 +14,8 @@ type Config struct {
 	Loc       *time.Location
 	DayStart  int
 	TMDBToken string
+	BooksKey  string
+	GamesKey  string
 	CacheDir  string
 }
 
@@ -28,6 +30,8 @@ func Load() (Config, error) {
 		Dev:       env("SOFAR_DEV", "") != "",
 		DayStart:  4,
 		TMDBToken: env("TMDB_TOKEN", ""),
+		BooksKey:  env("GOOGLE_BOOKS_KEY", ""),
+		GamesKey:  env("RAWG_KEY", ""),
 		CacheDir:  env("SOFAR_CACHE", "cache"),
 	}
 

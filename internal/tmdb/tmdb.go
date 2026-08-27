@@ -2,14 +2,14 @@ package tmdb
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ndmik-dev/sofar/internal/fetch"
 )
 
 const (
@@ -21,19 +21,15 @@ const (
 
 type Client struct {
 	token string
-	http  *http.Client
-	cache *Cache
-	gate  chan struct{}
+	fetch *fetch.Client
 }
 
 func New(token, cacheDir string) *Client {
 	return &Client{
 		token: token,
-		http:  &http.Client{Timeout: 15 * time.Second},
-		cache: NewCache(cacheDir),
-		// TMDB has no hard limit any more, but a three-season import fires
-		// four calls at once; four in flight is plenty and stays polite.
-		gate: make(chan struct{}, 4),
+		fetch: fetch.New(baseURL, cacheDir, map[string]string{
+			"Authorization": "Bearer " + token,
+		}),
 	}
 }
 
@@ -76,46 +72,7 @@ func (c *Client) get(ctx context.Context, path string, q url.Values, ttl time.Du
 	if !c.Enabled() {
 		return fmt.Errorf("TMDB_TOKEN is not set")
 	}
-
-	full := path
-	if len(q) > 0 {
-		full += "?" + q.Encode()
-	}
-
-	if body, ok := c.cache.Get(full, ttl); ok {
-		return json.Unmarshal(body, out)
-	}
-
-	select {
-	case c.gate <- struct{}{}:
-		defer func() { <-c.gate }()
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL+full, nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Authorization", "Bearer "+c.token)
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := c.http.Do(req)
-	if err != nil {
-		return fmt.Errorf("tmdb %s: %w", path, err)
-	}
-	defer resp.Body.Close()
-
-	body, err := readLimited(resp)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("tmdb %s: %s: %s", path, resp.Status, snippet(body))
-	}
-
-	c.cache.Put(full, body)
-	return json.Unmarshal(body, out)
+	return c.fetch.GetJSON(ctx, path, q, ttl, out)
 }
 
 type searchResponse struct {

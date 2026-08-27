@@ -14,6 +14,7 @@ type MediaInput struct {
 	Source     string
 	TMDBType   string
 	TMDBID     int
+	ExtID      string
 	Title      string
 	TitleOrig  string
 	Year       int
@@ -35,10 +36,18 @@ func (s *Store) UpsertMedia(ctx context.Context, in MediaInput, units []domain.U
 	defer tx.Rollback()
 
 	var id int64
-	if in.TMDBID != 0 {
+	switch {
+	case in.TMDBID != 0:
 		err := tx.QueryRowContext(ctx,
 			`SELECT id FROM media WHERE tmdb_type = ? AND tmdb_id = ?`,
 			in.TMDBType, in.TMDBID).Scan(&id)
+		if err != nil && err != sql.ErrNoRows {
+			return 0, fmt.Errorf("find media: %w", err)
+		}
+	case in.ExtID != "":
+		err := tx.QueryRowContext(ctx,
+			`SELECT id FROM media WHERE source = ? AND ext_id = ?`,
+			in.Source, in.ExtID).Scan(&id)
 		if err != nil && err != sql.ErrNoRows {
 			return 0, fmt.Errorf("find media: %w", err)
 		}
@@ -48,15 +57,15 @@ func (s *Store) UpsertMedia(ctx context.Context, in MediaInput, units []domain.U
 		in.Kind, in.Source, nullIfEmpty(in.TMDBType), nullIfZero(in.TMDBID),
 		in.Title, nullIfEmpty(in.TitleOrig), nullIfZero(in.Year),
 		nullIfEmpty(in.Overview), nullIfEmpty(in.PosterPath), nullIfZero(in.RuntimeMin),
-		in.TotalUnits, in.Unit, nullIfEmpty(in.Airing), now.Unix(),
+		in.TotalUnits, in.Unit, nullIfEmpty(in.Airing), nullIfEmpty(in.ExtID), now.Unix(),
 	}
 
 	if id == 0 {
 		res, err := tx.ExecContext(ctx, `
 			INSERT INTO media (kind, source, tmdb_type, tmdb_id, title, title_orig, year,
 			                   overview, poster_path, runtime_min, total_units, unit,
-			                   airing, refreshed_at, created_at)
-			VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, append(args, now.Unix())...)
+			                   airing, ext_id, refreshed_at, created_at)
+			VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, append(args, now.Unix())...)
 		if err != nil {
 			return 0, fmt.Errorf("insert media: %w", err)
 		}
@@ -67,7 +76,7 @@ func (s *Store) UpsertMedia(ctx context.Context, in MediaInput, units []domain.U
 		_, err := tx.ExecContext(ctx, `
 			UPDATE media SET kind=?, source=?, tmdb_type=?, tmdb_id=?, title=?, title_orig=?,
 			                 year=?, overview=?, poster_path=?, runtime_min=?, total_units=?,
-			                 unit=?, airing=?, refreshed_at=?
+			                 unit=?, airing=?, ext_id=?, refreshed_at=?
 			WHERE id = ?`, append(args, id)...)
 		if err != nil {
 			return 0, fmt.Errorf("update media: %w", err)

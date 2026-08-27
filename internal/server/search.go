@@ -37,11 +37,16 @@ var unitLabels = map[string]string{
 type searchResult struct {
 	TMDBType  string
 	TMDBID    int
+	Source    string
+	ExtID     string
 	Kind      string
 	KindLabel string
 	Title     string
 	Original  string
 	Meta      string
+	Total     int
+	Cover     string
+	NeedsForm bool
 	First     bool
 }
 
@@ -59,6 +64,13 @@ type manualForm struct {
 	UnitLabel string
 	Kinds     []kindChoice
 	Open      bool
+	Secondary bool
+	Total     int
+	Position  int
+	Subtitle  string
+	Source    string
+	ExtID     string
+	Cover     string
 }
 
 type searchView struct {
@@ -109,7 +121,8 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case manualKinds[kind]:
-		view.Manual = manualFormFor(q, kind)
+		s.fillOwnCatalog(w, r, &view, kind, q)
+		return
 	case len([]rune(q)) < 2:
 		view.Message = "Введи щонайменше дві літери"
 	case !s.catalog.Enabled():
@@ -147,6 +160,52 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	s.renderFragment(w, r, "search-results", view)
 }
 
+// Books, games and podcasts each have their own catalog. Whatever it returns is
+// a suggestion: the last row always offers the manual form, and a book carries
+// its page count into an editable field rather than straight into the database.
+func (s *Server) fillOwnCatalog(w http.ResponseWriter, r *http.Request, view *searchView, kind, q string) {
+	defer func() { s.renderFragment(w, r, "search-results", view) }()
+
+	if len([]rune(q)) < 2 {
+		view.Manual = manualFormFor(q, kind)
+		return
+	}
+	if !s.catalog.HasProvider(kind) {
+		view.Message = "Ключ каталогу не заданий — лишається свій запис"
+		view.Manual = manualFormFor(q, kind)
+		return
+	}
+
+	found, err := s.catalog.FindByKind(r.Context(), kind, q, 6)
+	if err != nil {
+		s.log.Error("catalog search", "kind", kind, "q", q, "err", err)
+		view.Message = "Каталог не відповідає — можна завести вручну"
+		view.Manual = manualFormFor(q, kind)
+		return
+	}
+
+	for i, f := range found {
+		view.Results = append(view.Results, searchResult{
+			Source:    f.Source,
+			ExtID:     f.ExtID,
+			Kind:      f.Kind,
+			KindLabel: kindLabels[f.Kind],
+			Title:     f.Title,
+			Original:  f.Subtitle,
+			Meta:      yearLabel(f.Year),
+			Total:     f.Total,
+			Cover:     f.Cover,
+			NeedsForm: kind == "book",
+			First:     i == 0,
+		})
+	}
+	if len(view.Results) == 0 {
+		view.Message = "У каталозі нічого"
+	}
+	view.Manual = manualFormFor(q, kind)
+	view.Manual.Secondary = len(view.Results) > 0
+}
+
 func yearLabel(y int) string {
 	if y == 0 {
 		return ""
@@ -177,6 +236,24 @@ func (s *Server) handleAdd(w http.ResponseWriter, r *http.Request) {
 	s.finishAdd(w, r, mediaID, status, 0, now)
 }
 
+// handleManualForm prefills the form from a catalog hit, so a book arrives with
+// its author and a page count you can correct before saving.
+func (s *Server) handleManualForm(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	kind := q.Get("kind")
+	if _, known := unitForKind[kind]; !known {
+		http.Error(w, "unknown kind", http.StatusBadRequest)
+		return
+	}
+	form := manualFormFor(q.Get("title"), kind)
+	form.Total, _ = strconv.Atoi(q.Get("total"))
+	form.Subtitle = q.Get("subtitle")
+	form.Source = q.Get("source")
+	form.ExtID = q.Get("ext_id")
+	form.Cover = q.Get("cover")
+	s.renderFragment(w, r, "manual-form", form)
+}
+
 func (s *Server) handleAddManual(w http.ResponseWriter, r *http.Request) {
 	kind := r.FormValue("kind")
 	if _, known := unitForKind[kind]; !known {
@@ -201,7 +278,18 @@ func (s *Server) handleAddManual(w http.ResponseWriter, r *http.Request) {
 	}
 
 	now := time.Now().In(s.cfg.Loc)
-	mediaID, err := s.store.UpsertMedia(r.Context(), manualMedia(kind, title, total), nil, now)
+	in := manualMedia(kind, title, total)
+	in.TitleOrig = strings.TrimSpace(r.FormValue("subtitle"))
+	in.PosterPath = r.FormValue("cover")
+	in.ExtID = r.FormValue("ext_id")
+	if src := r.FormValue("source"); src != "" && in.ExtID != "" {
+		in.Source = src
+	}
+	if y, _ := strconv.Atoi(r.FormValue("year")); y > 0 {
+		in.Year = y
+	}
+
+	mediaID, err := s.store.UpsertMedia(r.Context(), in, nil, now)
 	if err != nil {
 		s.fail(w, r, err)
 		return

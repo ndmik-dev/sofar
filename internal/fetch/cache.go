@@ -1,4 +1,4 @@
-package tmdb
+package fetch
 
 import (
 	"crypto/sha256"
@@ -70,7 +70,7 @@ func (c *Cache) path(key string) string {
 	return filepath.Join(c.dir, hex.EncodeToString(sum[:16])+".json")
 }
 
-func readLimited(resp *http.Response) ([]byte, error) {
+func ReadLimited(resp *http.Response) ([]byte, error) {
 	body, err := io.ReadAll(io.LimitReader(resp.Body, maxBody+1))
 	if err != nil {
 		return nil, fmt.Errorf("read body: %w", err)
@@ -81,7 +81,7 @@ func readLimited(resp *http.Response) ([]byte, error) {
 	return body, nil
 }
 
-func snippet(body []byte) string {
+func Snippet(body []byte) string {
 	const n = 200
 	if len(body) > n {
 		return string(body[:n]) + "…"

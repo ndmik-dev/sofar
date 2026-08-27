@@ -58,7 +58,13 @@ func run(log *slog.Logger) error {
 		}
 	}
 
-	cat := catalog.New(tmdb.New(cfg.TMDBToken, cfg.CacheDir), st)
+	cat := catalog.New(
+		tmdb.New(cfg.TMDBToken, cfg.CacheDir),
+		catalog.NewBooks(cfg.BooksKey, cfg.CacheDir),
+		catalog.NewGames(cfg.GamesKey, cfg.CacheDir),
+		catalog.NewPodcasts(cfg.CacheDir),
+		st,
+	)
 	if !cat.Enabled() {
 		log.Warn("TMDB_TOKEN is not set — catalog search is disabled")
 	}

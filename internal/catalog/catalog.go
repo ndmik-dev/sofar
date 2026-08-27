@@ -12,15 +12,44 @@ import (
 )
 
 type Catalog struct {
-	tmdb  *tmdb.Client
-	store *store.Store
+	tmdb     *tmdb.Client
+	books    *Books
+	games    *Games
+	podcasts *Podcasts
+	store    *store.Store
 }
 
-func New(t *tmdb.Client, s *store.Store) *Catalog {
-	return &Catalog{tmdb: t, store: s}
+func New(t *tmdb.Client, b *Books, g *Games, p *Podcasts, s *store.Store) *Catalog {
+	return &Catalog{tmdb: t, books: b, games: g, podcasts: p, store: s}
 }
 
 func (c *Catalog) Enabled() bool { return c.tmdb.Enabled() }
+
+// FindByKind routes to whichever catalog owns that type. A provider without a
+// key returns nothing rather than an error: the manual form still works.
+func (c *Catalog) FindByKind(ctx context.Context, kind, query string, limit int) ([]Found, error) {
+	switch kind {
+	case "book":
+		return c.books.Search(ctx, query, limit)
+	case "game":
+		return c.games.Search(ctx, query, limit)
+	case "podcast":
+		return c.podcasts.Search(ctx, query, limit)
+	}
+	return nil, nil
+}
+
+func (c *Catalog) HasProvider(kind string) bool {
+	switch kind {
+	case "book":
+		return c.books.Enabled()
+	case "game":
+		return c.games.Enabled()
+	case "podcast":
+		return c.podcasts.Enabled()
+	}
+	return false
+}
 
 func (c *Catalog) Search(ctx context.Context, query string, limit int) ([]tmdb.Result, error) {
 	return c.tmdb.Search(ctx, query, limit)
