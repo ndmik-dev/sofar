@@ -46,13 +46,6 @@ func TestTieredStartOfShow(t *testing.T) {
 	}
 }
 
-func TestTieredFinishedShowSitsOnTheLastSeason(t *testing.T) {
-	got := shape(BuildTiered(seasonsOf(2, 2), 4, "2026-08-27"))
-	if want := "done cells:ff"; got != want {
-		t.Errorf("finished = %q, want %q", got, want)
-	}
-}
-
 func TestTieredSingleSeasonStaysFlat(t *testing.T) {
 	blocks := BuildTiered(seasonsOf(5), 2, "2026-08-27")
 	if len(blocks) != 1 || blocks[0].Kind != BlockCells {
@@ -101,5 +94,19 @@ func TestTieredDenseFlagFollowsSeasonSize(t *testing.T) {
 func TestTieredEmpty(t *testing.T) {
 	if BuildTiered(nil, 0, "2026-08-27") != nil {
 		t.Error("no units means no blocks")
+	}
+}
+
+func TestTieredFinishedShowCollapsesEverySeason(t *testing.T) {
+	got := shape(BuildTiered(seasonsOf(2, 2, 2), 6, "2026-08-27"))
+	if want := "done done done"; got != want {
+		t.Errorf("finished show = %q, want %q", got, want)
+	}
+}
+
+func TestTieredOneEpisodeShortOfTheEndStaysExpanded(t *testing.T) {
+	got := shape(BuildTiered(seasonsOf(2, 2), 3, "2026-08-27"))
+	if want := "done cells:fn"; got != want {
+		t.Errorf("almost finished = %q, want %q", got, want)
 	}
 }

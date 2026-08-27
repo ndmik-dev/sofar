@@ -37,14 +37,19 @@ func BuildTiered(units []Unit, position int, today string) []Block {
 		return []Block{cellsBlock(seasons[0], position, today)}
 	}
 
-	current := currentSeason(seasons, position)
+	// Nothing is in progress once everything is watched, so every season
+	// collapses — the archive becomes a wall of closed blocks.
+	current := -1
+	if position < units[len(units)-1].Idx {
+		current = currentSeason(seasons, position)
+	}
 	blocks := make([]Block, 0, len(seasons))
 
 	for i, s := range seasons {
 		switch {
 		case i == current:
 			blocks = append(blocks, cellsBlock(s, position, today))
-		case i < current:
+		case current < 0 || i < current:
 			blocks = append(blocks, Block{
 				Kind: BlockDone, Season: s[0].Season, Count: len(s), Percent: 100,
 			})
@@ -89,8 +94,7 @@ func groupSeasons(units []Unit) [][]Unit {
 	return append(out, cur)
 }
 
-// The season you are in is the one holding the next unwatched unit; once
-// everything is watched it is the last one.
+// The season you are in is the one holding the next unwatched unit.
 func currentSeason(seasons [][]Unit, position int) int {
 	next := position + 1
 	for i, s := range seasons {
