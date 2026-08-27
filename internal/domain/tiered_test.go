@@ -110,3 +110,21 @@ func TestTieredOneEpisodeShortOfTheEndStaysExpanded(t *testing.T) {
 		t.Errorf("almost finished = %q, want %q", got, want)
 	}
 }
+
+func TestSeasonEndSkipsUnairedEpisodes(t *testing.T) {
+	us := seasonsOf(10)
+	for i := 6; i < 10; i++ {
+		us[i].AirDate = "2030-01-01"
+	}
+	blocks := BuildTiered(us, 2, "2026-08-27")
+	if got := CurrentSeasonEnd(blocks); got != 6 {
+		t.Errorf("season end = %d, want 6 (episodes 7-10 have not aired)", got)
+	}
+}
+
+func TestSeasonEndFullyAired(t *testing.T) {
+	blocks := BuildTiered(seasonsOf(8), 3, "2026-08-27")
+	if got := CurrentSeasonEnd(blocks); got != 8 {
+		t.Errorf("season end = %d, want 8", got)
+	}
+}

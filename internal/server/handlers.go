@@ -398,13 +398,15 @@ func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry stor
 		return
 	}
 
+	// The archive groups rows by year, so a bare prepend would land outside
+	// the groups — rows only insert live on flat lists.
 	resp := addedRow{
 		Row:     buildRow(entry, today),
 		Toast:   toast,
 		Summary: sum,
 		Nav:     nav,
 		Step:    positionStepFor(entry, created),
-		ShowRow: showRow && viewingList(r, entry.Status),
+		ShowRow: showRow && entry.Status != "done" && viewingList(r, entry.Status),
 	}
 
 	// Backfilling the archive is a rhythm, not a dialogue: anything that does

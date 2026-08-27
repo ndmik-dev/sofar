@@ -331,7 +331,9 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.6;
 }
 .empty .bt { margin-top: 24px; display: flex; gap: 10px; justify-content: center; }
-.empty .bt span {
+.empty .bt button {
+  appearance: none;
+  cursor: pointer;
   font-family: var(--mono);
   font-size: 12px;
   border: 1px solid var(--ln);
@@ -341,7 +343,8 @@ a { color: inherit; text-decoration: none; }
   background: var(--el);
   letter-spacing: .04em;
 }
-.empty .bt span.on { background: var(--ac); border-color: var(--ac); color: #fff; }
+.empty .bt button.on { background: var(--ac); border-color: var(--ac); color: #fff; }
+.empty .bt button:hover { filter: brightness(1.05); border-color: var(--mid); }
 
 .ft {
   margin-top: auto;
@@ -1111,3 +1114,7 @@ button.kb:hover { border-color: var(--mid); color: var(--fg); }
 .strow .sw button.on { background: var(--fg); color: var(--bg); }
 .strow .sw button:hover:not(.on) { color: var(--fg); background: var(--ln2); }
 .strow .pv { font-family: var(--mono); font-size: 11px; color: var(--mut); display: flex; align-items: center; }
+
+/* The palette inserts rows out-of-band; the moment one lands, the empty state
+   is a lie and hides itself. */
+#rows:not(:empty) ~ .empty { display: none; }

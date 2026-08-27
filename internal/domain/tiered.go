@@ -127,18 +127,21 @@ func percentWatched(season []Unit, position int) int {
 	return done * 100 / len(season)
 }
 
-// CurrentSeasonEnd is the absolute index of the last unit in the season being
-// watched — what ⇧S jumps to. Zero when there is nothing left to finish.
+// CurrentSeasonEnd is the absolute index of the last *aired* unit in the
+// season being watched — what ⇧S jumps to. You cannot have watched an episode
+// that does not exist yet, so unaired cells never count.
 func CurrentSeasonEnd(blocks []Block) int {
 	for _, b := range blocks {
-		if b.Kind != BlockCells || len(b.Cells) == 0 {
+		if b.Kind != BlockCells {
 			continue
 		}
-		last := b.Cells[len(b.Cells)-1]
-		if last.Sep {
-			continue
+		end := 0
+		for _, c := range b.Cells {
+			if !c.Sep && c.State != StateUnaired {
+				end = c.Idx
+			}
 		}
-		return last.Idx
+		return end
 	}
 	return 0
 }

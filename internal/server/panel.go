@@ -26,6 +26,9 @@ type factRow struct {
 
 type panelView struct {
 	EntryID   int64
+	Percent   int
+	HasBar    bool
+	StatusRow string
 	Title     string
 	Original  string
 	Kind      string
@@ -94,6 +97,16 @@ func buildPanel(e store.Entry, pace store.Pace, today string, loc *time.Location
 		p.Position = fmt.Sprintf("%d / %d", e.Position, total)
 	} else {
 		p.Position = fmt.Sprintf("%d", e.Position)
+	}
+
+	switch {
+	case e.Depth == "status":
+		p.StatusRow = statusWords[e.Status]
+	case len(e.Units) == 0 && e.Media.TotalUnits.Valid && total > 1:
+		// Books have no named units, but their progress deserves more than a
+		// number: the same bar the list shows.
+		p.HasBar = true
+		p.Percent = e.Position * 100 / total
 	}
 
 	if len(e.Units) > 0 {

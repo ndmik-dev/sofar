@@ -6,21 +6,8 @@
   <a href="{{.Clear}}">зняти фільтр ✕</a>
 </div>
 {{end}}
-{{if .Empty}}
-<div class="empty">
-  <div class="trk">
-    <i></i><i></i><i></i><i class="n"></i><i class="u"></i><i class="u"></i><i class="u"></i><i class="u"></i><i class="u"></i>
-  </div>
-  <h1>Порожньо</h1>
-  <p>Почни з того, що вже переглянув — так апка одразу стане твоєю, а не порожньою формою.</p>
-  <div class="bt">
-    <span class="on">Заповнити архів</span>
-    <span>Додати те, що дивлюсь</span>
-  </div>
-</div>
-{{else}}
 
-{{if not .Filter}}{{template "summary" .Summary}}{{end}}
+{{if not .Empty}}{{if not .Filter}}{{template "summary" .Summary}}{{end}}{{end}}
 
 <div id="rows">{{range .Rows}}{{template "row" .}}{{end}}</div>
 
@@ -29,6 +16,18 @@
 {{range .Stale}}{{template "row" .}}{{end}}
 {{end}}
 
+{{if .Empty}}
+<div class="empty">
+  <div class="trk">
+    <i></i><i></i><i></i><i class="n"></i><i class="u"></i><i class="u"></i><i class="u"></i><i class="u"></i><i class="u"></i>
+  </div>
+  <h1>Порожньо</h1>
+  <p>Почни з того, що вже переглянув — так апка одразу стане твоєю, а не порожньою формою.</p>
+  <div class="bt">
+    <button type="button" class="on" onclick="openPalette()">Заповнити архів — ⌘↵ додає й лишає поле</button>
+    <button type="button" onclick="openPalette()">Додати те, що дивлюсь</button>
+  </div>
+</div>
 {{end}}
 
 <div class="ft">

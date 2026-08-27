@@ -30,6 +30,7 @@ var timeBuckets = []timeBucket{
 type filterChip struct {
 	Key   string
 	Label string
+	Href  string
 	On    bool
 }
 
@@ -116,7 +117,7 @@ func (s *Server) renderList(w http.ResponseWriter, r *http.Request, spec listSpe
 
 	switch spec.Status {
 	case "backlog":
-		s.fillBacklog(&page, entries, r.URL.Query().Get("t"), today)
+		s.fillBacklog(&page, entries, r.URL.Query().Get("t"), kind, today)
 	default:
 		fillArchive(&page, entries, today)
 	}
@@ -124,13 +125,18 @@ func (s *Server) renderList(w http.ResponseWriter, r *http.Request, spec listSpe
 	s.render(w, r, spec.Page, page)
 }
 
-func (s *Server) fillBacklog(page *listPage, entries []store.Entry, filter, today string) {
+func (s *Server) fillBacklog(page *listPage, entries []store.Entry, filter, kind, today string) {
 	if filter == "" {
 		filter = "long"
 	}
 	limit := 1 << 30
 	for _, b := range timeBuckets {
-		page.Filters = append(page.Filters, filterChip{Key: b.Key, Label: b.Label, On: b.Key == filter})
+		href := "/backlog?t=" + b.Key
+		// Both filters compose; switching one must not silently drop the other.
+		if kind != "" {
+			href += "&kind=" + kind
+		}
+		page.Filters = append(page.Filters, filterChip{Key: b.Key, Label: b.Label, Href: href, On: b.Key == filter})
 		if b.Key == filter {
 			limit = b.Max
 		}

@@ -21,6 +21,15 @@
   </div>
 
   <div class="pns">
+    {{if .HasBar}}
+    <div class="pg"><span>Прогрес</span><b>{{.Position}}</b></div>
+    <div class="ptrk"><span class="bar" style="--tint: var(--k-{{.Kind}}); max-width: none;"><i style="width: {{.Percent}}%"></i></span></div>
+    {{end}}
+
+    {{with .StatusRow}}
+    <div class="pg"><span>Статус</span><b>{{.}}</b></div>
+    {{end}}
+
     {{if .Blocks}}
     <div class="pg"><span>Прогрес</span><b>{{.Position}}</b></div>
     <div class="ptrk">

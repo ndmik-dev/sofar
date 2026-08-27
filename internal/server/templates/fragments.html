@@ -53,10 +53,9 @@
   <div class="sc">{{if .Kind}}Каталог{{else}}TMDB{{end}} · {{len .Results}}</div>
   {{range .Results}}
   {{if .NeedsForm}}
-  <button type="button" class="res{{if .First}} on{{end}}"
-          hx-get="/manual"
-          hx-vals='{"kind": "{{.Kind}}", "title": "{{.Title}}", "subtitle": "{{.Original}}", "total": {{.Total}}, "source": "{{.Source}}", "ext_id": "{{.ExtID}}", "cover": "{{.Cover}}"}'
-          hx-target="#palette-results" hx-swap="innerHTML">
+  <button type="button" class="res{{if .First}} on{{end}}" data-pal="form"
+          data-kind="{{.Kind}}" data-title="{{.Title}}" data-subtitle="{{.Original}}"
+          data-total="{{.Total}}" data-source="{{.Source}}" data-ext-id="{{.ExtID}}" data-cover="{{.Cover}}">
     <span class="st k-{{.Kind}}"></span>
     <span class="nn">{{.Title}}{{with .Original}} <s>· {{.}}</s>{{end}}</span>
     {{with .Total}}<span class="tg">{{.}} стор.</span>{{end}}
@@ -65,13 +64,11 @@
   {{else}}
   <button type="button" class="res{{if .First}} on{{end}}"
           {{if .Source}}
-          hx-post="/add/manual"
-          hx-vals='js:{kind: "{{.Kind}}", title: "{{.Title}}", subtitle: "{{.Original}}", source: "{{.Source}}", ext_id: "{{.ExtID}}", cover: "{{.Cover}}", year: "{{.Meta}}", status: sofarStatus(event)}'
+          data-pal="add-manual" data-kind="{{.Kind}}" data-title="{{.Title}}" data-subtitle="{{.Original}}"
+          data-source="{{.Source}}" data-ext-id="{{.ExtID}}" data-cover="{{.Cover}}" data-year="{{.Meta}}"
           {{else}}
-          hx-post="/add"
-          hx-vals='js:{tmdb_type: "{{.TMDBType}}", tmdb_id: {{.TMDBID}}, status: sofarStatus(event)}'
-          {{end}}
-          hx-target="#palette-results" hx-swap="innerHTML">
+          data-pal="add-tmdb" data-tmdb-type="{{.TMDBType}}" data-tmdb-id="{{.TMDBID}}"
+          {{end}}>
     <span class="st k-{{.Kind}}"></span>
     <span class="nn">{{.Title}}{{with .Original}} <s>· {{.}}</s>{{end}}</span>
     <span class="tg">{{.KindLabel}}</span>
@@ -86,9 +83,7 @@
 {{end}}
 
 {{define "manual-form"}}
-<form class="mform{{if .Secondary}} folded{{end}}" hx-post="/add/manual"
-      hx-vals='js:{status: sofarStatus(event)}'
-      hx-target="#palette-results" hx-swap="innerHTML">
+<form class="mform{{if .Secondary}} folded{{end}}" data-pal="submit-manual">
   <div class="sc">{{if .Secondary}}Немає в каталозі — завести самому{{else}}Свій запис{{end}}</div>
 
   <input type="hidden" name="source" value="{{.Source}}">
@@ -144,9 +139,7 @@
 {{define "position-step"}}
 <div class="step">
   <div class="sc">Додано · {{.Title}}</div>
-  <form class="fl" hx-post="/entry/{{.EntryID}}/advance"
-        hx-target="#entry-{{.EntryID}}" hx-swap="outerHTML"
-        onsubmit="closePalette()">
+  <form class="fl" data-pal="position" data-entry="{{.EntryID}}">
     <span class="k2">Де ти зупинився?</span>
     <span class="withunit">
       <input class="v2 num" type="number" name="abs" min="0" max="{{.Total}}"

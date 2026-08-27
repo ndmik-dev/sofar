@@ -76,9 +76,16 @@
     return isNaN(n) ? 0 : n;
   }
 
+  function statusOnly(row) {
+    return !!row.querySelector(".stq");
+  }
+
   function advance() {
     var row = selected();
     if (!row) return;
+    // A status-depth row has no progress to advance; writing hidden progress
+    // rows would quietly pollute the year statistics.
+    if (statusOnly(row)) return;
     var typed = takeDigits();
     var step = typed > 0 ? typed : parseInt(row.dataset.step, 10) || 1;
     post("/entry/" + row.dataset.entry + "/advance", { n: step });
@@ -150,6 +157,68 @@
     });
   };
 
+  // Every palette action goes through one body-sourced request. Requests fired
+  // from elements inside the open dialog lose their out-of-band swaps on some
+  // pages, and this is the one path that provably never does.
+  function paletteRequest(method, url, values) {
+    return window.htmx.ajax(method, url, {
+      source: document.body,
+      target: "#palette-results",
+      swap: "innerHTML",
+      values: values,
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest("[data-pal]");
+    if (!el || el.tagName === "FORM") return;
+    var d = el.dataset;
+    switch (d.pal) {
+      case "add-tmdb":
+        paletteRequest("POST", "/add", {
+          tmdb_type: d.tmdbType,
+          tmdb_id: d.tmdbId,
+          status: window.sofarStatus(e),
+        });
+        break;
+      case "add-manual":
+        paletteRequest("POST", "/add/manual", {
+          kind: d.kind, title: d.title, subtitle: d.subtitle,
+          source: d.source, ext_id: d.extId, cover: d.cover, year: d.year,
+          status: window.sofarStatus(e),
+        });
+        break;
+      case "form":
+        paletteRequest("GET", "/manual", {
+          kind: d.kind, title: d.title, subtitle: d.subtitle,
+          total: d.total, source: d.source, ext_id: d.extId, cover: d.cover,
+        });
+        break;
+    }
+  });
+
+  document.addEventListener("submit", function (e) {
+    var form = e.target.closest("[data-pal]");
+    if (!form) return;
+    e.preventDefault();
+    var values = {};
+    new FormData(form).forEach(function (v, k) { values[k] = v; });
+    if (form.dataset.pal === "submit-manual") {
+      values.status = window.sofarStatus(e);
+      paletteRequest("POST", "/add/manual", values);
+      return;
+    }
+    if (form.dataset.pal === "position") {
+      window.htmx.ajax("POST", "/entry/" + form.dataset.entry + "/advance", {
+        source: document.body,
+        target: "#entry-" + form.dataset.entry,
+        swap: "outerHTML",
+        values: values,
+      });
+      window.closePalette();
+    }
+  });
+
   document.body.addEventListener("sofar:flow", function () {
     var input = document.getElementById("palette-input");
     var results = document.getElementById("palette-results");
@@ -214,7 +283,15 @@
       }
       if (palette.querySelector("form") && isTyping(e.target)) return;
       var first = palette.querySelector(".res.on") || palette.querySelector(".res");
-      if (!first) return;
+      if (!first) {
+        var form = palette.querySelector("form[data-pal]");
+        if (form) {
+          e.preventDefault();
+          pendingStatus = statusFromEvent(e);
+          form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        }
+        return;
+      }
       e.preventDefault();
       pendingStatus = statusFromEvent(e);
       first.click();
@@ -271,7 +348,7 @@
         if (e.shiftKey) {
           var back = selected();
           takeDigits();
-          if (back) post("/entry/" + back.dataset.entry + "/advance", { n: -1 });
+          if (back && !statusOnly(back)) post("/entry/" + back.dataset.entry + "/advance", { n: -1 });
         } else {
           advance();
         }
