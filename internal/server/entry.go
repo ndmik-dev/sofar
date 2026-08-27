@@ -44,5 +44,5 @@ func (s *Server) handleRestore(w http.ResponseWriter, r *http.Request) {
 	s.respondAdded(w, r, entry, today, toastView{
 		Text:    entry.Media.Title + " · повернуто",
 		EntryID: entry.ID,
-	})
+	}, false)
 }

@@ -35,6 +35,13 @@ var kindNav = []struct{ Kind, Label string }{
 	{"podcast", "Подкасти"},
 }
 
+var statusWords = map[string]string{
+	"active":  "у процесі",
+	"backlog": "у «колись»",
+	"done":    "у завершених",
+	"dropped": "у кинутих",
+}
+
 var unitNames = map[string]string{
 	"episode": "серій",
 	"page":    "сторінок",
@@ -113,6 +120,15 @@ type addedRow struct {
 	Toast   toastView
 	Summary summaryView
 	Nav     navView
+	Step    *positionStep
+}
+
+type positionStep struct {
+	EntryID int64
+	Title   string
+	Total   int
+	Unit    string
+	Hint    string
 }
 
 type listPage struct {
@@ -313,7 +329,7 @@ func (s *Server) renderSidebands(w http.ResponseWriter, r *http.Request, removed
 	s.renderFragment(w, r, "removed-row", removed)
 }
 
-func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry store.Entry, today string, toast toastView) {
+func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry store.Entry, today string, toast toastView, created bool) {
 	sum, nav, err := s.sidebands(r, today)
 	if err != nil {
 		s.fail(w, r, err)
@@ -324,7 +340,35 @@ func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry stor
 		Toast:   toast,
 		Summary: sum,
 		Nav:     nav,
+		Step:    positionStepFor(entry, created),
 	})
+}
+
+// Asking "where did you stop" only makes sense for something you are actually
+// watching, that has units to count, and that is still at zero.
+func positionStepFor(e store.Entry, created bool) *positionStep {
+	if !created || e.Status != "active" || e.Depth == "status" {
+		return nil
+	}
+	if !e.Media.TotalUnits.Valid || e.Position > 0 {
+		return nil
+	}
+	total := int(e.Media.TotalUnits.Int64)
+	if total <= 1 {
+		return nil
+	}
+	unit := unitNames[e.Media.Unit]
+	hint := fmt.Sprintf("усього %d", total)
+	if unit != "" {
+		hint += " " + unit
+	}
+	return &positionStep{
+		EntryID: e.ID,
+		Title:   e.Media.Title,
+		Total:   total,
+		Unit:    unit,
+		Hint:    hint,
+	}
 }
 
 func (s *Server) respondMove(w http.ResponseWriter, r *http.Request, move store.Move, today string) {

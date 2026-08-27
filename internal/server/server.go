@@ -72,6 +72,7 @@ func (s *Server) routes() error {
 	s.mux.HandleFunc("POST /entry/{id}/restore", s.handleRestore)
 	s.mux.HandleFunc("GET /search", s.handleSearch)
 	s.mux.HandleFunc("POST /add", s.handleAdd)
+	s.mux.HandleFunc("POST /add/manual", s.handleAddManual)
 	return nil
 }
 

@@ -54,25 +54,93 @@
   {{range .Results}}
   <button type="button" class="res{{if .First}} on{{end}}"
           hx-post="/add"
-          hx-vals='{"tmdb_type": "{{.TMDBType}}", "tmdb_id": {{.TMDBID}}, "status": "active"}'
-          hx-target="#rows" hx-swap="afterbegin"
-          onclick="document.getElementById('palette').close()">
+          hx-vals='js:{tmdb_type: "{{.TMDBType}}", tmdb_id: {{.TMDBID}}, status: sofarStatus(event)}'
+          hx-target="#palette-results" hx-swap="innerHTML">
     <span class="st k-{{.Kind}}"></span>
     <span class="nn">{{.Title}}{{with .Original}} <s>· {{.}}</s>{{end}}</span>
     <span class="tg">{{.KindLabel}}</span>
     <span class="yy">{{.Meta}}</span>
   </button>
   {{end}}
-{{else if .Message}}
-  <div class="hintline{{if .Disabled}} warn{{end}}">{{.Message}}</div>
 {{end}}
+
+{{with .Message}}<div class="hintline">{{.}}</div>{{end}}
+{{with .Manual}}{{template "manual-form" .}}{{end}}
+{{end}}
+
+{{define "manual-form"}}
+<form class="mform" hx-post="/add/manual"
+      hx-vals='js:{status: sofarStatus(event)}'
+      hx-target="#palette-results" hx-swap="innerHTML">
+  <div class="sc">Свій запис</div>
+
+  <div class="fl">
+    <span class="k2">Тип</span>
+    <span class="chips">
+      {{range .Kinds}}
+      <label class="chip{{if .On}} on{{end}}">
+        <input type="radio" name="kind" value="{{.Kind}}"{{if .On}} checked{{end}}
+               hx-get="/search" hx-trigger="change"
+               hx-include="#palette-input" hx-target="#palette-results" hx-swap="innerHTML"
+               hx-vals='js:{q: "{{.Kind}}"}'>
+        <i class="d k-{{.Kind}}"></i>{{.Label}}
+      </label>
+      {{end}}
+    </span>
+  </div>
+
+  <div class="fl">
+    <span class="k2">Назва</span>
+    <input class="v2" type="text" name="title" value="{{.Title}}" required autocomplete="off">
+  </div>
+
+  {{if not .Open}}
+  <div class="fl">
+    <span class="k2">Всього</span>
+    <span class="withunit">
+      <input class="v2 num" type="number" name="total" min="0" inputmode="numeric" placeholder="0">
+      <s>{{.UnitLabel}}</s>
+    </span>
+  </div>
+  <div class="fl">
+    <span class="k2">Зупинився</span>
+    <span class="withunit">
+      <input class="v2 num" type="number" name="position" min="0" inputmode="numeric" placeholder="0">
+      <s>можна пропустити</s>
+    </span>
+  </div>
+  {{end}}
+
+  <button type="submit" class="primary">Додати</button>
+</form>
+{{end}}
+
+{{define "position-step"}}
+<div class="step">
+  <div class="sc">Додано · {{.Title}}</div>
+  <form class="fl" hx-post="/entry/{{.EntryID}}/advance"
+        hx-target="#entry-{{.EntryID}}" hx-swap="outerHTML"
+        onsubmit="closePalette()">
+    <span class="k2">Де ти зупинився?</span>
+    <span class="withunit">
+      <input class="v2 num" type="number" name="abs" min="0" max="{{.Total}}"
+             inputmode="numeric" placeholder="0" autofocus>
+      <s>{{.Hint}}</s>
+    </span>
+  </form>
+  <div class="pfoot" style="border:0;background:none;padding:9px 0 0">
+    <span><b>↵</b> зберегти</span>
+    <span><b>Esc</b> лишити на нулі</span>
+  </div>
+</div>
 {{end}}
 
 {{define "added-row"}}
-{{template "row" .Row}}
+<div hx-swap-oob="afterbegin:#rows">{{template "row" .Row}}</div>
 {{template "summary" .Summary}}
 {{template "nav" .Nav}}
 {{template "toast" .Toast}}
+{{if .Step}}{{template "position-step" .Step}}{{else}}<div class="hintline">Готово. Пиши далі або закрий на Esc.</div>{{end}}
 {{end}}
 
 {{define "removed-row"}}
