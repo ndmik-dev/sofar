@@ -3,6 +3,7 @@ package catalog
 import (
 	"context"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/ndmik-dev/sofar/internal/config"
@@ -22,6 +23,9 @@ func TestLiveBooks(t *testing.T) {
 	b := NewBooks(env(t, "GOOGLE_BOOKS_KEY"), t.TempDir())
 	res, err := b.Search(context.Background(), "ім'я вітру ротфусс", 5)
 	if err != nil {
+		if strings.Contains(err.Error(), "503") {
+			t.Skip("Google Books is having one of its moments:", err)
+		}
 		t.Fatal(err)
 	}
 	if len(res) == 0 {

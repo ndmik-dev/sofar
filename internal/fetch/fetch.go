@@ -55,20 +55,48 @@ func (c *Client) GetJSON(ctx context.Context, path string, q url.Values, ttl tim
 		req.Header.Set(k, v)
 	}
 
-	resp, err := c.http.Do(req)
-	if err != nil {
-		return fmt.Errorf("get %s: %w", path, err)
-	}
-	defer resp.Body.Close()
-
-	body, err := ReadLimited(resp)
+	body, err := c.doWithRetry(ctx, req, path)
 	if err != nil {
 		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("get %s: %s: %s", path, resp.Status, Snippet(body))
 	}
 
 	c.cache.Put(c.base+full, body)
 	return json.Unmarshal(body, out)
+}
+
+// Google Books hands out a 503 every so often for no reason. One quiet retry
+// turns that blip into nothing, instead of a "catalog is down" message the user
+// has to think about.
+func (c *Client) doWithRetry(ctx context.Context, req *http.Request, path string) ([]byte, error) {
+	var lastErr error
+	for attempt := range 2 {
+		if attempt > 0 {
+			select {
+			case <-time.After(300 * time.Millisecond):
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			}
+		}
+
+		resp, err := c.http.Do(req.Clone(ctx))
+		if err != nil {
+			lastErr = fmt.Errorf("get %s: %w", path, err)
+			continue
+		}
+
+		body, readErr := ReadLimited(resp)
+		resp.Body.Close()
+		if readErr != nil {
+			return nil, readErr
+		}
+		if resp.StatusCode == http.StatusOK {
+			return body, nil
+		}
+
+		lastErr = fmt.Errorf("get %s: %s: %s", path, resp.Status, Snippet(body))
+		if resp.StatusCode < 500 && resp.StatusCode != http.StatusTooManyRequests {
+			return nil, lastErr
+		}
+	}
+	return nil, lastErr
 }
