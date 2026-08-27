@@ -88,7 +88,7 @@ func (s *Server) renderList(w http.ResponseWriter, r *http.Request, spec listSpe
 		s.fail(w, r, err)
 		return
 	}
-	kindCounts, err := s.store.CountsByKind(ctx, defaultUserID)
+	kindCounts, err := s.store.CountsByKind(ctx, defaultUserID, spec.Status)
 	if err != nil {
 		s.fail(w, r, err)
 		return

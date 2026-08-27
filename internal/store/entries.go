@@ -63,7 +63,7 @@ func (s *Store) GetEntry(ctx context.Context, id int64) (Entry, error) {
 func (s *Store) ListEntries(ctx context.Context, userID int64, status string) ([]Entry, error) {
 	return s.queryEntries(ctx,
 		entrySelect+`WHERE e.user_id = ? AND e.status = ? AND e.deleted_at IS NULL
-		             ORDER BY e.updated_at DESC`,
+		             ORDER BY e.updated_at DESC, e.id DESC`,
 		userID, status)
 }
 
@@ -142,10 +142,35 @@ func (s *Store) CountsByStatus(ctx context.Context, userID int64) (map[string]in
 	                       WHERE user_id = ? AND deleted_at IS NULL GROUP BY status`, userID)
 }
 
-func (s *Store) CountsByKind(ctx context.Context, userID int64) (map[string]int, error) {
-	const q = `SELECT m.kind, COUNT(*) FROM entry e JOIN media m ON m.id = e.media_id
-	           WHERE e.user_id = ? AND e.deleted_at IS NULL GROUP BY m.kind`
-	return s.countBy(ctx, q, userID)
+// CountsByKind counts within one status when given, globally otherwise. The
+// sidebar shows these next to links that filter the open list, so the number
+// must describe what the click will show.
+func (s *Store) CountsByKind(ctx context.Context, userID int64, status string) (map[string]int, error) {
+	q := `SELECT m.kind, COUNT(*) FROM entry e JOIN media m ON m.id = e.media_id
+	      WHERE e.user_id = ? AND e.deleted_at IS NULL`
+	args := []any{userID}
+	if status != "" {
+		q += ` AND e.status = ?`
+		args = append(args, status)
+	}
+	q += ` GROUP BY m.kind`
+
+	rows, err := s.DB.QueryContext(ctx, q, args...)
+	if err != nil {
+		return nil, fmt.Errorf("count kinds: %w", err)
+	}
+	defer rows.Close()
+
+	out := map[string]int{}
+	for rows.Next() {
+		var kind string
+		var n int
+		if err := rows.Scan(&kind, &n); err != nil {
+			return nil, err
+		}
+		out[kind] = n
+	}
+	return out, rows.Err()
 }
 
 func (s *Store) countBy(ctx context.Context, q string, userID int64) (map[string]int, error) {

@@ -130,7 +130,10 @@
     var row = selected();
     var slot = document.getElementById("panel-slot");
     if (!row || !slot) return;
+    // Sourced on the slot so its hx-sync collapses reload storms: a newer
+    // request replaces the one in flight instead of stacking behind it.
     window.htmx.ajax("GET", "/entry/" + row.dataset.entry + "/panel", {
+      source: slot,
       target: "#panel-slot",
       swap: "innerHTML",
     });
@@ -264,7 +267,7 @@
       return;
     }
 
-    if (mod && !e.shiftKey && !e.altKey && (key === "z" || key === "я")) {
+    if (mod && !e.shiftKey && !e.altKey && (key === "z" || key === "я" || key === "з")) {
       if (isTyping(e.target)) return;
       var undo = document.querySelector("#toast .toast button");
       if (!undo) return;
@@ -363,19 +366,19 @@
       return;
     }
 
-    if ((key === "s" || key === "і") && e.shiftKey) {
+    if ((key === "s" || key === "і" || key === "с") && e.shiftKey) {
       e.preventDefault();
       finishSeason();
       return;
     }
 
-    if ((key === "e" || key === "у") && selected()) {
+    if ((key === "e" || key === "у" || key === "е") && selected()) {
       e.preventDefault();
       awaitingRating = true;
       return;
     }
 
-    if ((key === "n" || key === "т") && panelOpen()) {
+    if ((key === "n" || key === "т" || key === "н") && panelOpen()) {
       var note = document.getElementById("panel-note");
       if (note) { e.preventDefault(); note.focus(); }
     }

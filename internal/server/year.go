@@ -85,7 +85,7 @@ func (s *Server) handleYear(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	kindCounts, err := s.store.CountsByKind(ctx, defaultUserID)
+	kindCounts, err := s.store.CountsByKind(ctx, defaultUserID, "")
 	if err != nil {
 		s.fail(w, r, err)
 		return

@@ -1,6 +1,7 @@
 {{define "row"}}
 <div class="rw{{if .Selected}} on{{end}}{{if .Stale}} stale{{end}}"
      id="entry-{{.EntryID}}"
+     hx-sync="this: replace"
      style="--tint: var(--k-{{.Kind}})"
      data-entry="{{.EntryID}}"
      data-step="{{.Step}}"

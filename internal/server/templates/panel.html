@@ -1,5 +1,5 @@
 {{define "panel"}}
-<aside class="pn" id="panel" data-entry="{{.EntryID}}">
+<aside class="pn" id="panel" data-entry="{{.EntryID}}" hx-sync="this: replace">
   <div class="pnh">
     <button class="x" type="button" onclick="closePanel()" aria-label="Закрити">Esc ✕</button>
     <h2>{{.Title}}</h2>

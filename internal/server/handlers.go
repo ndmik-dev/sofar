@@ -108,10 +108,11 @@ type statusOption struct {
 }
 
 type toastView struct {
-	Text    string
-	EntryID int64
-	Undo    bool
-	Restore bool
+	Text       string
+	EntryID    int64
+	Undo       bool
+	Restore    bool
+	BackStatus string
 }
 
 type removedRow struct {
@@ -137,6 +138,7 @@ type addedRow struct {
 	Step    *positionStep
 	Flow    *flowItem
 	ShowRow bool
+	RowOOB  string
 }
 
 type flowItem struct {
@@ -206,7 +208,7 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	kindCounts, err := s.store.CountsByKind(ctx, defaultUserID)
+	kindCounts, err := s.store.CountsByKind(ctx, defaultUserID, "active")
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -310,6 +312,11 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	now, today, _ := s.now()
+	before, err := s.store.GetEntry(r.Context(), id)
+	if err != nil {
+		s.failEntry(w, r, err)
+		return
+	}
 	entry, err := s.store.SetStatus(r.Context(), id, status, now)
 	if err != nil {
 		s.failEntry(w, r, err)
@@ -322,17 +329,20 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 		s.renderSidebands(w, r, removedRow{
 			EntryID: id,
 			Toast: toastView{
-				Text:    entry.Media.Title + " · " + statusWords[entry.Status],
-				EntryID: id,
+				Text:       entry.Media.Title + " · " + statusWords[entry.Status],
+				EntryID:    id,
+				BackStatus: before.Status,
 			},
 		})
 		return
 	}
-	s.respondMove(w, r, store.Move{Entry: entry, Changed: true}, today)
+	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, today,
+		toastView{Text: entry.Media.Title + " · " + statusWords[entry.Status], EntryID: id})
 }
 
 func (s *Server) sidebands(r *http.Request, today string) (summaryView, navView, error) {
 	_, _, staleBefore := s.now()
+	base := currentBase(r)
 	sum, err := s.store.Summary(r.Context(), defaultUserID, today, staleBefore)
 	if err != nil {
 		return summaryView{}, navView{}, err
@@ -341,14 +351,14 @@ func (s *Server) sidebands(r *http.Request, today string) (summaryView, navView,
 	if err != nil {
 		return summaryView{}, navView{}, err
 	}
-	kindCounts, err := s.store.CountsByKind(r.Context(), defaultUserID)
+	kindCounts, err := s.store.CountsByKind(r.Context(), defaultUserID, pathStatus[base])
 	if err != nil {
 		return summaryView{}, navView{}, err
 	}
 
 	view := summaryFrom(sum)
 	view.OOB = true
-	return view, navViewFrom(statusCounts, kindCounts, "/active", true), nil
+	return view, navViewFrom(statusCounts, kindCounts, base, true), nil
 }
 
 func navViewFrom(statusCounts, kindCounts map[string]int, active string, oob bool) navView {
@@ -357,6 +367,12 @@ func navViewFrom(statusCounts, kindCounts map[string]int, active string, oob boo
 
 func navViewWithKind(statusCounts, kindCounts map[string]int, active, kind string, oob bool) navView {
 	nv := navView{OOB: oob, Kind: kind, Base: active}
+	kindBase := active
+	if _, isList := pathStatus[active]; !isList {
+		// Year and settings do not filter by kind, so their type links lead
+		// back to the main list.
+		kindBase = "/active"
+	}
 	for _, n := range []struct{ Label, Href, Key string }{
 		{"У процесі", "/active", "active"},
 		{"Колись", "/backlog", "backlog"},
@@ -368,9 +384,9 @@ func navViewWithKind(statusCounts, kindCounts map[string]int, active, kind strin
 		})
 	}
 	for _, k := range kindNav {
-		href := active + "?kind=" + k.Kind
+		href := kindBase + "?kind=" + k.Kind
 		if k.Kind == kind {
-			href = active
+			href = kindBase
 		}
 		nv.Kinds = append(nv.Kinds, kindItem{
 			Label: k.Label, Kind: k.Kind, Href: href,
@@ -392,6 +408,10 @@ func (s *Server) renderSidebands(w http.ResponseWriter, r *http.Request, removed
 }
 
 func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry store.Entry, today string, toast toastView, created, showRow bool) {
+	s.respondAddedAt(w, r, entry, today, toast, created, showRow, "afterbegin:#rows")
+}
+
+func (s *Server) respondAddedAt(w http.ResponseWriter, r *http.Request, entry store.Entry, today string, toast toastView, created, showRow bool, rowOOB string) {
 	sum, nav, err := s.sidebands(r, today)
 	if err != nil {
 		s.fail(w, r, err)
@@ -407,6 +427,7 @@ func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry stor
 		Nav:     nav,
 		Step:    positionStepFor(entry, created),
 		ShowRow: showRow && entry.Status != "done" && viewingList(r, entry.Status),
+		RowOOB:  rowOOB,
 	}
 
 	// Backfilling the archive is a rhythm, not a dialogue: anything that does
@@ -475,6 +496,28 @@ func (s *Server) respondMoveWith(w http.ResponseWriter, r *http.Request, move st
 var statusPaths = map[string]string{
 	"active": "/active", "backlog": "/backlog",
 	"done": "/done", "dropped": "/dropped",
+}
+
+var pathStatus = map[string]string{
+	"/active": "active", "/backlog": "backlog",
+	"/done": "done", "/dropped": "dropped",
+}
+
+// currentBase is the list page the request was made from, so out-of-band nav
+// updates highlight the page the user is looking at, not a hardcoded one.
+func currentBase(r *http.Request) string {
+	raw := r.Header.Get("HX-Current-URL")
+	if raw == "" {
+		return "/active"
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "/active"
+	}
+	if _, ok := pathStatus[u.Path]; ok {
+		return u.Path
+	}
+	return "/active"
 }
 
 // htmx sends the page the request came from, which is the only way the server

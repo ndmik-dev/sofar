@@ -875,10 +875,11 @@ button.kb:hover { border-color: var(--mid); color: var(--fg); }
   cursor: pointer;
 }
 .rt2 .dots button.f { background: var(--tint, var(--fg)); }
-.rt2 .dots:hover button { background: var(--cell); }
+/* Hover previews the rating you are about to click: the hovered dot and all
+   before it light up, everything after goes quiet. */
+.rt2 .dots:hover button.f:not(:hover):not(:has(~ button:hover)) { background: var(--cell); }
 .rt2 .dots button:hover,
-.rt2 .dots button:hover ~ button { background: var(--cell); }
-.rt2 .dots:hover button:not(:hover):not(.f) { background: var(--cell); }
+.rt2 .dots button:has(~ button:hover) { background: var(--tint, var(--fg)); }
 .rt2 b { font-family: var(--mono); font-size: 13px; }
 .rt2 .hint { font-family: var(--mono); font-size: 10px; color: var(--mut); margin-left: auto; }
 

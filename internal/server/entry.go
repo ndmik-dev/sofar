@@ -64,18 +64,25 @@ func (s *Server) handleRestore(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	now, today, _ := s.now()
+	_, today, _ := s.now()
 
-	entry, err := s.store.Restore(r.Context(), id, now)
+	entry, err := s.store.Restore(r.Context(), id)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
 	}
 
-	s.respondAdded(w, r, entry, today, toastView{
+	// Undo means "as it was": the row goes back to the exact spot the list
+	// ordering gives it, not to the top.
+	rowOOB := "beforeend:#rows"
+	if succ, err := s.store.Successor(r.Context(), defaultUserID, entry.Status, entry.UpdatedAt, entry.ID); err == nil && succ > 0 {
+		rowOOB = "beforebegin:#entry-" + strconv.FormatInt(succ, 10)
+	}
+
+	s.respondAddedAt(w, r, entry, today, toastView{
 		Text:    entry.Media.Title + " · повернуто",
 		EntryID: entry.ID,
-	}, false, true)
+	}, false, true, rowOOB)
 }
 
 func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {

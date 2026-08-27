@@ -40,6 +40,11 @@
     {{else if .Restore}}
     <button type="button"
             hx-post="/entry/{{.EntryID}}/restore"
+            hx-swap="none">⌘Z повернути</button>
+    {{else if .BackStatus}}
+    <button type="button"
+            hx-post="/entry/{{.EntryID}}/status"
+            hx-vals='{"status": "{{.BackStatus}}"}'
             hx-target="#rows"
             hx-swap="afterbegin">⌘Z повернути</button>
     {{end}}
@@ -155,7 +160,7 @@
 {{end}}
 
 {{define "added-row"}}
-{{if .ShowRow}}<div hx-swap-oob="afterbegin:#rows">{{template "row" .Row}}</div>{{end}}
+{{if .ShowRow}}<div hx-swap-oob="{{.RowOOB}}">{{template "row" .Row}}</div>{{end}}
 {{template "summary" .Summary}}
 {{template "nav" .Nav}}
 {{if .Flow}}
