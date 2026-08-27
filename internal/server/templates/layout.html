@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} — Sofar</title>
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/htmx.min.js" defer></script>
+<script src="/static/keys.js" defer></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sb">
+    <div class="br">Sofar<em>_</em></div>
+    <div class="brs">{{.Now.Format "02.01.2006"}}</div>
+
+    {{range .Nav}}
+    <a class="nv{{if .Active}} on{{end}}" href="{{.Href}}">
+      <span>{{.Label}}</span><b>{{.Count}}</b>
+    </a>
+    {{end}}
+
+    <div class="gg">Тип</div>
+    {{range .Kinds}}
+    <a class="nv" href="#"><span><i class="d k-{{.Color}}"></i>{{.Label}}</span><b>{{.Count}}</b></a>
+    {{end}}
+  </aside>
+
+  <main class="mn">
+    <div class="tp">
+      <span class="q">/ знайти або додати<em>▌</em></span>
+      <span class="kb">⌘K</span>
+      <span class="kb">?</span>
+    </div>
+    {{template "content" .}}
+  </main>
+</div>
+</body>
+</html>
