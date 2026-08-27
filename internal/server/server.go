@@ -20,6 +20,7 @@ type Server struct {
 	store     *store.Store
 	log       *slog.Logger
 	templates map[string]*template.Template
+	fragments *template.Template
 	mux       *http.ServeMux
 }
 
@@ -32,12 +33,17 @@ func New(cfg config.Config, st *store.Store, log *slog.Logger) (*Server, error) 
 	if err != nil {
 		return nil, err
 	}
+	frags, err := loadFragments(cfg.Dev)
+	if err != nil {
+		return nil, err
+	}
 
 	s := &Server{
 		cfg:       cfg,
 		store:     st,
 		log:       log,
 		templates: tmpls,
+		fragments: frags,
 		mux:       http.NewServeMux(),
 	}
 	if err := s.routes(); err != nil {
@@ -56,6 +62,9 @@ func (s *Server) routes() error {
 	s.mux.HandleFunc("GET /healthz", s.handleHealth)
 	s.mux.HandleFunc("GET /{$}", s.handleRoot)
 	s.mux.HandleFunc("GET /active", s.handleActive)
+	s.mux.HandleFunc("POST /entry/{id}/advance", s.handleAdvance)
+	s.mux.HandleFunc("POST /entry/{id}/undo", s.handleUndo)
+	s.mux.HandleFunc("POST /entry/{id}/status", s.handleStatus)
 	return nil
 }
 

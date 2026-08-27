@@ -20,6 +20,7 @@ type Unit struct {
 
 type Cell struct {
 	Sep   bool
+	Idx   int
 	State string
 	Hint  string
 }
@@ -78,7 +79,7 @@ func BuildTrack(units []Unit, position int, today string) []Cell {
 		default:
 			state = StateUnaired
 		}
-		cells = append(cells, Cell{State: state, Hint: u.hint(multi)})
+		cells = append(cells, Cell{Idx: u.Idx, State: state, Hint: u.hint(multi)})
 	}
 	return cells
 }

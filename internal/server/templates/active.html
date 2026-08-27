@@ -13,26 +13,7 @@
 </div>
 {{else}}
 
-<div class="sum">
-  <div>
-    <div class="n">{{.Summary.Waiting}} <s>серій</s></div>
-    <div class="u">вийшло й чекає</div>
-  </div>
-  {{with .Summary.WaitingTime}}
-  <div>
-    <div class="n">{{.}}</div>
-    <div class="u">якщо все додивитись</div>
-  </div>
-  {{end}}
-  <div>
-    <div class="n">{{.Summary.Airing}}</div>
-    <div class="u">ще виходять</div>
-  </div>
-  <div>
-    <div class="n">{{len .Rows}}</div>
-    <div class="u">у процесі</div>
-  </div>
-</div>
+{{template "summary" .Summary}}
 
 {{range .Rows}}{{template "row" .}}{{end}}
 
@@ -49,6 +30,6 @@
   <span><b>клік по клітинці</b> прогрес сюди</span>
   <span><b>↵</b> опис</span>
   <span><b>⌘K</b> додати</span>
-  <span class="rt">M1 · дані з бази</span>
+  <span class="rt">M2 · +1 працює</span>
 </div>
 {{end}}

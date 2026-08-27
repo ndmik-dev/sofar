@@ -1,5 +1,8 @@
 {{define "row"}}
-<div class="rw{{if .Selected}} on{{end}}{{if .Stale}} stale{{end}}" style="--tint: var(--k-{{.Kind}})" data-entry="{{.EntryID}}">
+<div class="rw{{if .Selected}} on{{end}}{{if .Stale}} stale{{end}}"
+     id="entry-{{.EntryID}}"
+     style="--tint: var(--k-{{.Kind}})"
+     data-entry="{{.EntryID}}">
   <span class="lb">
     <span class="nm">{{.Title}}</span>
     {{with .Sub}}<span class="sb2">{{.}}</span>{{end}}
@@ -7,22 +10,47 @@
   <span class="tyc">{{.KindLabel}}</span>
   {{template "progress" .}}
   <span class="pos">{{.Pos}}{{with .PosSub}}<s>{{.}}</s>{{end}}</span>
-  <span class="pl">{{.Btn}}</span>
+  {{if eq .Mode "status"}}
+    <span class="pl ghost">{{.Btn}}</span>
+  {{else}}
+    <button class="pl" type="button"
+            hx-post="/entry/{{.EntryID}}/advance"
+            hx-vals='{"n": {{.Step}}}'
+            hx-target="#entry-{{.EntryID}}"
+            hx-swap="outerHTML"
+            aria-label="Просунути на {{.Step}}">{{.Btn}}</button>
+  {{end}}
 </div>
 {{end}}
 
 {{define "progress"}}
 {{if eq .Mode "cells"}}
-  <span class="trk">{{range .Cells}}{{if .Sep}}<i class="sn"></i>{{else}}<i class="{{.State}}"{{with .Hint}} title="{{.}}"{{end}}></i>{{end}}{{end}}</span>
+  <span class="trk">
+  {{- range .Cells -}}
+    {{- if .Sep -}}
+      <i class="sn"></i>
+    {{- else -}}
+      <button type="button" class="{{.State}}" title="{{.Hint}}" aria-label="{{.Hint}}"
+              hx-post="/entry/{{$.EntryID}}/advance"
+              hx-vals='{"abs": {{.Idx}}}'
+              hx-target="#entry-{{$.EntryID}}"
+              hx-swap="outerHTML"></button>
+    {{- end -}}
+  {{- end -}}
+  </span>
 {{else if eq .Mode "bar"}}
   <span class="bar"><i style="width: {{.Percent}}%"></i></span>
 {{else if eq .Mode "open"}}
   <span class="bar open"></span>
 {{else}}
   <span class="stq">
-    <span{{if eq .Status "backlog"}} class="on"{{end}}>хочу</span>
-    <span{{if eq .Status "active"}} class="on"{{end}}>у процесі</span>
-    <span{{if eq .Status "done"}} class="on"{{end}}>завершив</span>
+  {{- range .Statuses}}
+    <button type="button" class="{{if .On}}on{{end}}"
+            hx-post="/entry/{{$.EntryID}}/status"
+            hx-vals='{"status": "{{.Value}}"}'
+            hx-target="#entry-{{$.EntryID}}"
+            hx-swap="outerHTML">{{.Label}}</button>
+  {{- end}}
   </span>
 {{end}}
 {{end}}

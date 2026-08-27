@@ -12,20 +12,25 @@ import (
 
 var pages = []string{"active.html"}
 
-var partials = []string{"row.html"}
+var partials = []string{"row.html", "fragments.html"}
 
 const devTemplateDir = "internal/server/templates"
 
-func loadTemplates(dev bool) (map[string]*template.Template, error) {
-	var tfs fs.FS
+func templateFS(dev bool) (fs.FS, error) {
 	if dev {
-		tfs = os.DirFS(devTemplateDir)
-	} else {
-		sub, err := fs.Sub(assetsFS, "templates")
-		if err != nil {
-			return nil, fmt.Errorf("templates sub-fs: %w", err)
-		}
-		tfs = sub
+		return os.DirFS(devTemplateDir), nil
+	}
+	sub, err := fs.Sub(assetsFS, "templates")
+	if err != nil {
+		return nil, fmt.Errorf("templates sub-fs: %w", err)
+	}
+	return sub, nil
+}
+
+func loadTemplates(dev bool) (map[string]*template.Template, error) {
+	tfs, err := templateFS(dev)
+	if err != nil {
+		return nil, err
 	}
 
 	out := make(map[string]*template.Template, len(pages))
@@ -38,6 +43,39 @@ func loadTemplates(dev bool) (map[string]*template.Template, error) {
 		out[page] = t
 	}
 	return out, nil
+}
+
+func loadFragments(dev bool) (*template.Template, error) {
+	tfs, err := templateFS(dev)
+	if err != nil {
+		return nil, err
+	}
+	t, err := template.New("fragments").ParseFS(tfs, partials...)
+	if err != nil {
+		return nil, fmt.Errorf("parse fragments: %w", err)
+	}
+	return t, nil
+}
+
+func (s *Server) renderFragment(w http.ResponseWriter, r *http.Request, name string, data any) {
+	t := s.fragments
+	if s.cfg.Dev {
+		fresh, err := loadFragments(true)
+		if err != nil {
+			s.fail(w, r, fmt.Errorf("reload fragments: %w", err))
+			return
+		}
+		t = fresh
+	}
+
+	var buf bytes.Buffer
+	if err := t.ExecuteTemplate(&buf, name, data); err != nil {
+		s.fail(w, r, fmt.Errorf("execute %s: %w", name, err))
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, _ = buf.WriteTo(w)
 }
 
 func (s *Server) render(w http.ResponseWriter, r *http.Request, page string, data any) {

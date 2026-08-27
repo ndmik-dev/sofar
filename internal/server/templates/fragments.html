@@ -1,0 +1,44 @@
+{{define "move-response"}}
+{{template "row" .Row}}
+{{template "summary" .Summary}}
+{{template "toast" .Toast}}
+{{end}}
+
+{{define "summary"}}
+<div class="sum" id="summary"{{if .OOB}} hx-swap-oob="true"{{end}}>
+  <div>
+    <div class="n">{{.Waiting}} <s>серій</s></div>
+    <div class="u">вийшло й чекає</div>
+  </div>
+  {{with .WaitingTime}}
+  <div>
+    <div class="n">{{.}}</div>
+    <div class="u">якщо все додивитись</div>
+  </div>
+  {{end}}
+  <div>
+    <div class="n">{{.Airing}}</div>
+    <div class="u">ще виходять</div>
+  </div>
+  <div>
+    <div class="n">{{.Active}}</div>
+    <div class="u">у процесі</div>
+  </div>
+</div>
+{{end}}
+
+{{define "toast"}}
+<div id="toast" hx-swap-oob="true">
+  {{if .Text}}
+  <div class="toast">
+    <span>{{.Text}}</span>
+    {{if .Undo}}
+    <button type="button"
+            hx-post="/entry/{{.EntryID}}/undo"
+            hx-target="#entry-{{.EntryID}}"
+            hx-swap="outerHTML">⌘Z скасувати</button>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}

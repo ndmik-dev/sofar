@@ -44,11 +44,27 @@ SELECT e.id, e.status, e.position, e.rating, e.updated_at,
 FROM entry e
 JOIN media m ON m.id = e.media_id
 LEFT JOIN type_settings ts ON ts.user_id = e.user_id AND ts.kind = m.kind
-WHERE e.user_id = ? AND e.status = ?
-ORDER BY e.updated_at DESC`
+`
+
+func (s *Store) GetEntry(ctx context.Context, id int64) (Entry, error) {
+	entries, err := s.queryEntries(ctx, entrySelect+`WHERE e.id = ?`, id)
+	if err != nil {
+		return Entry{}, err
+	}
+	if len(entries) == 0 {
+		return Entry{}, sql.ErrNoRows
+	}
+	return entries[0], nil
+}
 
 func (s *Store) ListEntries(ctx context.Context, userID int64, status string) ([]Entry, error) {
-	rows, err := s.DB.QueryContext(ctx, entrySelect, userID, status)
+	return s.queryEntries(ctx,
+		entrySelect+`WHERE e.user_id = ? AND e.status = ? ORDER BY e.updated_at DESC`,
+		userID, status)
+}
+
+func (s *Store) queryEntries(ctx context.Context, q string, args ...any) ([]Entry, error) {
+	rows, err := s.DB.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, fmt.Errorf("list entries: %w", err)
 	}

@@ -247,9 +247,10 @@ a { color: inherit; text-decoration: none; }
 }
 .rw.on .pl { background: var(--ac); border-color: var(--ac); color: #fff; font-size: 11px; font-weight: 600; }
 
-/* Cells shrink rather than wrap: a track is always one line, however long. */
+/* Cells shrink rather than wrap: a track is always one line, however long.
+   Cells are buttons, the season divider is an <i>, so states match on class. */
 .trk { display: flex; gap: 3px; align-items: center; flex-wrap: nowrap; min-width: 0; }
-.trk i {
+.trk > * {
   height: var(--cell-h);
   border-radius: 2px;
   background: var(--cell);
@@ -259,10 +260,10 @@ a { color: inherit; text-decoration: none; }
   min-width: 4px;
   position: relative;
 }
-.trk i.f { background: var(--tint, var(--fg)); }
-.trk i.a { background: var(--cell); box-shadow: inset 0 0 0 1.3px color-mix(in srgb, var(--tint, var(--fg)) 45%, transparent); }
-.trk i.n { background: color-mix(in srgb, var(--ac) 13%, transparent); box-shadow: inset 0 0 0 1.6px var(--ac); }
-.trk i.n::after {
+.trk .f { background: var(--tint, var(--fg)); }
+.trk .a { background: var(--cell); box-shadow: inset 0 0 0 1.3px color-mix(in srgb, var(--tint, var(--fg)) 45%, transparent); }
+.trk .n { background: color-mix(in srgb, var(--ac) 13%, transparent); box-shadow: inset 0 0 0 1.6px var(--ac); }
+.trk .n::after {
   content: "";
   position: absolute;
   bottom: -6px;
@@ -272,8 +273,8 @@ a { color: inherit; text-decoration: none; }
   border-right: 4px solid transparent;
   border-bottom: 4px solid var(--ac);
 }
-.trk i.u { background: transparent; box-shadow: inset 0 0 0 1px var(--ln); }
-.trk i.sn {
+.trk .u { background: transparent; box-shadow: inset 0 0 0 1px var(--ln); }
+.trk .sn {
   flex: 0 0 1px;
   max-width: 1px;
   min-width: 1px;
@@ -362,4 +363,80 @@ a { color: inherit; text-decoration: none; }
   .sb { width: auto; flex: none; border-right: 0; border-bottom: 1px solid var(--ln); }
   .rw { grid-template-columns: 1fr 62px; gap: 12px; }
   .rw .trk, .rw .bar, .rw .stq, .rw .pos { grid-column: 1 / -1; }
+}
+
+.trk button,
+.stq button,
+button.pl {
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.trk button { border: 0; transition: transform .08s ease; }
+.trk button:hover { transform: scaleY(1.18); }
+.trk button:active { transform: scaleY(.92); }
+
+.stq button {
+  background: none;
+  border: 0;
+  border-right: 1px solid var(--ln);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  color: var(--mut);
+}
+.stq button:last-child { border-right: 0; }
+.stq button.on { background: var(--tint, var(--fg)); color: #fff; }
+.stq button:hover:not(.on) { color: var(--fg); background: var(--ln2); }
+
+button.pl:hover { border-color: var(--fg); color: var(--fg); }
+.rw.on button.pl:hover { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+.pl.ghost { opacity: .35; }
+
+.htmx-request .pl,
+.pl.htmx-request { opacity: .5; }
+
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 58px;
+  transform: translateX(-50%);
+  z-index: 40;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--fg);
+  color: var(--bg);
+  border-radius: 3px;
+  padding: 10px 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .5);
+  pointer-events: auto;
+  animation: toast-in .16s ease-out, toast-out .3s 5s forwards;
+}
+.toast button {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--ac);
+  cursor: pointer;
+}
+.toast button:hover { text-decoration: underline; }
+
+@keyframes toast-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes toast-out { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: toast-out .01s 5s forwards; }
+  .trk button { transition: none; }
 }
