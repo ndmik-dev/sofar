@@ -136,7 +136,7 @@
 {{end}}
 
 {{define "added-row"}}
-{{if not .Flow}}<div hx-swap-oob="afterbegin:#rows">{{template "row" .Row}}</div>{{end}}
+{{if .ShowRow}}<div hx-swap-oob="afterbegin:#rows">{{template "row" .Row}}</div>{{end}}
 {{template "summary" .Summary}}
 {{template "nav" .Nav}}
 {{if .Flow}}

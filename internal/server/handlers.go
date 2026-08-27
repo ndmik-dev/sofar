@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -15,6 +16,12 @@ import (
 const (
 	defaultUserID = 1
 	staleAfter    = 30 * 24 * time.Hour
+
+	// Cells shrink to fit, so the ceiling is about legibility, not width.
+	// Past denseCells they get thinner and lose the gap; past maxCells a
+	// single bar says more than a smear of hairlines.
+	denseCells = 40
+	maxCells   = 130
 )
 
 var kindLabels = map[string]string{
@@ -56,10 +63,19 @@ type navItem struct {
 	Active bool
 }
 
-type kindItem struct {
+type kindFilter struct {
 	Label string
 	Kind  string
 	Count int
+	Clear string
+}
+
+type kindItem struct {
+	Label string
+	Kind  string
+	Href  string
+	Count int
+	On    bool
 }
 
 type row struct {
@@ -70,6 +86,7 @@ type row struct {
 	KindLabel string
 	Mode      string
 	Cells     []domain.Cell
+	Dense     bool
 	Percent   int
 	Status    string
 	Pos       string
@@ -113,6 +130,8 @@ type removedRow struct {
 type navView struct {
 	Nav   []navItem
 	Kinds []kindItem
+	Kind  string
+	Base  string
 	OOB   bool
 }
 
@@ -123,6 +142,7 @@ type addedRow struct {
 	Nav     navView
 	Step    *positionStep
 	Flow    *flowItem
+	ShowRow bool
 }
 
 type flowItem struct {
@@ -148,6 +168,7 @@ type listPage struct {
 	Stale   []row
 	Years   []yearGroup
 	Filters []filterChip
+	Filter  *kindFilter
 	Summary summaryView
 	Empty   bool
 }
@@ -202,14 +223,18 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	kind := r.URL.Query().Get("kind")
 	page := listPage{
 		Title:   "У процесі",
-		NavView: navViewFrom(statusCounts, kindCounts, "/active", false),
+		NavView: navViewWithKind(statusCounts, kindCounts, "/active", kind, false),
 		Now:     now,
 		Summary: summaryFrom(sum),
 	}
 
 	for i, e := range entries {
+		if kind != "" && e.Media.Kind != kind {
+			continue
+		}
 		rw := buildRow(e, today)
 		rw.Selected = i == 0
 		if e.UpdatedAt < staleBefore {
@@ -220,6 +245,14 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		page.Rows = append(page.Rows, rw)
 	}
 	page.Empty = len(page.Rows) == 0 && len(page.Stale) == 0
+	if kind != "" {
+		page.Filter = &kindFilter{
+			Label: kindLabels[kind],
+			Kind:  kind,
+			Count: len(page.Rows) + len(page.Stale),
+			Clear: "/active",
+		}
+	}
 
 	s.render(w, r, "active.html", page)
 }
@@ -312,7 +345,11 @@ func (s *Server) sidebands(r *http.Request, today string) (summaryView, navView,
 }
 
 func navViewFrom(statusCounts, kindCounts map[string]int, active string, oob bool) navView {
-	nv := navView{OOB: oob}
+	return navViewWithKind(statusCounts, kindCounts, active, "", oob)
+}
+
+func navViewWithKind(statusCounts, kindCounts map[string]int, active, kind string, oob bool) navView {
+	nv := navView{OOB: oob, Kind: kind, Base: active}
 	for _, n := range []struct{ Label, Href, Key string }{
 		{"У процесі", "/active", "active"},
 		{"Колись", "/backlog", "backlog"},
@@ -324,7 +361,14 @@ func navViewFrom(statusCounts, kindCounts map[string]int, active string, oob boo
 		})
 	}
 	for _, k := range kindNav {
-		nv.Kinds = append(nv.Kinds, kindItem{Label: k.Label, Kind: k.Kind, Count: kindCounts[k.Kind]})
+		href := active + "?kind=" + k.Kind
+		if k.Kind == kind {
+			href = active
+		}
+		nv.Kinds = append(nv.Kinds, kindItem{
+			Label: k.Label, Kind: k.Kind, Href: href,
+			Count: kindCounts[k.Kind], On: k.Kind == kind,
+		})
 	}
 	return nv
 }
@@ -340,7 +384,7 @@ func (s *Server) renderSidebands(w http.ResponseWriter, r *http.Request, removed
 	s.renderFragment(w, r, "removed-row", removed)
 }
 
-func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry store.Entry, today string, toast toastView, created bool) {
+func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry store.Entry, today string, toast toastView, created, showRow bool) {
 	sum, nav, err := s.sidebands(r, today)
 	if err != nil {
 		s.fail(w, r, err)
@@ -353,6 +397,7 @@ func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry stor
 		Summary: sum,
 		Nav:     nav,
 		Step:    positionStepFor(entry, created),
+		ShowRow: showRow && viewingList(r, entry.Status),
 	}
 
 	// Backfilling the archive is a rhythm, not a dialogue: anything that does
@@ -412,6 +457,25 @@ func (s *Server) respondMove(w http.ResponseWriter, r *http.Request, move store.
 		Summary: view,
 		Toast:   toastFor(move),
 	})
+}
+
+var statusPaths = map[string]string{
+	"active": "/active", "backlog": "/backlog",
+	"done": "/done", "dropped": "/dropped",
+}
+
+// htmx sends the page the request came from, which is the only way the server
+// can tell whether a freshly added row belongs on screen right now.
+func viewingList(r *http.Request, status string) bool {
+	raw := r.Header.Get("HX-Current-URL")
+	if raw == "" {
+		return false
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return false
+	}
+	return u.Path == statusPaths[status]
 }
 
 func toastFor(move store.Move) toastView {
@@ -499,8 +563,9 @@ func buildRow(e store.Entry, today string) row {
 		rw.Pos = strconv.Itoa(e.Position)
 		rw.PosSub = "без межі"
 		rw.Sub = e.Media.TitleOrig
-	case len(e.Units) > 0 && total <= 60:
+	case len(e.Units) > 0 && total <= maxCells:
 		rw.Mode = "cells"
+		rw.Dense = total > denseCells
 		rw.Cells = domain.BuildTrack(e.Units, e.Position, today)
 		rw.Pos = fmt.Sprintf("%d / %d", e.Position, total)
 		rw.PosSub = remainingLabel(domain.RemainingFrom(e.Units, e.Position, today))

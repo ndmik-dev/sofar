@@ -1,4 +1,11 @@
 {{define "content"}}
+{{with .Filter}}
+<div class="fbar">
+  <span class="st k-{{.Kind}}"></span>
+  <span>Тільки {{.Label}} · {{.Count}}</span>
+  <a href="{{.Clear}}">зняти фільтр ✕</a>
+</div>
+{{end}}
 {{if .Empty}}
 <div class="empty">
   <div class="trk">
@@ -13,7 +20,7 @@
 </div>
 {{else}}
 
-{{template "summary" .Summary}}
+{{if not .Filter}}{{template "summary" .Summary}}{{end}}
 
 <div id="rows">{{range .Rows}}{{template "row" .}}{{end}}</div>
 

@@ -1,4 +1,11 @@
 {{define "content"}}
+{{with .Filter}}
+<div class="fbar">
+  <span class="st k-{{.Kind}}"></span>
+  <span>Тільки {{.Label}} · {{.Count}}</span>
+  <a href="{{.Clear}}">зняти фільтр ✕</a>
+</div>
+{{end}}
 {{if .Years}}
 {{range .Years}}
 <div class="gl">{{if .Year}}{{.Year}}{{else}}Без дати{{end}} · {{.Count}}</div>

@@ -93,10 +93,25 @@ func (s *Server) renderList(w http.ResponseWriter, r *http.Request, spec listSpe
 		return
 	}
 
+	kind := r.URL.Query().Get("kind")
+	if kind != "" {
+		kept := entries[:0]
+		for _, e := range entries {
+			if e.Media.Kind == kind {
+				kept = append(kept, e)
+			}
+		}
+		entries = kept
+	}
+
 	page := listPage{
 		Title:   spec.Title,
-		NavView: navViewFrom(statusCounts, kindCounts, spec.Href, false),
+		NavView: navViewWithKind(statusCounts, kindCounts, spec.Href, kind, false),
 		Now:     now,
+	}
+
+	if kind != "" {
+		page.Filter = &kindFilter{Label: kindLabels[kind], Kind: kind, Count: len(entries), Clear: spec.Href}
 	}
 
 	switch spec.Status {

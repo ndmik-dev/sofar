@@ -226,7 +226,7 @@ func (s *Server) finishAdd(w http.ResponseWriter, r *http.Request, mediaID int64
 	if created {
 		toast = toastView{Text: entry.Media.Title + " · " + statusWords[status], EntryID: entryID, Undo: true}
 	}
-	s.respondAdded(w, r, entry, today, toast, created)
+	s.respondAdded(w, r, entry, today, toast, created, created)
 }
 
 func validStatus(v string) (string, bool) {

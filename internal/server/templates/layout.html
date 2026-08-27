@@ -22,12 +22,35 @@
   <main class="mn">
     <div class="tp">
       <span class="q">/ знайти або додати<em>▌</em></span>
-      <span class="kb">⌘K</span>
-      <span class="kb">?</span>
+      <button class="kb" type="button" onclick="openPalette()">⌘K</button>
+      <button class="kb" type="button" onclick="document.getElementById('help').showModal()">?</button>
     </div>
     {{template "content" .}}
     <div id="toast"></div>
   </main>
+
+<dialog id="help" aria-label="Клавіші">
+  <div class="sc">Клавіші</div>
+  <dl class="keys">
+    <dt>⌘K</dt><dd>знайти або додати</dd>
+    <dt>⌘Z</dt><dd>скасувати останню дію</dd>
+    <dt>?</dt><dd>ця довідка</dd>
+    <dt>Esc</dt><dd>закрити</dd>
+  </dl>
+  <div class="sc">У палітрі</div>
+  <dl class="keys">
+    <dt>↵</dt><dd>додати в «у процесі»</dd>
+    <dt>⇧↵</dt><dd>у «колись»</dd>
+    <dt>⌘↵</dt><dd>у «завершено», поле лишається — так заповнюють архів</dd>
+    <dt>⌥↵</dt><dd>у «кинуто»</dd>
+  </dl>
+  <div class="sc">Префікси типу</div>
+  <dl class="keys">
+    <dt>с: а: ф:</dt><dd>серіали, аніме, фільми — звужують пошук по каталогу</dd>
+    <dt>к: і: п:</dt><dd>книги, ігри, подкасти — одразу форма свого запису</dd>
+  </dl>
+  <div class="pfoot"><span class="rt">↑↓ і Space з'являться в M6</span></div>
+</dialog>
 
 <dialog id="palette" aria-label="Знайти або додати">
   <input type="search" id="palette-input" name="q" autocomplete="off" spellcheck="false"

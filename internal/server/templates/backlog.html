@@ -1,4 +1,11 @@
 {{define "content"}}
+{{with .Filter}}
+<div class="fbar">
+  <span class="st k-{{.Kind}}"></span>
+  <span>Тільки {{.Label}} · {{.Count}}</span>
+  <a href="{{.Clear}}">зняти фільтр ✕</a>
+</div>
+{{end}}
 <div class="tp sub">
   <span class="q">У мене є:</span>
   {{range .Filters}}
@@ -7,7 +14,7 @@
 </div>
 
 {{if .Rows}}
-<div class="sum" id="summary">
+{{if .Filter}}{{else}}<div class="sum" id="summary">
   <div>
     <div class="n">{{.Summary.Waiting}} <s>з {{.Summary.Active}}</s></div>
     <div class="u">підходить під фільтр</div>
@@ -19,6 +26,7 @@
   </div>
   {{end}}
 </div>
+{{end}}
 
 <div id="rows">{{range .Rows}}{{template "row" .}}{{end}}</div>
 {{else}}

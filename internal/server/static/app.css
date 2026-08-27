@@ -358,13 +358,6 @@ a { color: inherit; text-decoration: none; }
 .ft b { color: var(--mid); font-weight: 500; }
 .ft .rt { margin-left: auto; }
 
-@media (max-width: 720px) {
-  .app { flex-direction: column; }
-  .sb { width: auto; flex: none; border-right: 0; border-bottom: 1px solid var(--ln); }
-  .rw { grid-template-columns: 1fr 22px 62px; gap: 12px; }
-  .rw .trk, .rw .bar, .rw .stq, .rw .pos { grid-column: 1 / -1; }
-}
-
 .trk button,
 .stq button,
 button.pl {
@@ -663,3 +656,101 @@ button.primary:hover { filter: brightness(1.08); }
 a.chp { text-decoration: none; }
 a.chp:hover:not(.on) { border-color: var(--mid); color: var(--fg); }
 .yr-rows { margin-bottom: 4px; }
+
+.trk.dense { gap: 1px; }
+.trk.dense > * { min-width: 3px; max-width: 9px; border-radius: 1px; }
+.trk.dense .sn { margin: 0 3px; }
+.trk.dense .n::after { border-left-width: 3px; border-right-width: 3px; bottom: -5px; }
+
+button.kb { appearance: none; background: none; cursor: pointer; }
+button.kb:hover { border-color: var(--mid); color: var(--fg); }
+
+.nv.sel { background: var(--sel); color: var(--fg); box-shadow: inset 2px 0 0 var(--ac); }
+.nv.sel b { color: var(--mid); }
+
+#help {
+  width: min(520px, calc(100vw - 32px));
+  padding: 0 0 4px;
+  border: 1px solid var(--ln);
+  border-radius: 5px;
+  background: var(--el);
+  color: var(--fg);
+  margin-top: 12vh;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, .5);
+}
+#help::backdrop { background: rgba(0, 0, 0, .35); }
+.keys { margin: 0; padding: 0 17px 10px; display: grid; grid-template-columns: 84px 1fr; gap: 7px 14px; }
+.keys dt { font-family: var(--mono); font-size: 11.5px; color: var(--fg); }
+.keys dd { margin: 0; font-size: 13px; color: var(--mid); }
+
+.fbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 22px;
+  border-bottom: 1px solid var(--ln);
+  background: var(--bar);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--mid);
+}
+.fbar .st { width: 3px; height: 14px; border-radius: 1px; }
+.fbar a { margin-left: auto; color: var(--mut); }
+.fbar a:hover { color: var(--fg); }
+
+/* Proper phone layout is M10; this keeps it usable until then: the sidebar
+   becomes a scrolling strip instead of a full screen you must scroll past. */
+@media (max-width: 720px) {
+  .app { flex-direction: column; }
+
+  .sb {
+    width: auto;
+    flex: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--ln);
+    padding: 12px 0 0;
+    display: block;
+  }
+  .sb .br, .sb .brs { padding-left: 16px; }
+  .sb .gg, .sb .attr { display: none; }
+  #nav { display: flex; gap: 0; overflow-x: auto; padding: 6px 10px 8px; scrollbar-width: none; }
+  #nav::-webkit-scrollbar { display: none; }
+  #nav .nv {
+    flex: 0 0 auto;
+    gap: 7px;
+    padding: 6px 11px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  #nav .nv.sel { box-shadow: none; background: var(--fg); color: var(--bg); }
+
+  .sum { overflow-x: auto; scrollbar-width: none; }
+  .sum::-webkit-scrollbar { display: none; }
+  .sum div { flex: 0 0 auto; padding: 10px 16px; }
+  .sum div:last-child { margin-left: 0; text-align: left; }
+
+  .tp, .fbar, .ft, .gl { padding-left: 16px; padding-right: 16px; }
+  .ft { font-size: 10px; gap: 12px; }
+
+  .rw {
+    grid-template-columns: 1fr auto 28px;
+    grid-template-areas: "name type del" "track track btn" "pos pos btn";
+    gap: 6px 12px;
+    padding: 12px 16px;
+  }
+  .rw .lb { grid-area: name; }
+  .rw .tyc { grid-area: type; }
+  .rw .trk, .rw .bar, .rw .stq { grid-area: track; }
+  /* Eighty-six cells never fit a phone; let the track scroll rather than
+     spill over the button beside it. */
+  .rw .trk { overflow-x: auto; scrollbar-width: none; padding-bottom: 6px; }
+  .rw .trk::-webkit-scrollbar { display: none; }
+  .rw .trk > * { min-width: 7px; }
+  .rw .pos { grid-area: pos; text-align: left; }
+  .rw .pos s { display: inline; margin-left: 8px; }
+  .rw .del { grid-area: del; opacity: 1; }
+  .rw .pl, .rw > span:last-child { grid-area: btn; align-self: end; }
+  .rw .stq { justify-self: start; }
+
+  #palette, #help { margin-top: 6vh; }
+}

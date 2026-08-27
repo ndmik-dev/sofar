@@ -16,7 +16,7 @@
   {{if not .Btn}}
     {{if .Rating}}<span class="pl ghost">{{.Rating}}</span>{{else}}<span></span>{{end}}
   {{else if eq .Mode "status"}}
-    <span class="pl ghost">{{.Btn}}</span>
+    <span></span>
   {{else if eq .Btn "↵"}}
     <button class="pl" type="button"
             hx-post="/entry/{{.EntryID}}/status"
@@ -37,12 +37,12 @@
 
 {{define "progress"}}
 {{if eq .Mode "cells"}}
-  <span class="trk">
+  <span class="trk{{if .Dense}} dense{{end}}">
   {{- range .Cells -}}
     {{- if .Sep -}}
       <i class="sn"></i>
     {{- else -}}
-      <button type="button" class="{{.State}}" title="{{.Hint}}" aria-label="{{.Hint}}"
+      <button type="button" class="{{.State}}" title="{{.Hint}}" aria-label="{{.Hint}}" tabindex="-1"
               hx-post="/entry/{{$.EntryID}}/advance"
               hx-vals='{"abs": {{.Idx}}}'
               hx-target="#entry-{{$.EntryID}}"

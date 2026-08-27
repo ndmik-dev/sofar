@@ -47,7 +47,7 @@
     }
   });
 
-  function openPalette() {
+  window.openPalette = function () {
     var dialog = document.getElementById("palette");
     if (!dialog || dialog.open) return;
     dialog.showModal();
@@ -70,7 +70,7 @@
 
     if (!e.shiftKey && (key === "k" || key === "к")) {
       e.preventDefault();
-      openPalette();
+      window.openPalette();
       return;
     }
 
@@ -85,6 +85,14 @@
 
   // Enter on the palette triggers the highlighted result, carrying whichever
   // modifier was held so the title lands in the right list.
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "?" || isTyping(e.target)) return;
+    var help = document.getElementById("help");
+    if (!help || help.open) return;
+    e.preventDefault();
+    help.showModal();
+  });
+
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Enter") return;
     var dialog = document.getElementById("palette");
