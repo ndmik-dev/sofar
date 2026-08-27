@@ -2,12 +2,14 @@
 <div class="rw{{if .Selected}} on{{end}}{{if .Stale}} stale{{end}}"
      id="entry-{{.EntryID}}"
      style="--tint: var(--k-{{.Kind}})"
-     data-entry="{{.EntryID}}">
+     data-entry="{{.EntryID}}"
+     data-step="{{.Step}}"
+     data-season-end="{{.SeasonEnd}}">
   <span class="lb">
     <span class="nm">{{.Title}}</span>
     {{with .Sub}}<span class="sb2">{{.}}</span>{{end}}
   </span>
-  <span class="tyc">{{.KindLabel}}</span>
+  <span class="tyc">{{.KindLabel}}{{with .Rating}}<b class="rate">{{.}}</b>{{end}}</span>
   {{template "progress" .}}
   <span class="pos">{{.Pos}}{{with .PosSub}}<s>{{.}}</s>{{end}}</span>
   <button class="del" type="button" title="Видалити" aria-label="Видалити {{.Title}}"
@@ -22,7 +24,6 @@
             hx-post="/entry/{{.EntryID}}/status"
             hx-vals='{"status": "active"}'
             hx-swap="none"
-            hx-on::after-request="window.location.reload()"
             aria-label="Почати">↵</button>
   {{else}}
     <button class="pl" type="button"

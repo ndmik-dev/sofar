@@ -1,8 +1,12 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
+
+	"github.com/ndmik-dev/sofar/internal/store"
 )
 
 func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) {
@@ -26,6 +30,32 @@ func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) {
 			Restore: true,
 		},
 	})
+}
+
+func (s *Server) handleRating(w http.ResponseWriter, r *http.Request) {
+	id, ok := s.entryID(w, r)
+	if !ok {
+		return
+	}
+	rating, err := strconv.Atoi(r.FormValue("rating"))
+	if err != nil || rating < 0 || rating > 10 {
+		http.Error(w, "rating must be 0-10", http.StatusBadRequest)
+		return
+	}
+
+	now, today, _ := s.now()
+	entry, err := s.store.SetRating(r.Context(), id, rating, now)
+	if err != nil {
+		s.failEntry(w, r, err)
+		return
+	}
+
+	text := entry.Media.Title + " · оцінку знято"
+	if rating > 0 {
+		text = fmt.Sprintf("%s · оцінка %d", entry.Media.Title, rating)
+	}
+	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, today,
+		toastView{Text: text, EntryID: entry.ID})
 }
 
 func (s *Server) handleRestore(w http.ResponseWriter, r *http.Request) {

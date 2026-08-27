@@ -87,6 +87,7 @@ type row struct {
 	Btn       string
 	Rating    int
 	Step      int
+	SeasonEnd int
 	Statuses  []statusOption
 	Stale     bool
 	Selected  bool
@@ -314,6 +315,19 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 		s.failEntry(w, r, err)
 		return
 	}
+
+	// A row that no longer belongs on the open list has to leave it, the same
+	// way a deleted one does — otherwise it lingers until a reload.
+	if !viewingList(r, entry.Status) {
+		s.renderSidebands(w, r, removedRow{
+			EntryID: id,
+			Toast: toastView{
+				Text:    entry.Media.Title + " · " + statusWords[entry.Status],
+				EntryID: id,
+			},
+		})
+		return
+	}
 	s.respondMove(w, r, store.Move{Entry: entry, Changed: true}, today)
 }
 
@@ -436,6 +450,10 @@ func positionStepFor(e store.Entry, created bool) *positionStep {
 }
 
 func (s *Server) respondMove(w http.ResponseWriter, r *http.Request, move store.Move, today string) {
+	s.respondMoveWith(w, r, move, today, toastFor(move))
+}
+
+func (s *Server) respondMoveWith(w http.ResponseWriter, r *http.Request, move store.Move, today string, toast toastView) {
 	_, _, staleBefore := s.now()
 	sum, err := s.store.Summary(r.Context(), defaultUserID, today, staleBefore)
 	if err != nil {
@@ -448,7 +466,7 @@ func (s *Server) respondMove(w http.ResponseWriter, r *http.Request, move store.
 	s.renderFragment(w, r, "move-response", moveResponse{
 		Row:     buildRow(move.Entry, today),
 		Summary: view,
-		Toast:   toastFor(move),
+		Toast:   toast,
 	})
 }
 
@@ -559,6 +577,7 @@ func buildRow(e store.Entry, today string) row {
 	case len(e.Units) > 0:
 		rw.Mode = "cells"
 		rw.Blocks = domain.BuildTiered(e.Units, e.Position, today)
+		rw.SeasonEnd = domain.CurrentSeasonEnd(rw.Blocks)
 		rw.Pos = fmt.Sprintf("%d / %d", e.Position, total)
 		rw.PosSub = remainingLabel(domain.RemainingFrom(e.Units, e.Position, today))
 		if next := domain.NextLabel(e.Units, e.Position); next != "" {

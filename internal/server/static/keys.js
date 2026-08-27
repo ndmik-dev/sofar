@@ -1,7 +1,13 @@
-// Full keyboard layer lands in M6. Undo ships early because the toast already
-// promises it, and a label that lies is worse than no label.
 (function () {
   "use strict";
+
+  var DIGIT_WINDOW = 1500;
+
+  var selectedId = null;
+  var digits = "";
+  var digitTimer = null;
+  var awaitingRating = false;
+  var pendingStatus = null;
 
   function isTyping(el) {
     if (!el) return false;
@@ -9,9 +15,76 @@
     return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
   }
 
-  // Modifiers pick the status an added title lands in. A keyboard Enter has to
-  // hand them over explicitly, because the synthetic click it fires carries none.
-  var pendingStatus = null;
+  function dialogOpen() {
+    return !!document.querySelector("dialog[open]");
+  }
+
+  function rows() {
+    return Array.prototype.slice.call(document.querySelectorAll(".rw[data-entry]"));
+  }
+
+  function selected() {
+    return selectedId ? document.getElementById("entry-" + selectedId) : null;
+  }
+
+  function select(row, scroll) {
+    if (!row) return;
+    rows().forEach(function (r) { r.classList.remove("on"); });
+    row.classList.add("on");
+    selectedId = row.dataset.entry;
+    if (scroll) row.scrollIntoView({ block: "nearest" });
+  }
+
+  function move(step) {
+    var all = rows();
+    if (!all.length) return;
+    var i = all.indexOf(selected());
+    if (i < 0) {
+      select(all[step > 0 ? 0 : all.length - 1], true);
+      return;
+    }
+    select(all[Math.min(all.length - 1, Math.max(0, i + step))], true);
+  }
+
+  // Selection lives in the client, but htmx replaces rows underneath it, so it
+  // has to be re-applied after every swap or the highlight jumps home.
+  function restore() {
+    var all = rows();
+    if (!all.length) { selectedId = null; return; }
+    select(selected() || all[0], false);
+  }
+
+  function post(url, body) {
+    var row = selected();
+    if (!row) return;
+    window.htmx.ajax("POST", url, {
+      target: "#entry-" + row.dataset.entry,
+      swap: "outerHTML",
+      values: body || {},
+    });
+  }
+
+  function takeDigits() {
+    var n = parseInt(digits, 10);
+    digits = "";
+    clearTimeout(digitTimer);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function advance() {
+    var row = selected();
+    if (!row) return;
+    var typed = takeDigits();
+    var step = typed > 0 ? typed : parseInt(row.dataset.step, 10) || 1;
+    post("/entry/" + row.dataset.entry + "/advance", { n: step });
+  }
+
+  function finishSeason() {
+    var row = selected();
+    if (!row) return;
+    var end = parseInt(row.dataset.seasonEnd, 10) || 0;
+    if (end) post("/entry/" + row.dataset.entry + "/advance", { abs: end });
+  }
 
   function statusFromEvent(e) {
     if (!e) return "active";
@@ -31,79 +104,136 @@
   };
 
   window.closePalette = function () {
-    var dialog = document.getElementById("palette");
-    if (dialog && dialog.open) dialog.close();
+    var d = document.getElementById("palette");
+    if (d && d.open) d.close();
   };
 
-  // The server fires this after a flow-mode add: clear the field, keep focus,
-  // and let the running log below show what has landed so far.
+  window.openPalette = function () {
+    var d = document.getElementById("palette");
+    if (!d || d.open) return;
+    d.showModal();
+    var input = document.getElementById("palette-input");
+    if (input) { input.value = ""; input.focus(); }
+    ["palette-results", "flow-log"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = "";
+    });
+  };
+
   document.body.addEventListener("sofar:flow", function () {
     var input = document.getElementById("palette-input");
     var results = document.getElementById("palette-results");
     if (results) results.innerHTML = "";
-    if (input) {
-      input.value = "";
-      input.focus();
-    }
+    if (input) { input.value = ""; input.focus(); }
   });
 
-  window.openPalette = function () {
-    var dialog = document.getElementById("palette");
-    if (!dialog || dialog.open) return;
-    dialog.showModal();
-    var input = document.getElementById("palette-input");
-    if (input) {
-      input.value = "";
-      input.focus();
-    }
-    var results = document.getElementById("palette-results");
-    if (results) results.innerHTML = "";
-    var log = document.getElementById("flow-log");
-    if (log) log.innerHTML = "";
-  }
+  // afterSettle, not afterSwap: htmx is still moving nodes during the swap
+  // phase, and a highlight applied then is gone by the time it finishes.
+  document.body.addEventListener("htmx:afterSettle", restore);
+  document.addEventListener("DOMContentLoaded", restore);
+  restore();
 
   document.addEventListener("keydown", function (e) {
-    if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
+    var mod = e.metaKey || e.ctrlKey;
 
-    // Layouts matter: ⌘K on a Ukrainian keyboard reports "к", not "k".
-    var key = e.key.toLowerCase();
+    // Layout matters: on a Ukrainian keyboard ⌘K arrives as "к", not "k".
+    var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
 
-    if (!e.shiftKey && (key === "k" || key === "к")) {
+    if (mod && !e.altKey && (key === "k" || key === "к")) {
       e.preventDefault();
       window.openPalette();
       return;
     }
 
-    if (!e.shiftKey && (key === "z" || key === "я")) {
+    if (mod && !e.shiftKey && !e.altKey && (key === "z" || key === "я")) {
       if (isTyping(e.target)) return;
       var undo = document.querySelector("#toast .toast button");
       if (!undo) return;
       e.preventDefault();
       undo.click();
+      return;
     }
-  });
 
-  // Enter on the palette triggers the highlighted result, carrying whichever
-  // modifier was held so the title lands in the right list.
-  document.addEventListener("keydown", function (e) {
-    if (e.key !== "?" || isTyping(e.target)) return;
-    var help = document.getElementById("help");
-    if (!help || help.open) return;
-    e.preventDefault();
-    help.showModal();
-  });
+    if (e.key === "Enter") {
+      var palette = document.getElementById("palette");
+      if (!palette || !palette.open) return;
+      if (palette.querySelector("form") && isTyping(e.target)) return;
+      var first = palette.querySelector(".res.on") || palette.querySelector(".res");
+      if (!first) return;
+      e.preventDefault();
+      pendingStatus = statusFromEvent(e);
+      first.click();
+      return;
+    }
 
-  document.addEventListener("keydown", function (e) {
-    if (e.key !== "Enter") return;
-    var dialog = document.getElementById("palette");
-    if (!dialog || !dialog.open) return;
-    if (dialog.querySelector("form") && isTyping(e.target)) return;
+    if (isTyping(e.target) || dialogOpen()) return;
 
-    var first = dialog.querySelector(".res.on") || dialog.querySelector(".res");
-    if (!first) return;
-    e.preventDefault();
-    pendingStatus = statusFromEvent(e);
-    first.click();
+    if (e.key === "?") {
+      var help = document.getElementById("help");
+      if (help && !help.open) { e.preventDefault(); help.showModal(); }
+      return;
+    }
+
+    // E waits for one digit, so 9 rates and 0 means ten.
+    if (awaitingRating) {
+      awaitingRating = false;
+      if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        var rated = selected();
+        if (rated) {
+          post("/entry/" + rated.dataset.entry + "/rating", {
+            rating: e.key === "0" ? 10 : Number(e.key),
+          });
+        }
+        return;
+      }
+      if (e.key === "Escape") { e.preventDefault(); return; }
+    }
+
+    if (mod && e.key === "Backspace") {
+      e.preventDefault();
+      var drop = selected();
+      if (drop) post("/entry/" + drop.dataset.entry + "/status", { status: "dropped" });
+      return;
+    }
+
+    if (mod || e.altKey) return;
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault(); move(1); return;
+      case "ArrowUp":
+        e.preventDefault(); move(-1); return;
+      case " ":
+        e.preventDefault();
+        if (e.shiftKey) {
+          var back = selected();
+          takeDigits();
+          if (back) post("/entry/" + back.dataset.entry + "/advance", { n: -1 });
+        } else {
+          advance();
+        }
+        return;
+    }
+
+    if (/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      digits += e.key;
+      clearTimeout(digitTimer);
+      digitTimer = setTimeout(function () { digits = ""; }, DIGIT_WINDOW);
+      return;
+    }
+
+    if ((key === "s" || key === "і") && e.shiftKey) {
+      e.preventDefault();
+      finishSeason();
+      return;
+    }
+
+    if ((key === "e" || key === "у") && selected()) {
+      e.preventDefault();
+      awaitingRating = true;
+    }
   });
 
   // The toast fades out on a CSS timer. Drop the node too, otherwise the undo

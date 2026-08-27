@@ -180,3 +180,16 @@ func clamp(want, total int, hasTotal bool) int {
 	}
 	return want
 }
+
+func (s *Store) SetRating(ctx context.Context, id int64, rating int, now time.Time) (Entry, error) {
+	value := any(rating)
+	if rating <= 0 {
+		value = nil
+	}
+	_, err := s.DB.ExecContext(ctx,
+		`UPDATE entry SET rating = ?, updated_at = ? WHERE id = ?`, value, now.Unix(), id)
+	if err != nil {
+		return Entry{}, fmt.Errorf("set rating %d: %w", id, err)
+	}
+	return s.GetEntry(ctx, id)
+}

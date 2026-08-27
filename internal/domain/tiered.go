@@ -126,3 +126,19 @@ func percentWatched(season []Unit, position int) int {
 	}
 	return done * 100 / len(season)
 }
+
+// CurrentSeasonEnd is the absolute index of the last unit in the season being
+// watched — what ⇧S jumps to. Zero when there is nothing left to finish.
+func CurrentSeasonEnd(blocks []Block) int {
+	for _, b := range blocks {
+		if b.Kind != BlockCells || len(b.Cells) == 0 {
+			continue
+		}
+		last := b.Cells[len(b.Cells)-1]
+		if last.Sep {
+			continue
+		}
+		return last.Idx
+	}
+	return 0
+}

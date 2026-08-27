@@ -71,6 +71,7 @@ func (s *Server) routes() error {
 	s.mux.HandleFunc("POST /entry/{id}/advance", s.handleAdvance)
 	s.mux.HandleFunc("POST /entry/{id}/undo", s.handleUndo)
 	s.mux.HandleFunc("POST /entry/{id}/status", s.handleStatus)
+	s.mux.HandleFunc("POST /entry/{id}/rating", s.handleRating)
 	s.mux.HandleFunc("POST /entry/{id}/delete", s.handleDelete)
 	s.mux.HandleFunc("POST /entry/{id}/restore", s.handleRestore)
 	s.mux.HandleFunc("GET /search", s.handleSearch)

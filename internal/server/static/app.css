@@ -807,3 +807,14 @@ button.kb:hover { border-color: var(--mid); color: var(--fg); }
 
 .mform.folded { border-top: 1px solid var(--ln2); margin-top: 6px; }
 .res .tg { flex: 0 0 auto; }
+
+.tyc .rate {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--tint, var(--fg));
+  color: var(--el);
+  font-weight: 500;
+  font-size: 10.5px;
+}
