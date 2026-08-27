@@ -186,3 +186,29 @@
 {{template "nav" .Nav}}
 {{template "toast" .Toast}}
 {{end}}
+
+{{define "setting-row"}}
+<div class="strow" id="setting-{{.Kind}}">
+  <span class="tn"><i class="d k-{{.Kind}}"></i>{{.Label}}</span>
+  <span class="sw">
+    <button type="button" class="{{if eq .Depth "status"}}on{{end}}"
+            hx-post="/settings/{{.Kind}}" hx-vals='{"depth": "status", "step": {{.Step}}}'
+            hx-target="#setting-{{.Kind}}" hx-swap="outerHTML">статус</button>
+    <button type="button" class="{{if eq .Depth "units"}}on{{end}}"
+            hx-post="/settings/{{.Kind}}" hx-vals='{"depth": "units", "step": {{.Step}}}'
+            hx-target="#setting-{{.Kind}}" hx-swap="outerHTML">{{.UnitsLabel}}</button>
+  </span>
+  <span class="pv">
+    {{if eq .Depth "units"}}
+    крок
+    <span class="sw" style="margin-left: 8px;">
+      {{range .Steps}}
+      <button type="button" class="{{if eq . $.Step}}on{{end}}"
+              hx-post="/settings/{{$.Kind}}" hx-vals='{"depth": "units", "step": {{.}}}'
+              hx-target="#setting-{{$.Kind}}" hx-swap="outerHTML">+{{.}}</button>
+      {{end}}
+    </span>
+    {{else}}без прогресу{{end}}
+  </span>
+</div>
+{{end}}

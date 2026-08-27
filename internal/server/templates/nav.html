@@ -10,5 +10,9 @@
   {{range .Kinds}}
   <a class="nv{{if .On}} sel{{end}}" href="{{.Href}}"><span><i class="d k-{{.Kind}}"></i>{{.Label}}</span><b>{{.Count}}</b></a>
   {{end}}
+
+  <div class="gg">Інше</div>
+  <a class="nv{{if eq .Base "/year"}} on{{end}}" href="/year"><span>Рік</span><b>⌘4</b></a>
+  <a class="nv{{if eq .Base "/settings"}} on{{end}}" href="/settings"><span>Налаштування</span></a>
 </div>
 {{end}}

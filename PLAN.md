@@ -101,11 +101,11 @@ time left = `(total_units - position) * runtime_min`.
 | ✅ | **M5.5** Other catalogs | 6 h | Books, games, podcasts |
 | ✅ | **M6** Keyboard | 5 h | A full session without the mouse |
 | ✅ | **M7** Panel | 5 h | Description, episodes, pace, note |
-| | **M8** Streak and year | 6 h | Gamification, per-type depth |
+| ✅ | **M8** Streak and year | 6 h | Gamification, per-type depth |
 | | **M9** Deploy | 5 h | Live on a domain, with backups |
 | | **M10** Pocket and night | 5 h | PWA, dark theme |
 
-About 49 hours spent of roughly 59.
+About 55 hours spent of roughly 59.
 
 ### M7 · Panel — 5 h ✅
 
@@ -116,13 +116,16 @@ progress log, an inline note, rating as ten clickable dots. Every keyboard
 action funnels through one `post()` helper, which is the single place that keeps
 an open panel in sync with the row it describes.
 
-### M8 · Streak and year — 6 h
+### M8 · Streak and year — 6 h ✅
 
-Streak with one freeze a month. `/year`: a day calendar coloured by type, months
-as stacked bars, four headline numbers. Per-type depth settings including the
-status-only mode. `⌘C` copies the year as plain text.
-
-**Done when:** games show three states instead of a track.
+Done. Streak walks the manual progress log backwards with one auto-spent freeze
+per calendar month; a frozen day counts toward the length, because a streak is
+an unbroken stretch of calendar, not a tally of active days. Backfill and import
+rows are excluded from every statistic — dumping an archive must not read as a
+heroic watching day. `/year` shows four headline numbers, a day calendar
+coloured by the kind that dominated each day, and months as stacked bars.
+`⌘C` copies the year as plain text. `/settings` switches per-type depth and
+step live; `⌘1`–`⌘4` jump between pages.
 
 ### M9 · Deploy — 5 h
 

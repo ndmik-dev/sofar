@@ -1,0 +1,49 @@
+{{define "content"}}
+<div class="tp sub">
+  <span class="q">рік</span>
+  {{range .Years}}
+  <a class="chp{{if eq . $.Year}} on{{end}}" href="/year/{{.}}">{{.}}</a>
+  {{end}}
+  <span style="flex:1"></span>
+  <button class="kb" type="button" id="copy-year" data-copy="{{.Copy}}"
+          onclick="navigator.clipboard.writeText(this.dataset.copy); this.textContent='скопійовано ✓'; var b=this; setTimeout(function(){b.textContent='⌘C копіювати текстом'},1600)">⌘C копіювати текстом</button>
+</div>
+
+<div class="big4">
+  <div><div class="n">{{.Hours}}</div><div class="u">годин</div>{{with .HoursSub}}<div class="d">{{.}}</div>{{end}}</div>
+  <div><div class="n">{{.Episodes}}</div><div class="u">{{plural .Episodes "серія" "серії" "серій"}}</div><div class="d">+{{.Films}} {{plural .Films "фільм" "фільми" "фільмів"}}</div></div>
+  <div><div class="n">{{.Books}}</div><div class="u">{{plural .Books "книга" "книги" "книг"}}</div>{{if .Pages}}<div class="d">{{.Pages}} стор.</div>{{end}}</div>
+  <div><div class="n">{{.Streak.Best}}</div><div class="u">рекорд стріку</div><div class="d">зараз <em>{{.Streak.Current}}</em></div></div>
+</div>
+
+<div class="gl">Рік по днях</div>
+<div class="heat">
+  {{range .Weeks}}<div class="cl">{{range .Cells}}{{if lt .Level 0}}<b class="void"></b>{{else}}<b class="l{{.Level}}{{with .Kind}} k-{{.}}{{end}}"{{with .Title}} title="{{.}}"{{end}}></b>{{end}}{{end}}</div>{{end}}
+</div>
+<div class="lgnd">
+  <span><i class="k-show"></i>серіали</span>
+  <span><i class="k-anime"></i>аніме</span>
+  <span><i class="k-movie"></i>фільми</span>
+  <span><i class="k-book"></i>книги</span>
+  <span><i class="k-game"></i>ігри</span>
+</div>
+
+{{if .Months}}
+<div class="gl">Місяці</div>
+<div class="mrows">
+  {{range .Months}}
+  <div class="mrow">
+    <s>{{.Label}}</s>
+    <span class="stack">{{range .Segments}}<i class="k-{{.Kind}}" style="width: {{printf "%.1f" .Percent}}%"></i>{{end}}</span>
+    <b>{{.Total}}</b>
+  </div>
+  {{end}}
+</div>
+{{end}}
+
+<div class="ft">
+  <span><b>⌘C</b> скопіювати текстом</span>
+  <span><b>⌘K</b> додати</span>
+  <span class="rt">M8 · рік</span>
+</div>
+{{end}}

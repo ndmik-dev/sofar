@@ -12,7 +12,7 @@ import (
 	"github.com/ndmik-dev/sofar/internal/domain"
 )
 
-var pages = []string{"active.html", "backlog.html", "done.html"}
+var pages = []string{"active.html", "backlog.html", "done.html", "year.html", "settings.html"}
 
 var partials = []string{"row.html", "fragments.html", "nav.html", "panel.html"}
 

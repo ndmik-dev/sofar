@@ -169,6 +169,26 @@
     // Layout matters: on a Ukrainian keyboard ⌘K arrives as "к", not "k".
     var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
 
+    if (mod && !e.shiftKey && !e.altKey && !isTyping(e.target)) {
+      var nav = { "1": "/active", "2": "/backlog", "3": "/done", "4": "/year" }[e.key];
+      if (nav) {
+        e.preventDefault();
+        window.location.href = nav;
+        return;
+      }
+    }
+
+    if (mod && !e.altKey && (key === "c" || key === "с")) {
+      var copySrc = document.getElementById("copy-year");
+      if (copySrc && !isTyping(e.target) && !window.getSelection().toString()) {
+        e.preventDefault();
+        navigator.clipboard.writeText(copySrc.dataset.copy);
+        copySrc.textContent = "скопійовано ✓";
+        setTimeout(function () { copySrc.textContent = "⌘C копіювати текстом"; }, 1600);
+        return;
+      }
+    }
+
     if (mod && !e.altKey && (key === "k" || key === "к")) {
       e.preventDefault();
       window.openPalette();

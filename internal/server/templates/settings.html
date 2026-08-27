@@ -1,0 +1,13 @@
+{{define "content"}}
+<div class="gl">Глибина трекінгу</div>
+<p class="pp" style="padding: 0 24px; max-width: 60ch;">Наскільки детально трекати кожен тип.
+«Статус» — лише хочу / в процесі / завершив, без прогресу. Крок — скільки додає одне натискання.</p>
+
+<div class="stg2" style="padding: 10px 24px 20px;">
+  {{range .Settings}}{{template "setting-row" .}}{{end}}
+</div>
+
+<div class="ft">
+  <span class="rt">M8 · налаштування</span>
+</div>
+{{end}}
