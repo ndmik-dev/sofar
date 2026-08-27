@@ -1,393 +1,188 @@
-# Sofar — план побудови
+# Sofar — build plan
 
-Особистий трекер того, що дивлюсь, читаю і граю. Веб, самохостинг, один користувач.
-Робочий документ: оновлюємо по ходу, а не пишемо заново.
+Roadmap and decision log. What the app *is* and how to run it lives in
+[README.md](README.md); this file records what was decided and what is left.
+
+Working document: update it as we go.
 
 ---
 
-## 1. Рішення, які вже прийняті
+## 1. Settled decisions
 
-Це не для обговорення заново — записано, щоб не переобговорювати.
+Not up for rediscussion — written down so they are not relitigated.
 
-| Питання | Рішення | Чому |
+| Question | Decision | Why |
 |---|---|---|
-| Назва | **Sofar** | «so far» — усе в апці це відповідь на «наскільки я просунувся» |
-| Форма | Веб-застосунок, серверний рендеринг | Дизайн клавіатуро-центричний; це вебдодаток, а не адаптація |
-| Стек | Go + htmx + SQLite | Один бінарник, без збірки фронту, ~30 МБ RAM |
-| Дизайн | Варіант «Смуга»: доріжка клітинок | Прогрес має форму, а не лише відсоток |
-| Каталог | **Тільки TMDB** | Фільми, серіали, аніме як серіали. Одна нумерація, нуль конфліктів |
-| Решта типів | Ручні записи з явним типом | Книга/гра/подкаст: назва + скільки всього. Точніше за будь-який каталог |
-| Друзі | Немає у v1 | Але `user_id` у схемі з першого дня |
-| Прогрес | Append-only лог `progress` | Undo, стрік, темп і статистика випадають безкоштовно |
-| Пауза | Немає ручного статусу | «Застоялось» рахується з `updated_at` |
-| Глибина трекінгу | Налаштування на тип | Ігри — три стани, серіали — серії |
-| Деплой | Dokploy-дроплет, один контейнер | Уже є, 4 ГБ, Caddy/Traefik попереду |
-| Авторизація | Один пароль зі змінної оточення | Не акаунти. Cookie на рік |
-| Межа доби | **04:00, Europe/Kyiv** | Серія о 01:30 належить до попереднього дня |
-| Роль каталогів | Заповнюють метадані, **ніколи не визначають одиниці** | Уся біль була саме в другому |
+| Name | **Sofar** | "so far" — everything in the app answers how far you have got |
+| Form | Web app, server-rendered | The design is keyboard-first; this is a web app, not an adaptation |
+| Stack | Go + htmx + SQLite | One binary, no frontend build, ~30 MB RAM |
+| Design | Track of cells | Progress has a shape, not just a percentage |
+| Catalogs | TMDB, Google Books, RAWG, iTunes | Metadata only |
+| Catalog role | Fill metadata, **never define units**, never mandatory | All the pain was in the second part |
+| Friends | Not in v1 | But `user_id` in the schema from day one |
+| Progress | Append-only `progress` log | Undo, streaks, pace and stats fall out of it free |
+| Pause | No manual status | "Stale" is derived from `updated_at` |
+| Tracking depth | Per type | Games get three states, series get episodes |
+| Deploy | Dokploy droplet, one container | Already there, 4 GB, Caddy in front |
+| Auth | One password from the environment | Not accounts. Year-long cookie |
+| Day boundary | **04:00, Europe/Kyiv** | An episode at 01:30 belongs to the previous day |
 
-**Свідомо не робимо у v1:** AniList, Open Library, HowLongToBeat, IGDB, Trakt-синк,
-Plex/Jellyfin webhook, рекомендації, стрічку, рецензії, соціальне, нативний застосунок.
-
----
-
-## 2. Дві страховки, які ставимо зараз і безкоштовно
-
-Обидві коштують по одній колонці, а без них потім потрібна міграція всіх даних.
-
-1. **`entry.user_id`** — щоб перехід «я → десять друзів» був вечором, а не переписуванням.
-2. **`entry.run`** — номер проходження. Другий перегляд серіалу не має затирати перший.
-   Унікальність: `(user_id, media_id, run)`.
+**Deliberately not in v1:** AniList, Open Library, HowLongToBeat, IGDB, Trakt
+sync, Plex/Jellyfin webhooks, recommendations, an activity feed, reviews,
+anything social, a native app.
 
 ---
 
-## 3. Модель даних
+## 2. Two free insurances, taken on day one
 
-Ключова ідея: `unit.idx` — **наскрізний номер від 1 до N через усі сезони**.
-Доріжка малює саме його, `entry.position` — одне ціле число, межі сезонів беруться зі зміни `unit.season`.
+Both cost one column. Without them a later change means migrating all the data.
+
+1. **`entry.user_id`** — so growing from one person to a handful is an evening.
+2. **`entry.run`** — a rewatch must not overwrite the first pass.
+   Uniqueness is `(user_id, media_id, run)`.
+
+---
+
+## 3. Schema
+
+The key idea: `unit.idx` runs **1..N straight through every season**. The track
+draws exactly that, `entry.position` is one integer, and season boundaries come
+from `unit.season` changing.
 
 ```sql
-CREATE TABLE users (
-  id         INTEGER PRIMARY KEY,
-  name       TEXT NOT NULL,
-  created_at INTEGER NOT NULL
-);
--- seed: (1, 'me')
+users (id, name, created_at)
 
--- Кеш каталогу + ручні записи в одній таблиці
-CREATE TABLE media (
-  id           INTEGER PRIMARY KEY,
-  kind         TEXT    NOT NULL,   -- show|movie|anime|book|game|podcast|other
-  source       TEXT    NOT NULL,   -- tmdb|manual
-  tmdb_type    TEXT,               -- tv|movie, NULL для manual
-  tmdb_id      INTEGER,
-  title        TEXT    NOT NULL,
-  title_orig   TEXT,
-  year         INTEGER,
-  overview     TEXT,
-  poster_path  TEXT,
-  runtime_min  INTEGER,            -- на серію, або довжина фільму
-  total_units  INTEGER,            -- NULL = без межі (гра «рахує вгору»)
-  unit         TEXT    NOT NULL,   -- episode|page|hour|chapter|none
-  airing       TEXT,               -- returning|ended, тільки tv
-  refreshed_at INTEGER,
-  created_at   INTEGER NOT NULL
-);
-CREATE UNIQUE INDEX media_tmdb ON media(tmdb_type, tmdb_id) WHERE tmdb_id IS NOT NULL;
+media (
+  id, kind,        -- show|movie|anime|book|game|podcast
+  source,          -- tmdb|manual|gbooks|rawg|itunes
+  tmdb_type, tmdb_id, ext_id,
+  title, title_orig, year, overview, poster_path,
+  runtime_min,     -- per episode, or film length
+  total_units,     -- NULL = open ended
+  unit,            -- episode|page|hour|chapter|none
+  airing,          -- returning|ended, tv only
+  refreshed_at, created_at
+)
 
--- Іменовані під-одиниці. Тільки для tmdb tv.
-CREATE TABLE unit (
-  media_id    INTEGER NOT NULL REFERENCES media(id) ON DELETE CASCADE,
-  idx         INTEGER NOT NULL,  -- 1..N наскрізно
-  season      INTEGER,
-  number      INTEGER,
-  title       TEXT,
-  air_date    TEXT,              -- ISO yyyy-mm-dd, NULL якщо невідома
-  runtime_min INTEGER,
-  PRIMARY KEY (media_id, idx)
-);
+unit (media_id, idx, season, number, title, air_date, runtime_min)
 
--- Мій запис. Один на (користувач, медіа, проходження).
-CREATE TABLE entry (
-  id          INTEGER PRIMARY KEY,
-  user_id     INTEGER NOT NULL DEFAULT 1 REFERENCES users(id),
-  media_id    INTEGER NOT NULL REFERENCES media(id),
-  run         INTEGER NOT NULL DEFAULT 1,
-  status      TEXT    NOT NULL,  -- active|backlog|done|dropped
-  position    INTEGER NOT NULL DEFAULT 0,  -- кеш останнього progress.to_pos
-  rating      INTEGER,           -- 1..10
-  note        TEXT,
-  started_at  INTEGER,
-  finished_at INTEGER,
-  updated_at  INTEGER NOT NULL,
-  created_at  INTEGER NOT NULL,
-  UNIQUE (user_id, media_id, run)
-);
-CREATE INDEX entry_list ON entry(user_id, status, updated_at DESC);
+entry (
+  id, user_id, media_id, run,
+  status,          -- active|backlog|done|dropped
+  position,        -- cache of the last non-undone progress.to_pos
+  rating, note, started_at, finished_at, updated_at, created_at,
+  deleted_at       -- soft delete, undoable
+)
 
--- Append-only. Джерело правди для прогресу, стріку, темпу, року.
-CREATE TABLE progress (
-  id        INTEGER PRIMARY KEY,
-  entry_id  INTEGER NOT NULL REFERENCES entry(id) ON DELETE CASCADE,
-  from_pos  INTEGER NOT NULL,
-  to_pos    INTEGER NOT NULL,
-  at        INTEGER NOT NULL,
-  source    TEXT    NOT NULL DEFAULT 'manual', -- manual|backfill|import
-  undone_at INTEGER                            -- м'яке скасування
-);
-CREATE INDEX progress_entry ON progress(entry_id, at DESC);
-CREATE INDEX progress_live  ON progress(at) WHERE undone_at IS NULL;
+progress (id, entry_id, from_pos, to_pos, at, source, undone_at)
 
--- Глибина трекінгу на тип
-CREATE TABLE type_settings (
-  user_id INTEGER NOT NULL,
-  kind    TEXT    NOT NULL,
-  depth   TEXT    NOT NULL DEFAULT 'units', -- status|units
-  step    INTEGER NOT NULL DEFAULT 1,       -- скільки додає одне натискання
-  PRIMARY KEY (user_id, kind)
-);
--- дефолти: show/anime step=1, book step=10, game depth=status, movie depth=status
-
--- Заморозки стріку, одна на місяць
-CREATE TABLE streak_freeze (
-  user_id INTEGER NOT NULL,
-  day     TEXT    NOT NULL,  -- yyyy-mm-dd, який день прикрито
-  PRIMARY KEY (user_id, day)
-);
+type_settings (user_id, kind, depth, step)   -- depth: status|units
+streak_freeze (user_id, day)
 ```
 
-**Що навмисно похідне, а не збережене:**
-`«застоялось»` = `status='active' AND updated_at < now-30d` ·
-`стрік` = кількість послідовних днів із `progress` ·
-`темп` = `progress` за період ·
-`«скільки лишилось»` = `(total_units - position) * runtime_min`.
+**Derived, deliberately not stored:**
+stale = `status='active' AND updated_at < now-30d` ·
+streak = consecutive days with progress ·
+pace = progress over a period ·
+time left = `(total_units - position) * runtime_min`.
 
 ---
 
-## 4. Архітектура
+## 4. Milestones
 
-```
-main.go                  конфіг, БД, роутер, graceful shutdown
-internal/
-  store/                 SQLite: міграції, запити. Жодного HTML.
-    migrations/*.sql     embed, застосовуються по порядку
-  tmdb/                  клієнт каталогу + кеш відповідей
-  domain/                advance, undo, streak, «скільки лишилось»
-  web/                   хендлери, рендер фрагментів
-web/
-  templates/             html/template, embed
-    layout.html  list.html  row.html  track.html  panel.html  palette.html
-  static/
-    app.css  keys.js  htmx.min.js   (htmx вендоримо, не CDN)
-```
-
-**Правила:**
-- `net/http.ServeMux` з Go 1.22-патернами (`POST /entry/{id}/advance`). Роутер не потрібен.
-- Драйвер `modernc.org/sqlite` — чистий Go, `CGO_ENABLED=0`, статичний бінарник.
-- Міграції — прості `.sql` у `embed.FS`, номер у таблиці `schema_migrations`. Без бібліотек.
-- `SOFAR_DEV=1` читає шаблони з диска замість embed — гаряче перезавантаження.
-- Кожен POST повертає **HTML-фрагмент**, ніколи JSON.
-- `row.html` — атомарна одиниця. `advance` віддає новий `<tr>` + `hx-swap-oob` для правого рейлу.
-
-**Маршрути:**
-
-```
-GET  /                     → 302 /active
-GET  /active /backlog /done /dropped
-GET  /year/{y}
-GET  /settings
-GET  /search?q=            фрагмент результатів ⌘K
-GET  /entry/{id}/panel     фрагмент панелі
-POST /entry/{id}/advance   body: n=1 | abs=<idx>
-POST /entry/{id}/undo
-POST /entry/{id}/status    body: status=
-POST /entry/{id}/rating
-POST /entry/{id}/note
-POST /add                  body: tmdb_type, tmdb_id, status, position
-POST /add/manual           body: kind, title, total, unit, position
-```
-
----
-
-## 5. Доріжка — специфікація компонента
-
-Це компонент, від якого залежить уся апка. Пишеться один раз, використовується в трьох масштабах.
-
-**Чотири стани клітинки:**
-
-| Стан | Умова | Вигляд |
-|---|---|---|
-| `f` переглянуто | `idx <= position` | залито кольором типу |
-| `n` наступна | `idx == position+1` | рамка акценту + трикутник знизу |
-| `a` вийшла, чекає | `idx > position+1 && air_date <= today` | тонка рамка кольору типу |
-| `u` ще не вийшла | `air_date > today` або NULL | порожня рамка |
-
-Різниця між `a` і `u` — головна цінність доріжки. Дані для неї вже є в `unit.air_date`.
-
-**Чотири режими рендеру** — один шаблон, чотири гілки:
-
-| Умова | Що малюємо |
-|---|---|
-| `depth='status'` | три стани: хочу / у процесі / завершив |
-| `total_units IS NULL` | смугастий бар, рахує вгору |
-| `total_units <= 60` | клітинки |
-| `total_units > 60` | суцільний бар |
-
-**Масштаби:** `sml` 8×16 (панель-список, архів, мобільний) · базовий 12×22 (головний) · `big` 17×30 (панель).
-Межа сезону — вертикальна волосина 1px між клітинками, коли `unit.season` змінюється.
-
----
-
-## 6. Клавіатура
-
-Обробник ігнорує все, коли фокус в `input`/`textarea`, крім `Esc`.
-
-| Клавіша | Дія |
-|---|---|
-| `↑` `↓` | рядок; скролити у видиму зону; якщо панель відкрита — перемалювати її |
-| `Space` | `+step` для типу |
-| `<цифра>` `Space` | `+N` (буфер цифр скидається через 1.5 с) |
-| `⇧Space` | `−1` |
-| `⇧S` | до кінця поточного сезону |
-| `↵` | відкрити/закрити панель |
-| `E` | оцінка: далі приймає 1–9 і 0=10 |
-| `N` | нотатка |
-| `⌘Z` | скасувати останню дію (вікно 5 с показує тост) |
-| `⌘K` | палітра |
-| `⌘⌫` | кинути |
-| `Esc` | закрити панель або палітру |
-| `?` | шпаргалка |
-
-У палітрі: `↵` у процесі · `⇧↵` колись · `⌘↵` завершено · `⌥↵` кинуто.
-У режимі потоку поле не закривається після `⌘↵`.
-
----
-
-## 7. Дизайн-токени
-
-Беремо з макета «Смуга», світла тема — базова.
-
-```
---bg   #F5F7F6    --fg   #131A18    --ac   #0E6B5A
---ln   #DCE2E0    --ln2  #E9EDEB    --cell #DEE5E2
---mut  #94A09C    --mid  #5A6562    --el   #FFFFFF    --sel #EBF3F0
-
-Типи (світла / темна):
-show   #1F4E79 / #5B9BD5      anime #A6401A / #E88A5C
-movie  #5B3A8C / #A98BD9      book  #0F6B4F / #4FBF9A
-game   #8A5A14 / #D9A54E      pod   #6E6A2A / #BDB868
-
-Темна: --bg #0A0E0D  --fg #E4EAE7  --ac #43C4A8  --ln #1F2725  --cell #1B2321
-```
-
-Шрифти: **Fira Sans** (текст), **Fira Sans Condensed** (заголовки, великі числа),
-**Fira Code** (дані, лейбли, службове). Вендоримо як `woff2`, не Google Fonts.
-
-Ритм: рядок 44px, сітка 4px, радіуси ≤3px, тіней немає крім оверлеїв.
-
----
-
-## 8. Етапи
-
-Кожен етап закінчується станом, який можна запустити. Порядок обраний так, щоб не кинути.
-
-### M0 · Скелет — 3 год
-`go mod init github.com/ndmik-dev/sofar` · ServeMux · embed шаблонів і статики ·
-відкриття SQLite + раннер міграцій + seed юзера · Dockerfile (distroless, `CGO_ENABLED=0`) · `AGENTS.md`.
-**Готово коли:** `go run .` віддає стилізовану порожню сторінку на `:8099`.
-
-### M1 · Дані і список — 6 год
-Схема · запити store · фікстури для розробки · `/active` рендерить список із БД.
-**Готово коли:** фікстурні рядки малюються з правильними чотирма станами клітинок.
-
-### M2 · Доріжка і +1 — 5 год
-`track.html` + CSS · `advance` / `undo` · запис у `progress`, оновлення `entry.position` ·
-htmx swap рядка + `hx-swap-oob` рейлу · тост зі скасуванням.
-**Готово коли:** клік по «+» рухає прогрес, `⌘Z` повертає, після перезавантаження все на місці.
-
-### M3 · TMDB — 8 год
-Клієнт: `search/multi`, `tv/{id}`, `tv/{id}/season/{n}`, `movie/{id}` ·
-імпорт у `media` + `unit` з наскрізним `idx` · кеш відповідей на диск · ліміт запитів ·
-аніме за евристикою `genre 16 + origin_country JP` (тип можна змінити руками).
-**Готово коли:** `⌘K` знаходить справжній серіал і додає його зі справжніми серіями.
-
-### M4 · Додавання — 5 год
-Палітра: фрагмент пошуку, дебаунс, модифікатори статусу · форма ручного запису з вибором типу ·
-крок «де ти зупинився».
-**Готово коли:** аніме додається за чотири натискання разом із позицією.
-
-### M5 · Наповнення — 6 год
-Режим потоку (`⌘↵` додає й чистить поле) · `/backlog` з колонкою «займе» і фільтром за часом ·
-`/done` згруповане за роками · порожній стан, що веде в потік.
-**Готово коли:** двадцять тайтлів заводяться за дві хвилини.
-
-### M5.5 · Каталоги для решти типів — 6 год ✅
-Три адаптери за формою TMDB-клієнта. Кожен лише заповнює форму, яку й так можна заповнити руками.
-
-| Адаптер | Дає | Ключ | Ціна |
+| | Milestone | Est. | Outcome |
 |---|---|---|---|
-| Google Books | назва, автор, рік, обкладинка, `pageCount` **як підказка в редаговане поле** | безкоштовний | 3 год |
-| RAWG | назва, рік, обкладинка (+`playtime`, не використовуємо) | безкоштовний, 20k/міс, потрібна атрибуція з посиланням | 2 год |
-| iTunes Search | назва, обкладинка, адреса фіду | не потрібен | 1 год |
+| ✅ | **M0** Skeleton | 3 h | Server, migrations, Docker |
+| ✅ | **M1** Schema and track | 6 h | Four-state cells on real data |
+| ✅ | **M2** `+1` and undo | 5 h | **Usable as a tracker** |
+| ✅ | **M3** TMDB | 8 h | Real series with real episodes |
+| ✅ | **M4** Adding | 5 h | `⌘K`, prefixes, manual entries |
+| ✅ | **M5** Filling up | 6 h | Flow mode, backlog, archive |
+| ✅ | **M5.5** Other catalogs | 6 h | Books, games, podcasts |
+| ✅ | **M6** Keyboard | 5 h | A full session without the mouse |
+| | **M7** Panel | 5 h | Description, episodes, pace, note |
+| | **M8** Streak and year | 6 h | Gamification, per-type depth |
+| | **M9** Deploy | 5 h | Live on a domain, with backups |
+| | **M10** Pocket and night | 5 h | PWA, dark theme |
 
-**Правило, обов'язкове для всіх трьох:** каталог ніколи не є обов'язковим. API впало, ключ протух,
-ліміт вичерпано — той самий `⌘K` відкриває форму ручного вводу, і апка працює. Три ключі це три речі,
-які можуть зламатись, і жодна з них не має ламати застосунок.
+About 44 hours spent of roughly 59.
 
-**Дефолти подкасту:** `total_units = NULL`, `depth = status`. Це вже наявний у схемі випадок
-«без межі», який ми закладали під ігри — окремого механізму не треба. Наративні подкаст-сезони
-з кінцем працюють тим самим шляхом, просто з непорожнім `total_units`.
+### M7 · Panel — 5 h
 
-**Готово коли:** книга додається з автором і обкладинкою, а число сторінок можна виправити на своє.
+`↵` opens a panel on the right. The list stays put and `↑↓` keep working, with
+the panel following the cursor. Inside: the large track with season labels, what
+is next, the synopsis (already in the database, nowhere to show it), the episode
+list, pace, note, rating.
 
-**Зроблено.** Книга відкриває заповнену форму зі сторінками як підказкою; гра й подкаст додаються одним кліком,
-бо звіряти там нічого. Спільний кешований HTTP-клієнт винесено в `internal/fetch` — TMDB тепер теж на ньому.
-Правило про необов'язковість перевірено в бою: Google Books віддав 503 на першому ж живому запиті,
-і форма ручного вводу підхопила без жодної помилки для користувача.
+**Done when:** `↵` opens it, `↑↓` moves it, `Esc` closes it.
 
-### M6 · Клавіатура — 5 год ✅
-`keys.js` цілком · фокус, скрол у видиму зону, ігнор в інпутах · шпаргалка на `?`.
-**Готово коли:** повна сесія без миші.
+### M8 · Streak and year — 6 h
 
-**Зроблено.** Виділення живе на клієнті й перевішується після кожної підміни htmx — на `afterSettle`,
-а не `afterSwap`: під час підміни htmx ще переставляє вузли, і підсвітка, накладена тоді, зникає.
-Зміна статусу тепер прибирає рядок зі списку, якому він більше не належить.
+Streak with one freeze a month. `/year`: a day calendar coloured by type, months
+as stacked bars, four headline numbers. Per-type depth settings including the
+status-only mode. `⌘C` copies the year as plain text.
 
-### M7 · Панель — 5 год
-Фрагмент: велика доріжка з підписами сезонів, «далі», опис, список серій, темп, нотатка, оцінка.
-**Готово коли:** `↵` відкриває, `↑↓` тягне панель за курсором, `Esc` закриває.
+**Done when:** games show three states instead of a track.
 
-### M8 · Стрік, рік, глибина — 6 год
-Стрік із заморозкою · `/year`: календар по днях, місяці стосами, чотири числа ·
-налаштування глибини на тип, режим «тільки статус» · `⌘C` копіює рік текстом.
-**Готово коли:** ігри показують три стани замість доріжки.
+### M9 · Deploy — 5 h
 
-### M9 · Деплой — 5 год
-Нічний cron у тому ж процесі: оновлення `airing='returning'` серіалів ·
-Dokploy, домен, HTTPS · бекап `sqlite3 .backup` у S3 щодоби · базове логування.
-**Готово коли:** працює на домені, бекап відпрацював.
+A nightly job in the same process refreshing `airing='returning'` shows and
+purging entries deleted more than 30 days ago. Dokploy, domain, HTTPS, a daily
+`sqlite3 .backup` to S3.
 
-### M10 · Кишеня і ніч — 5 год
-Адаптив (доріжка → бар у списку, доріжка з переносом у панелі) · PWA manifest + service worker ·
-темна тема на токенах.
-**Готово коли:** ставиться на телефон, читається офлайн.
+**Done when:** it runs on a domain and a backup has completed.
 
-**Разом ≈ 54 години.** Після M2 вже можна користуватись, після M5 — це вже твоя бібліотека.
+### M10 · Pocket and night — 5 h
+
+Responsive layout, PWA manifest and service worker, dark theme on tokens.
+
+**Done when:** it installs on a phone and reads offline.
 
 ---
 
-## 9. Пастки, куди не наступати
+## 5. Traps worth not stepping in
 
-- **Каталог заповнює метадані, але ніколи не визначає одиниці прогресу.** TMDB — єдиний виняток,
-  бо серії однозначні. Усе, що визначало б одиниці (AniList із абсолютною нумерацією, сторінки
-  чужого видання, HowLongToBeat), лишається за бортом. Саме на цьому такі проєкти вмирають.
-- **Жоден каталог не обов'язковий.** Кожен адаптер деградує до форми ручного вводу.
-- **Не кешувати `position` замість логу.** `progress` — джерело правди, `position` — похідне.
-  Якщо колись розійдуться, перерахувати з логу.
-- **Не робити підтверджень.** Тост зі скасуванням на 5 с і `⌘Z`. Дешево помилитись — не треба питати.
-- **Не малювати клітинки для 662 сторінок.** Перевірка `total_units <= 60` — у шаблоні, а не в голові.
-- **Не ходити в TMDB на рендер.** Тільки при додаванні і в нічному cron.
-- **Не ставити Tailwind.** Один `app.css`, токени, ~600 рядків. Збірки фронту в проєкті немає.
-- **Не писати JSON API.** Щойно з'явиться — з'явиться і клієнт, і версіонування.
-
----
-
-## 10. Відкриті питання
-
-Не блокують M0–M2, але потрібні до M3.
-
-1. **Ключі API** — TMDB (до M3), Google Books і RAWG (до M5.5). Усі безкоштовні.
-   RAWG вимагає атрибуції з активним посиланням — рядок у футері.
-2. **Домен** — піддомен існуючого чи окремий? Впливає лише на M9.
-3. **Постери** — TMDB віддає URL зображень. У «Смузі» їх немає в списку, але в панелі вони б згодились.
-   Рішення: у v1 без них узагалі, потім вирішимо.
-4. **Імпорт історії** — з чого саме? Trakt, Simkl, CSV? Не раніше ніж після M5.
-5. **Шрифти Fira** — вендоримо як `woff2` у M2, коли починається справжня візуальна робота.
-   До того — системний стек із Fira першою в списку.
+- **A catalog fills metadata but never defines progress units.** TMDB is the one
+  exception, because episodes are unambiguous. Anything that would define units
+  — AniList absolute numbering, another edition's page count, HowLongToBeat —
+  stays out. This is what kills projects like this.
+- **No catalog is mandatory.** Every adapter degrades to the manual form. Proven
+  in the wild: Google Books returned 503 on the first live request and the user
+  saw a working form rather than an error.
+- **`progress` is the source of truth, `position` is a cache.** If they ever
+  disagree, recompute from the log.
+- **No confirmations.** A toast with undo for five seconds, plus `⌘Z`. Mistakes
+  are cheap, so asking is noise.
+- **Do not call TMDB during a render.** Only on add and in the nightly job.
+- **No Tailwind.** One `app.css`, tokens at the top.
+- **No JSON API.** The moment it exists, so do a client and versioning.
 
 ---
 
-## 11. Що робимо першим
+## 6. Lessons that cost time
 
-`M0`. Одразу після нього — `M1` і `M2`, бо разом вони дають працюючий трекер,
-і далі вже нема ризику кинути на порожньому місці.
+Recorded so they are not repeated.
+
+- **Dev mode reloads templates but not Go code.** An old binary with new
+  templates is a 500 that looks like a bug. Restart.
+- **htmx keeps moving nodes during `afterSwap`.** Client-side state such as the
+  selected row must be re-applied on `afterSettle`, or it vanishes.
+- **A flex container sized from shrinkable children collapses to their minimum.**
+  The current-season strip shrank to a sliver until the cells were given a fixed
+  width with a scroll fallback.
+- **Thresholds belong to the smallest unit they describe.** "Cells up to 60
+  episodes" was wrong for a whole show; per season it is right, and single-season
+  anime never notices the rule exists.
+- **Advertise nothing that does not exist.** A toast promising `⌘Z` before the
+  keyboard layer shipped was worse than no label at all.
+
+---
+
+## 7. Open questions
+
+1. **Domain** — a subdomain of an existing one, or its own? Only affects M9.
+2. **Posters** — TMDB returns image URLs and they are stored. Nothing displays
+   them yet; the M7 panel is the first place they would earn their space.
+3. **Importing history** — from Trakt, Simkl, a CSV? Not before M8.
+4. **Fira fonts** — currently a system stack with Fira first. Vendor the woff2
+   files whenever the typography starts to matter.

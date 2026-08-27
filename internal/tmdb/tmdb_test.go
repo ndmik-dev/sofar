@@ -93,5 +93,5 @@ func TestLiveMovie(t *testing.T) {
 	if d.Kind != "movie" || d.Runtime == 0 {
 		t.Errorf("unexpected movie: %+v", d.Result)
 	}
-	t.Logf("%s (%d) %d хв", d.Title, d.Year, d.Runtime)
+	t.Logf("%s (%d) %d min", d.Title, d.Year, d.Runtime)
 }

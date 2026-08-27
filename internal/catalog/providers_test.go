@@ -32,7 +32,7 @@ func TestLiveBooks(t *testing.T) {
 		t.Fatal("no results")
 	}
 	for _, r := range res {
-		t.Logf("%-46s %-24s %d  стор:%d", trunc(r.Title, 44), trunc(r.Subtitle, 22), r.Year, r.Total)
+		t.Logf("%-46s %-24s %d  pages:%d", trunc(r.Title, 44), trunc(r.Subtitle, 22), r.Year, r.Total)
 	}
 	if res[0].Kind != "book" || res[0].ExtID == "" {
 		t.Errorf("incomplete result: %+v", res[0])
