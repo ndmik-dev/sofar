@@ -95,7 +95,8 @@ statistics for the same reason.
 
 ## Adding
 
-`⌘K` opens one field. Type prefixes narrow it by type: `с:` series, `а:` anime,
+`⌘K` opens one field. `↑` `↓` walk the results, `↵` takes the highlighted one.
+Type prefixes narrow it by type: `с:` series, `а:` anime,
 `ф:` films, `к:` books, `і:` games, `п:` podcasts. Latin equivalents work too
 (`s: a: m: b: g: p:`).
 

@@ -244,6 +244,11 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		page.Rows = append(page.Rows, rw)
 	}
 	page.Empty = len(page.Rows) == 0 && len(page.Stale) == 0
+	// The element stays in the page even with nothing to show, so an
+	// out-of-band swap has a target the moment the first row lands. Under a
+	// kind filter the figures describe the whole list, not what is on screen,
+	// so they stay hidden rather than contradict it.
+	page.Summary.Off = page.Empty || kind != ""
 	if kind != "" {
 		page.Filter = &kindFilter{
 			Label: kindLabels[kind],
@@ -371,6 +376,7 @@ func (s *Server) sidebands(r *http.Request, today string) (summaryView, navView,
 	view := summaryFrom(sum)
 	view.OOB = true
 	view.Render = base == "/active"
+	view.Off = view.Off || currentKind(r) != ""
 	return view, navViewFrom(statusCounts, kindCounts, base, true), nil
 }
 
@@ -535,6 +541,16 @@ func currentBase(r *http.Request) string {
 
 // htmx sends the page the request came from, which is the only way the server
 // can tell whether a freshly added row belongs on screen right now.
+// A kind filter narrows the list but not the figures above it, so the bar
+// hides rather than describe something else.
+func currentKind(r *http.Request) string {
+	u, err := url.Parse(r.Header.Get("HX-Current-URL"))
+	if err != nil {
+		return ""
+	}
+	return u.Query().Get("kind")
+}
+
 func viewingList(r *http.Request, status string) bool {
 	raw := r.Header.Get("HX-Current-URL")
 	if raw == "" {

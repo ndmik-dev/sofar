@@ -333,6 +333,29 @@
       return;
     }
 
+    // The palette is a list you pick from, so it gets its own arrows. They are
+    // handled before the dialog guard below, which stops every other shortcut.
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      var pal = document.getElementById("palette");
+      if (pal && pal.open) {
+        var items = Array.prototype.slice.call(pal.querySelectorAll(".res"));
+        if (!items.length) return;
+        e.preventDefault();
+        var at = items.indexOf(pal.querySelector(".res.on"));
+        var to;
+        if (at < 0) {
+          to = e.key === "ArrowDown" ? 0 : items.length - 1;
+        } else {
+          to = e.key === "ArrowDown" ? at + 1 : at - 1;
+          to = Math.min(items.length - 1, Math.max(0, to));
+        }
+        items.forEach(function (el) { el.classList.remove("on"); });
+        items[to].classList.add("on");
+        items[to].scrollIntoView({ block: "nearest" });
+        return;
+      }
+    }
+
     if (e.key === "Escape" && panelOpen() && !dialogOpen()) {
       e.preventDefault();
       window.closePanel();

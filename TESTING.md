@@ -96,7 +96,8 @@ The case that used to wipe a series back to zero.
 
 | # | Do | Expect |
 |---|---|---|
-| 1 | `⌘K`, type something you have finished | Results |
+| 1 | `⌘K`, type something you have finished | Results, the first one highlighted |
+| 1a | Press `↓` twice, then `↑` | The highlight walks the list and comes back one |
 | 2 | Press **`⌘↵`** | Field clears, cursor stays in it, a log line "Назва · у завершених ✓" appears below |
 | 3 | Repeat twice with other titles | The log grows, the rhythm never breaks |
 | 4 | `Esc`, open **Завершено** | All three are there with fully filled tracks |
@@ -175,6 +176,11 @@ The case that used to wipe a series back to zero.
   there are grouped by year.
 - `⇧Space` on a book steps back one page, not ten. Use `⌘Z` to reverse a `+10`.
 - Fixture entries give a streak of **0**: backfill never counts as watching.
+- Under a kind filter the figures bar is hidden: it describes the whole list,
+  not the filtered subset, and showing it there would contradict the rows.
+- Seasons come from TMDB, which does not always match how a service markets a
+  show — Disenchantment ships as five Netflix "parts" but is three TMDB seasons
+  of 20 + 20 + 10, and the app follows TMDB.
 - Seven familiar titles after clearing the database are the fixtures reseeding,
   not leftover data. Run with `SOFAR_FIXTURES=0`.
 - If the keyboard or the layout misbehaves in a way the code says is fixed,

@@ -813,13 +813,16 @@ button.kb:hover { border-color: var(--mid); color: var(--fg); }
 
 .tyc .rate {
   display: inline-block;
-  margin-left: 8px;
-  padding: 1px 6px;
-  border-radius: 3px;
-  background: var(--tint, var(--fg));
-  color: var(--el);
-  font-weight: 500;
-  font-size: 10.5px;
+  margin-left: 9px;
+  padding: 0;
+  /* The rating sat in a chip tinted like the kind label beside it and read as
+     part of it. The accent belongs to nothing else on the row. */
+  background: none;
+  color: var(--ac);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
 }
 
 #panel-slot:empty { display: none; }
