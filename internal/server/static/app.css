@@ -1126,6 +1126,8 @@ button.kb:hover { border-color: var(--mid); color: var(--fg); }
 .v2.num::-webkit-inner-spin-button { appearance: none; margin: 0; }
 .v2.num { appearance: textfield; -moz-appearance: textfield; }
 
+.sum.off { display: none; }
+
 .step .pstep {
   display: grid;
   grid-template-columns: 148px 1fr;
@@ -1135,3 +1137,6 @@ button.kb:hover { border-color: var(--mid); color: var(--fg); }
 }
 .step .pstep .k2 { white-space: nowrap; }
 .step .withunit { flex-wrap: wrap; row-gap: 2px; }
+/* The step's own footer sits inside the block, so it keeps the block's indent
+   instead of the palette footer's full-width bar. */
+.pfoot.sfoot { border: 0; background: none; padding: 9px 17px 0; }

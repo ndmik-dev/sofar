@@ -222,6 +222,16 @@
     }
   });
 
+  // Once a title is added the query that found it is noise; the field shows
+  // what you are answering about instead.
+  document.body.addEventListener("htmx:afterSettle", function () {
+    var step = document.getElementById("position-step");
+    var input = document.getElementById("palette-input");
+    if (step && input && input.value !== step.dataset.title) {
+      input.value = step.dataset.title;
+    }
+  });
+
   document.body.addEventListener("sofar:flow", function () {
     var input = document.getElementById("palette-input");
     var results = document.getElementById("palette-results");

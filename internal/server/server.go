@@ -89,7 +89,13 @@ func (s *Server) routes() error {
 
 func (s *Server) staticHandler() (http.Handler, error) {
 	if s.cfg.Dev {
-		return http.FileServer(http.Dir("internal/server/static")), nil
+		// Heuristic caching serves a stale app.css or keys.js long after the
+		// file changed, which reads exactly like the bug you just fixed.
+		fsrv := http.FileServer(http.Dir("internal/server/static"))
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "no-store")
+			fsrv.ServeHTTP(w, r)
+		}), nil
 	}
 	sub, err := fs.Sub(assetsFS, "static")
 	if err != nil {

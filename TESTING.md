@@ -21,8 +21,8 @@ Report a failure as the case id plus the step number: `TC-3 step 4`.
 |---|---|---|
 | 1 | Open the app on an empty database | "Порожньо" with two buttons |
 | 2 | Click **Заповнити архів** | The palette opens |
-| 3 | Type a series name, press `↵` | The palette **stays open** and shows "Додано · …" with a **Де ти зупинився?** field and a hint like "усього 86 серій" |
-| 4 | Type `12`, press `↵` | Palette closes; the row appears reading `12 / 86`; "Порожньо" is gone |
+| 3 | Type a series name, press `↵` | The palette **stays open**, the search field now holds the **title** instead of your query, and below it "Додано · …" with a **Де ти зупинився?** field and a hint like "усього 86 серій" |
+| 4 | Type `12`, press `↵` | Palette closes; the row appears reading `12 / 86`; "Порожньо" is gone and the figures bar is there **without a reload** |
 | 5 | Reload the page | The row and its position are still there |
 
 *The step in 3 exists so you never have to click twelve episodes by hand — it
@@ -174,3 +174,6 @@ The case that used to wipe a series back to zero.
 - Fixture entries give a streak of **0**: backfill never counts as watching.
 - Seven familiar titles after clearing the database are the fixtures reseeding,
   not leftover data. Run with `SOFAR_FIXTURES=0`.
+- If the keyboard or the layout misbehaves in a way the code says is fixed,
+  hard-reload once (`⌘⇧R`). Dev mode now sends `Cache-Control: no-store`, but a
+  page loaded before that change can still hold a cached `app.css` or `keys.js`.

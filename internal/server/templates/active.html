@@ -7,7 +7,7 @@
 </div>
 {{end}}
 
-{{if not .Empty}}{{if not .Filter}}{{template "summary" .Summary}}{{end}}{{end}}
+{{template "summary" .Summary}}
 
 <div id="rows">{{range .Rows}}{{template "row" .}}{{end}}</div>
 
@@ -24,7 +24,7 @@
   <h1>Порожньо</h1>
   <p>Почни з того, що вже переглянув — так апка одразу стане твоєю, а не порожньою формою.</p>
   <div class="bt">
-    <button type="button" class="on" onclick="openPalette()">Заповнити архів — ⌘↵ додає й лишає поле</button>
+    <button type="button" class="on" onclick="openPalette()">Заповнити архів</button>
     <button type="button" onclick="openPalette()">Додати те, що дивлюсь</button>
   </div>
 </div>

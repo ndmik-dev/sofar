@@ -99,6 +99,8 @@ type summaryView struct {
 	Airing      int
 	Active      int
 	OOB         bool
+	Render      bool
+	Off         bool
 }
 
 type statusOption struct {
@@ -363,6 +365,7 @@ func (s *Server) sidebands(r *http.Request, today string) (summaryView, navView,
 
 	view := summaryFrom(sum)
 	view.OOB = true
+	view.Render = base == "/active"
 	return view, navViewFrom(statusCounts, kindCounts, base, true), nil
 }
 
@@ -491,6 +494,7 @@ func (s *Server) respondMoveWith(w http.ResponseWriter, r *http.Request, move st
 
 	view := summaryFrom(sum)
 	view.OOB = true
+	view.Render = currentBase(r) == "/active"
 	s.renderFragment(w, r, "move-response", moveResponse{
 		Row:     buildRow(move.Entry, today),
 		Summary: view,
@@ -583,6 +587,8 @@ func (s *Server) failEntry(w http.ResponseWriter, r *http.Request, err error) {
 
 func summaryFrom(s store.Summary) summaryView {
 	return summaryView{
+		Render:      true,
+		Off:         s.Active == 0,
 		Waiting:     s.Waiting,
 		WaitingTime: domain.HoursMins(s.WaitingMins),
 		Airing:      s.Airing,

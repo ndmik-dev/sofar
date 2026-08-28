@@ -1,11 +1,11 @@
 {{define "move-response"}}
 {{template "row" .Row}}
-{{template "summary" .Summary}}
+{{if .Summary.Render}}{{template "summary" .Summary}}{{end}}
 {{template "toast" .Toast}}
 {{end}}
 
 {{define "summary"}}
-<div class="sum" id="summary"{{if .OOB}} hx-swap-oob="true"{{end}}>
+<div class="sum{{if .Off}} off{{end}}" id="summary"{{if .OOB}} hx-swap-oob="true"{{end}}>
   <div>
     <div class="n">{{.Waiting}} <s>{{plural .Waiting "серія" "серії" "серій"}}</s></div>
     <div class="u">вийшло й чекає</div>
@@ -142,7 +142,7 @@
 {{end}}
 
 {{define "position-step"}}
-<div class="step">
+<div class="step" id="position-step" data-title="{{.Title}}">
   <div class="sc">Додано · {{.Title}}</div>
   <form class="pstep" data-pal="position" data-entry="{{.EntryID}}">
     <input type="hidden" name="setup" value="1">
@@ -153,7 +153,7 @@
       <s>{{.Hint}}</s>
     </span>
   </form>
-  <div class="pfoot" style="border:0;background:none;padding:9px 0 0">
+  <div class="pfoot sfoot">
     <span><b>↵</b> зберегти</span>
     <span><b>Esc</b> лишити на нулі</span>
   </div>
@@ -162,7 +162,7 @@
 
 {{define "added-row"}}
 {{if .ShowRow}}<div hx-swap-oob="{{.RowOOB}}">{{template "row" .Row}}</div>{{end}}
-{{template "summary" .Summary}}
+{{if .Summary.Render}}{{template "summary" .Summary}}{{end}}
 {{template "nav" .Nav}}
 {{if .Flow}}
   <div hx-swap-oob="afterbegin:#flow-log">
@@ -181,7 +181,7 @@
 
 {{define "removed-row"}}
 <div id="entry-{{.EntryID}}" hx-swap-oob="delete"></div>
-{{template "summary" .Summary}}
+{{if .Summary.Render}}{{template "summary" .Summary}}{{end}}
 {{template "nav" .Nav}}
 {{template "toast" .Toast}}
 {{end}}
