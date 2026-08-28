@@ -69,6 +69,20 @@
     });
   }
 
+  // E alone does nothing visible until a digit follows, which reads exactly
+  // like a dead key. Say what the app is waiting for.
+  function flash(text) {
+    var slot = document.getElementById("toast");
+    if (!slot) return;
+    slot.innerHTML = "";
+    var t = document.createElement("div");
+    t.className = "toast";
+    var s = document.createElement("span");
+    s.textContent = text;
+    t.appendChild(s);
+    slot.appendChild(t);
+  }
+
   function takeDigits() {
     var n = parseInt(digits, 10);
     digits = "";
@@ -347,7 +361,13 @@
         }
         return;
       }
-      if (e.key === "Escape") { e.preventDefault(); return; }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        flash("Оцінку скасовано");
+        return;
+      }
+      // Any other key means you changed your mind: drop the state and let the
+      // key do its own job rather than swallowing it.
     }
 
     if (mod && e.key === "Backspace") {
@@ -393,6 +413,7 @@
     if ((key === "e" || key === "у" || key === "е") && selected()) {
       e.preventDefault();
       awaitingRating = true;
+      flash("Оцінка: 1–9, 0 — це десять, Esc — скасувати");
       return;
     }
 

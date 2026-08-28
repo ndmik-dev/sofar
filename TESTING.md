@@ -34,6 +34,7 @@ declares your starting point.*
 |---|---|---|
 | 1 | Click `+` on the right of a row | Position +1, toast with "⌘Z скасувати" |
 | 2 | Click a cell two positions ahead of the filled ones | Position jumps exactly there |
+| 2a | Click the last filled cell (the position you are already on) | Nothing happens and **no toast** — it is not an error |
 | 3 | Select a row (`↑` `↓`), press `Space` | +1 |
 | 4 | Press `3`, then `Space` | +3 in one move |
 | 5 | Press `⌘Z` | Exactly −3, back to where step 3 left it |
@@ -68,10 +69,11 @@ The case that used to wipe a series back to zero.
 
 | # | Do | Expect |
 |---|---|---|
-| 1 | Select a row, press `Е` (Ukrainian layout), then `8` | Toast "· оцінка 8", badge **8** next to the type |
-| 2 | Open the panel, hover across the rating squares | Preview: squares up to the cursor light up, the rest go quiet |
-| 3 | Move the mouse away without clicking | The eight squares are exactly as they were |
-| 4 | Click the tenth square | Rating 10 (`0` after `Е` does the same) |
+| 1 | Select a row, press `Е` (Ukrainian layout) | A hint appears: "Оцінка: 1–9, 0 — це десять, Esc — скасувати" |
+| 2 | Press `8` | Toast "· оцінка 8", badge **8** next to the type |
+| 3 | Open the panel, hover across the rating squares | Preview: squares up to the cursor light up, the rest go quiet |
+| 4 | Move the mouse away without clicking | The eight squares are exactly as they were |
+| 5 | Click the tenth square | Rating 10 (`0` after `Е` does the same) |
 
 ## TC-6 · Delete returns to its place
 
@@ -85,9 +87,10 @@ The case that used to wipe a series back to zero.
 
 | # | Do | Expect |
 |---|---|---|
-| 1 | Select a row, press `⌘⌫` | Row leaves the list, toast "· у кинутих · ⌘Z повернути" |
-| 2 | Press `⌘Z` | Row is back in the list |
-| 3 | Open **Кинуто** | Empty |
+| 1 | Note the sidebar counts for **У процесі** and **Кинуто** | — |
+| 2 | Select a row, press `⌘⌫` | Row leaves the list, toast "· у кинутих · ⌘Z повернути", both counts change **immediately** |
+| 3 | Press `⌘Z` | Row is back in the list and both counts return to step 1 — **without clicking anything else** |
+| 4 | Open **Кинуто** | Empty |
 
 ## TC-8 · Backfilling the archive
 

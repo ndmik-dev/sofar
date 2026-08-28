@@ -174,6 +174,7 @@ type listPage struct {
 type moveResponse struct {
 	Row     row
 	Summary summaryView
+	Nav     navView
 	Toast   toastView
 }
 
@@ -300,6 +301,10 @@ func (s *Server) handleUndo(w http.ResponseWriter, r *http.Request) {
 	move, err := s.store.Undo(r.Context(), id, now)
 	if err != nil {
 		s.failEntry(w, r, err)
+		return
+	}
+	if !move.Changed {
+		s.respondMoveWith(w, r, move, today, toastView{Text: "Нема чого скасовувати"})
 		return
 	}
 	s.respondMove(w, r, move, today)
@@ -485,19 +490,18 @@ func (s *Server) respondMove(w http.ResponseWriter, r *http.Request, move store.
 }
 
 func (s *Server) respondMoveWith(w http.ResponseWriter, r *http.Request, move store.Move, today string, toast toastView) {
-	_, _, staleBefore := s.now()
-	sum, err := s.store.Summary(r.Context(), defaultUserID, today, staleBefore)
+	// The sidebar rides along: a status change moves a title between lists,
+	// and counts that only refresh on the next click read as broken.
+	sum, nav, err := s.sidebands(r, today)
 	if err != nil {
 		s.fail(w, r, err)
 		return
 	}
 
-	view := summaryFrom(sum)
-	view.OOB = true
-	view.Render = currentBase(r) == "/active"
 	s.renderFragment(w, r, "move-response", moveResponse{
 		Row:     buildRow(move.Entry, today),
-		Summary: view,
+		Summary: sum,
+		Nav:     nav,
 		Toast:   toast,
 	})
 }
@@ -545,7 +549,7 @@ func viewingList(r *http.Request, status string) bool {
 
 func toastFor(move store.Move) toastView {
 	if !move.Changed {
-		return toastView{Text: "Нема чого скасовувати"}
+		return toastView{}
 	}
 	unit := unitNames[move.Entry.Media.Unit]
 	switch {

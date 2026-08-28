@@ -1,6 +1,7 @@
 {{define "move-response"}}
 {{template "row" .Row}}
 {{if .Summary.Render}}{{template "summary" .Summary}}{{end}}
+{{template "nav" .Nav}}
 {{template "toast" .Toast}}
 {{end}}
 
