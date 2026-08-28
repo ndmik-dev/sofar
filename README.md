@@ -7,7 +7,7 @@ of what is finished.
 Self-hosted, single user, server-rendered. Go + htmx + SQLite, one binary, one
 dependency, no frontend build. The interface is Ukrainian.
 
-Status: milestones M0–M6 done, M7–M10 remaining. See [PLAN.md](PLAN.md).
+Status: milestones M0–M8 done, M9–M10 remaining. See [PLAN.md](PLAN.md).
 
 ## Run
 
@@ -77,11 +77,18 @@ only gets a three-state control instead.
 | `E` then `1`–`9` | rate, `0` means ten |
 | `⌘⌫` | drop |
 | `⌘Z` | undo the last action |
+| `↵` | open or close the detail panel |
+| `N` | focus the note in an open panel |
 | `⌘K` | search or add |
+| `⌘1`–`⌘4` | in progress · later · finished · year |
 | `?` | shortcuts |
 
-Both Latin and Cyrillic layouts are handled: `⌘K` arrives as `к` on a Ukrainian
-keyboard, and the handler accepts both.
+Both layouts are handled, by letter rather than key position: `E` arrives as `е`
+on a Ukrainian keyboard and `⌘K` as `к`, and the handler accepts either.
+
+Undo reverses what you watched, never the starting position you declared when
+adding a title — that is setup, not an action, and it is excluded from the year
+statistics for the same reason.
 
 ## Adding
 
@@ -151,6 +158,9 @@ internal/server      routing, rendering, handlers
 ```
 GET  /                      → 302 /active
 GET  /active /backlog /done /dropped     ?kind= filters by type
+GET  /year /year/{y}        statistics for a year
+GET  /settings              per-type tracking depth
+POST /settings/{kind}
 GET  /healthz
 GET  /search?q=             ⌘K results fragment
 GET  /manual?...            manual form, prefilled from a catalog hit
@@ -162,6 +172,8 @@ POST /entry/{id}/status
 POST /entry/{id}/rating
 POST /entry/{id}/delete
 POST /entry/{id}/restore
+POST /entry/{id}/note
+GET  /entry/{id}/panel      detail panel fragment
 ```
 
 ## Deploy
