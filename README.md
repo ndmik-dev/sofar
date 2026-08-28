@@ -83,11 +83,14 @@ only gets a three-state control instead.
 | `↵` | open or close the detail panel |
 | `N` | focus the note in an open panel |
 | `⌘K` | search or add |
-| `⌘1`–`⌘4` | in progress · later · finished · year |
+| `↑` `↓` in the palette | walk the results |
+| `⌥1`–`⌥4` | in progress · later · finished · year |
 | `?` | shortcuts |
 
 Both layouts are handled, by letter rather than key position: `E` arrives as `е`
-on a Ukrainian keyboard and `⌘K` as `к`, and the handler accepts either.
+on a Ukrainian keyboard and `⌘K` as `к`, and the handler accepts either. The page
+shortcuts sit on `⌥` because Chrome keeps `⌘1`–`⌘9` for its own tabs and never
+delivers them to a page.
 
 Undo reverses what you watched, never the starting position you declared when
 adding a title — that is setup, not an action, and it is excluded from the year
@@ -121,6 +124,10 @@ everywhere. Season boundaries come from `unit.season` changing. Specials
 (TMDB season 0) are excluded, because including them would shift that numbering.
 
 Deletion is soft (`entry.deleted_at`) so it can be undone like everything else.
+
+The theme follows the operating system. **Налаштування** can pin light or dark;
+the choice lives in `localStorage`, never on the server, because it belongs to
+the browser rather than to the data.
 
 A day starts at 04:00 — an episode watched at 01:30 belongs to the evening
 before. Use `config.Day`, never `time.Now().Day()`.

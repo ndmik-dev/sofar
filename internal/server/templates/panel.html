@@ -6,6 +6,7 @@
     {{with .Original}}<div class="orig">{{.}}</div>{{end}}
     <div class="mt">{{.KindLabel}}{{with .Meta}} · {{.}}{{end}}</div>
     <div class="rt2">
+      <span class="k3">Оцінка</span>
       <span class="dots">
         {{range $i, $on := .Dots}}
         <button type="button" class="{{if $on}}f{{end}}"

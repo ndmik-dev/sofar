@@ -27,7 +27,7 @@
             hx-swap="none"
             aria-label="Почати">↵</button>
   {{else}}
-    <button class="pl" type="button"
+    <button class="pl{{if .BtnWide}} w{{end}}" type="button"
             hx-post="/entry/{{.EntryID}}/advance"
             hx-vals='{"n": {{.Step}}}'
             hx-target="#entry-{{.EntryID}}"

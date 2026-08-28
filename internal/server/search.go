@@ -68,9 +68,13 @@ type manualForm struct {
 	Total     int
 	Position  int
 	Subtitle  string
-	Source    string
-	ExtID     string
-	Cover     string
+	// The second line means something different per type, and a book with no
+	// author is the one case where an empty field is worth offering anyway.
+	SubtitleLabel       string
+	SubtitlePlaceholder string
+	Source              string
+	ExtID               string
+	Cover               string
 }
 
 type searchView struct {
@@ -109,10 +113,23 @@ func manualFormFor(title, kind string) *manualForm {
 		UnitLabel: unitLabels[unit],
 		Open:      unit == "none",
 	}
+	f.SubtitleLabel, f.SubtitlePlaceholder = subtitleField(kind)
 	for _, k := range kindNav {
 		f.Kinds = append(f.Kinds, kindChoice{Kind: k.Kind, Label: kindLabels[k.Kind], On: k.Kind == kind})
 	}
 	return f
+}
+
+func subtitleField(kind string) (label, placeholder string) {
+	switch kind {
+	case "book":
+		return "Автор", "можна пропустити"
+	case "game":
+		return "Платформа", "PC, PS5, Switch…"
+	case "podcast":
+		return "Автор", "хто веде"
+	}
+	return "Оригінал", "назва мовою оригіналу"
 }
 
 func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {

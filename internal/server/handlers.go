@@ -85,6 +85,7 @@ type row struct {
 	Pos       string
 	PosSub    string
 	Btn       string
+	BtnWide   bool
 	Rating    int
 	Step      int
 	SeasonEnd int
@@ -628,6 +629,7 @@ func buildRow(e store.Entry, today string) row {
 	}
 	if rw.Step > 1 {
 		rw.Btn = fmt.Sprintf("+%d", rw.Step)
+		rw.BtnWide = true
 	}
 
 	total := int(e.Media.TotalUnits.Int64)

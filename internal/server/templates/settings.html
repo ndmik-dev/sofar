@@ -7,6 +7,22 @@
   {{range .Settings}}{{template "setting-row" .}}{{end}}
 </div>
 
+<div class="gl">Тема</div>
+<p class="pp" style="padding: 0 24px; max-width: 60ch;">За замовчуванням апка йде за системною темою.
+Тут можна закріпити одну — вибір лишається в цьому браузері.</p>
+
+<div class="stg2" style="padding: 10px 24px 24px;">
+  <div class="strow">
+    <span class="tn">Оформлення</span>
+    <span class="sw" id="theme-switch">
+      <button type="button" data-theme-set="system">системна</button>
+      <button type="button" data-theme-set="light">світла</button>
+      <button type="button" data-theme-set="dark">темна</button>
+    </span>
+    <span class="pv"></span>
+  </div>
+</div>
+
 <div class="ft">
   <span class="rt">M8 · налаштування</span>
 </div>

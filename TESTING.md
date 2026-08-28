@@ -135,7 +135,8 @@ The case that used to wipe a series back to zero.
 | 1 | Press `↵` | Panel opens on the right |
 | 2 | Press `↓` three times | The panel redraws for each new row |
 | 3 | Press `Space` | Row and the panel's "Далі" block update together |
-| 4 | Press `Н`, write a note, click Зберегти | Toast confirms |
+| 4 | Press `Н` | The panel scrolls to the note and the caret lands in it |
+| 4a | Write a note, click Зберегти | Toast confirms |
 | 5 | Reload, reopen the panel | The note is there |
 | 6 | Press `Esc` | Panel closes |
 
@@ -150,22 +151,27 @@ The case that used to wipe a series back to zero.
 
 ## TC-14 · The year is honest
 
+The year page counts **what you did in the app**, never what you declared when
+adding a title. That is the whole point of the case.
+
 | # | Do | Expect |
 |---|---|---|
-| 1 | Count roughly how many episodes you actually pressed today | — |
-| 2 | Press `⌘4` | "серій" matches that count, not the fixture totals |
+| 1 | On the list, press `Space` exactly three times on one row | Position moved by three |
+| 2 | Press `⌥4` | The year page. "серій" reads **3**, not the show's total |
 | 3 | Press `⌘C`, paste into a chat | Readable plain text |
-| 4 | Do one more `+1`, return to the year | The number went up by one |
+| 4 | Go back, press `Space` once, return to the year | "серій" reads **4** |
 
 ## TC-15 · Looks
 
 | # | Do | Expect |
 |---|---|---|
-| 1 | Switch the system theme to dark | List, panel, palette, year, settings — no dark text on dark ground anywhere |
-| 2 | Narrow the window to phone width | Nothing overflows sideways; long tracks scroll inside themselves |
-| 3 | Find a row with a very long title | Ellipsis, the grid holds |
-| 4 | Hover a track cell | Tooltip with the episode name and air date |
-| 5 | Open the palette and the panel in both themes | Text and controls readable in both |
+| 1 | **Налаштування** → Тема → темна | Everything turns dark at once; reload keeps it |
+| 2 | Switch to системна | Follows the OS again |
+| 3 | Open a series with many episodes, press `↵` | With the panel open the rows go two-line: **cells stay the same size**, every season block visible, nothing overlaps the position |
+| 4 | Drag the window narrower, a bit at a time | Rows switch to the two-line layout before anything collides — no width where the track sits on top of the numbers |
+| 5 | Add a title with a very long name (`⌘K`, paste a 60-character title) | The name is cut with `…`; the type, track, position and button stay on their own columns |
+| 6 | Hover a track cell | Tooltip with the episode name and air date |
+| 7 | Rate a row `Е` `8` | `★8` stands out from the type label beside it, in both themes |
 
 ---
 

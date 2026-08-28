@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{.Title}} — Sofar</title>
 <link rel="stylesheet" href="/static/app.css">
+<script>
+  // Before first paint, or the page flashes the other theme on every load.
+  try {
+    var t = localStorage.getItem("sofar-theme");
+    if (t === "dark" || t === "light") document.documentElement.dataset.theme = t;
+  } catch (e) {}
+</script>
 <script src="/static/htmx.min.js" defer></script>
 <script src="/static/keys.js" defer></script>
 </head>
@@ -43,6 +50,7 @@
     <dt>⌘⌫</dt><dd>кинути</dd>
     <dt>⌘Z</dt><dd>скасувати останню дію</dd>
     <dt>⌘K</dt><dd>знайти або додати</dd>
+    <dt>⌥1 … ⌥4</dt><dd>у процесі · колись · завершено · рік</dd>
     <dt>?</dt><dd>ця довідка</dd>
     <dt>Esc</dt><dd>закрити</dd>
   </dl>

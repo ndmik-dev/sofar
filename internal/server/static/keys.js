@@ -186,6 +186,37 @@
     });
   }
 
+  // The theme is a browser preference, not app data: it never leaves this
+  // machine and there is nothing on the server to store it in.
+  function applyTheme(v) {
+    if (v === "dark" || v === "light") document.documentElement.dataset.theme = v;
+    else delete document.documentElement.dataset.theme;
+    var sw = document.getElementById("theme-switch");
+    if (!sw) return;
+    Array.prototype.forEach.call(sw.querySelectorAll("button"), function (b) {
+      b.classList.toggle("on", b.dataset.themeSet === (v || "system"));
+    });
+  }
+
+  function storedTheme() {
+    try { return localStorage.getItem("sofar-theme") || "system"; } catch (e) { return "system"; }
+  }
+
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-theme-set]");
+    if (t) {
+      var v = t.dataset.themeSet;
+      try {
+        if (v === "system") localStorage.removeItem("sofar-theme");
+        else localStorage.setItem("sofar-theme", v);
+      } catch (err) {}
+      applyTheme(v);
+      return;
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", function () { applyTheme(storedTheme()); });
+
   document.addEventListener("click", function (e) {
     var el = e.target.closest("[data-pal]");
     if (!el || el.tagName === "FORM") return;
@@ -265,11 +296,14 @@
     // Layout matters: on a Ukrainian keyboard ⌘K arrives as "к", not "k".
     var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
 
-    if (mod && !e.shiftKey && !e.altKey && !isTyping(e.target)) {
-      var nav = { "1": "/active", "2": "/backlog", "3": "/done", "4": "/year" }[e.key];
-      if (nav) {
+    // Chrome keeps ⌘1–⌘9 for its own tabs and never hands them to the page, so
+    // the pages are on ⌥. Matched by code, because ⌥1 types "¡" on macOS.
+    if (!isTyping(e.target)) {
+      var page = { Digit1: "/active", Digit2: "/backlog", Digit3: "/done", Digit4: "/year" };
+      var to = (e.altKey && !mod && page[e.code]) || (mod && !e.shiftKey && !e.altKey && page["Digit" + e.key]);
+      if (to) {
         e.preventDefault();
-        window.location.href = nav;
+        window.location.href = to;
         return;
       }
     }
@@ -442,7 +476,13 @@
 
     if ((key === "n" || key === "т" || key === "н") && panelOpen()) {
       var note = document.getElementById("panel-note");
-      if (note) { e.preventDefault(); note.focus(); }
+      if (note) {
+        e.preventDefault();
+        // The note usually sits below the fold of a long panel, so focusing it
+        // without scrolling looks exactly like the key doing nothing.
+        note.scrollIntoView({ block: "center" });
+        note.focus();
+      }
     }
   });
 

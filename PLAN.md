@@ -125,7 +125,7 @@ rows are excluded from every statistic — dumping an archive must not read as a
 heroic watching day. `/year` shows four headline numbers, a day calendar
 coloured by the kind that dominated each day, and months as stacked bars.
 `⌘C` copies the year as plain text. `/settings` switches per-type depth and
-step live; `⌘1`–`⌘4` jump between pages.
+step live; `⌥1`–`⌥4` jump between pages.
 
 ### M9 · Deploy — 5 h
 
@@ -182,6 +182,10 @@ Recorded so they are not repeated.
   connection that is a guaranteed deadlock: the query waits for the connection
   the transaction is holding, the request never returns, and the browser sits on
   a spinner. Two code paths had it, both on early returns.
+- **The browser wins the shortcut fight.** Chrome reserves `⌘1`–`⌘9` for its
+  own tabs and never delivers them to the page, so a shortcut on them is dead
+  however correct the handler is. Page navigation moved to `⌥`, matched on
+  `e.code` because `⌥1` types `¡` on macOS.
 - **A shortcut must match the letter, not the key position.** `E` on a Ukrainian
   layout arrives as `е`, and matching only the positional `у` left the key dead
   exactly when the user was typing Ukrainian.

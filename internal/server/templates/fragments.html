@@ -113,12 +113,11 @@
     <input class="v2" type="text" name="title" value="{{.Title}}" required autocomplete="off">
   </div>
 
-  {{if .Subtitle}}
   <div class="fl">
-    <span class="k2">Автор</span>
-    <input class="v2" type="text" name="subtitle" value="{{.Subtitle}}" autocomplete="off">
+    <span class="k2">{{.SubtitleLabel}}</span>
+    <input class="v2" type="text" name="subtitle" value="{{.Subtitle}}" autocomplete="off"
+           placeholder="{{.SubtitlePlaceholder}}">
   </div>
-  {{end}}
 
   {{if not .Open}}
   <div class="fl">
