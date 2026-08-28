@@ -48,13 +48,13 @@ func run(log *slog.Logger) error {
 		return err
 	}
 
-	if cfg.Dev {
+	if cfg.Fixtures {
 		n, err := st.SeedFixtures(ctx, 1, time.Now().In(cfg.Loc))
 		if err != nil {
 			return err
 		}
 		if n > 0 {
-			log.Info("seeded fixtures", "entries", n)
+			log.Info("seeded fixtures into an empty database — SOFAR_FIXTURES=0 to keep it empty", "entries", n)
 		}
 	}
 

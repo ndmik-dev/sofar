@@ -32,3 +32,27 @@ func TestDay(t *testing.T) {
 		})
 	}
 }
+
+func TestFixturesFollowDevUnlessDisabled(t *testing.T) {
+	cases := []struct {
+		dev, fixtures string
+		want          bool
+	}{
+		{"", "", false},
+		{"1", "", true},
+		{"1", "0", false},
+		{"1", "off", false},
+		{"", "1", false},
+	}
+	for _, c := range cases {
+		t.Setenv("SOFAR_DEV", c.dev)
+		t.Setenv("SOFAR_FIXTURES", c.fixtures)
+		cfg, err := Load()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if cfg.Fixtures != c.want {
+			t.Errorf("dev=%q fixtures=%q: got %v, want %v", c.dev, c.fixtures, cfg.Fixtures, c.want)
+		}
+	}
+}

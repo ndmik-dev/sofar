@@ -11,6 +11,7 @@ type Config struct {
 	Addr      string
 	DBPath    string
 	Dev       bool
+	Fixtures  bool
 	Loc       *time.Location
 	DayStart  int
 	TMDBToken string
@@ -35,6 +36,10 @@ func Load() (Config, error) {
 		CacheDir:  env("SOFAR_CACHE", "cache"),
 	}
 
+	// Fixtures follow dev mode unless asked otherwise: an empty database is
+	// meant to stay empty once you have your own titles in it.
+	cfg.Fixtures = cfg.Dev && !falsy(env("SOFAR_FIXTURES", ""))
+
 	tz := env("SOFAR_TZ", "Europe/Kyiv")
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
@@ -58,6 +63,14 @@ func Load() (Config, error) {
 func (c Config) Day(t time.Time) time.Time {
 	t = t.In(c.Loc).Add(-time.Duration(c.DayStart) * time.Hour)
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, c.Loc)
+}
+
+func falsy(v string) bool {
+	switch v {
+	case "0", "false", "no", "off":
+		return true
+	}
+	return false
 }
 
 func env(key, def string) string {

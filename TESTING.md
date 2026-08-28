@@ -3,13 +3,13 @@
 Run before every deploy. Roughly 40 minutes end to end.
 
 ```bash
-rm -f sofar.db          # start from nothing, so the first-run path is covered
-SOFAR_DEV=1 go run .
+rm -f sofar.db sofar.db-wal sofar.db-shm    # the -wal holds writes the .db does not
+SOFAR_FIXTURES=0 SOFAR_DEV=1 go run .       # empty list, hot reload still on
 ```
 
-Open http://localhost:8099. Dev mode seeds seven fixture entries into an empty
-database and reloads templates from disk — but **not Go code**, so restart after
-any `.go` change.
+Open http://localhost:8099. Without `SOFAR_FIXTURES=0`, dev mode seeds seven
+fixture entries into an empty database — TC-1 needs the empty one. Templates
+reload from disk, **Go code does not**, so restart after any `.go` change.
 
 Report a failure as the case id plus the step number: `TC-3 step 4`.
 
@@ -172,3 +172,5 @@ The case that used to wipe a series back to zero.
   there are grouped by year.
 - `⇧Space` on a book steps back one page, not ten. Use `⌘Z` to reverse a `+10`.
 - Fixture entries give a streak of **0**: backfill never counts as watching.
+- Seven familiar titles after clearing the database are the fixtures reseeding,
+  not leftover data. Run with `SOFAR_FIXTURES=0`.

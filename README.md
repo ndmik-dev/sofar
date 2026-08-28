@@ -20,7 +20,9 @@ go test ./...            # live catalog tests skip without keys
 [TESTING.md](TESTING.md) holds the manual pass to run before a deploy.
 
 Listens on `:8099`. In dev mode an empty database is seeded with seven sample
-entries so the list has something to render.
+entries so the list has something to render — which means clearing the database
+brings them straight back. `SOFAR_FIXTURES=0 SOFAR_DEV=1 go run .` keeps it
+empty while leaving hot reload on.
 
 ## Configuration
 
@@ -33,6 +35,7 @@ A real environment variable always wins over the file.
 | `SOFAR_DB` | `sofar.db` | SQLite file |
 | `SOFAR_CACHE` | `cache` | on-disk cache of catalog responses |
 | `SOFAR_DEV` | unset | disk templates, hot reload, fixtures |
+| `SOFAR_FIXTURES` | on in dev | `0` seeds nothing, so a cleared database stays cleared |
 | `SOFAR_TZ` | `Europe/Kyiv` | timezone for day boundaries |
 | `SOFAR_DAY_START` | `4` | hour a day begins (see below) |
 | `SOFAR_ENV_FILE` | `.env` | path to the env file |
