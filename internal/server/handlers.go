@@ -275,7 +275,12 @@ func (s *Server) handleAdvance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	move, err := s.store.Advance(r.Context(), id, delta, abs, now)
+	source := "manual"
+	if r.FormValue("setup") != "" {
+		source = "setup"
+	}
+
+	move, err := s.store.AdvanceFrom(r.Context(), id, delta, abs, now, source)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
@@ -536,7 +541,7 @@ func viewingList(r *http.Request, status string) bool {
 
 func toastFor(move store.Move) toastView {
 	if !move.Changed {
-		return toastView{}
+		return toastView{Text: "Нема чого скасовувати"}
 	}
 	unit := unitNames[move.Entry.Media.Unit]
 	switch {

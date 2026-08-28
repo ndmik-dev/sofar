@@ -17,6 +17,8 @@ SOFAR_DEV=1 go run .     # templates and static read from disk, fixtures seeded
 go test ./...            # live catalog tests skip without keys
 ```
 
+[TESTING.md](TESTING.md) holds the manual pass to run before a deploy.
+
 Listens on `:8099`. In dev mode an empty database is seeded with seven sample
 entries so the list has something to render.
 

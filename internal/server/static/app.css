@@ -1119,3 +1119,19 @@ button.kb:hover { border-color: var(--mid); color: var(--fg); }
 /* The palette inserts rows out-of-band; the moment one lands, the empty state
    is a lie and hides itself. */
 #rows:not(:empty) ~ .empty { display: none; }
+
+/* Number spinners overlap the value at this field width and add nothing on a
+   keyboard-first form. */
+.v2.num::-webkit-outer-spin-button,
+.v2.num::-webkit-inner-spin-button { appearance: none; margin: 0; }
+.v2.num { appearance: textfield; -moz-appearance: textfield; }
+
+.step .pstep {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  gap: 14px;
+  align-items: baseline;
+  padding: 7px 17px;
+}
+.step .pstep .k2 { white-space: nowrap; }
+.step .withunit { flex-wrap: wrap; row-gap: 2px; }

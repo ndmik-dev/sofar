@@ -144,10 +144,11 @@
 {{define "position-step"}}
 <div class="step">
   <div class="sc">Додано · {{.Title}}</div>
-  <form class="fl" data-pal="position" data-entry="{{.EntryID}}">
-    <span class="k2">Де ти зупинився?</span>
+  <form class="pstep" data-pal="position" data-entry="{{.EntryID}}">
+    <input type="hidden" name="setup" value="1">
+    <label class="k2" for="step-abs">Де ти зупинився?</label>
     <span class="withunit">
-      <input class="v2 num" type="number" name="abs" min="0" max="{{.Total}}"
+      <input class="v2 num" type="number" id="step-abs" name="abs" min="0" max="{{.Total}}"
              inputmode="numeric" placeholder="0" autofocus>
       <s>{{.Hint}}</s>
     </span>

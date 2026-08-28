@@ -178,6 +178,13 @@ Recorded so they are not repeated.
   anime never notices the rule exists.
 - **Advertise nothing that does not exist.** A toast promising `⌘Z` before the
   keyboard layer shipped was worse than no label at all.
+- **Never query the pool from inside an open transaction.** With one pooled
+  connection that is a guaranteed deadlock: the query waits for the connection
+  the transaction is holding, the request never returns, and the browser sits on
+  a spinner. Two code paths had it, both on early returns.
+- **A shortcut must match the letter, not the key position.** `E` on a Ukrainian
+  layout arrives as `е`, and matching only the positional `у` left the key dead
+  exactly when the user was typing Ukrainian.
 
 ---
 

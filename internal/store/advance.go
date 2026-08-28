@@ -18,13 +18,20 @@ type Move struct {
 // Advance moves an entry to abs when it is non-nil, otherwise by delta.
 // Reaching the last unit closes the entry; Undo reopens it.
 func (s *Store) Advance(ctx context.Context, id int64, delta int, abs *int, now time.Time) (Move, error) {
+	return s.AdvanceFrom(ctx, id, delta, abs, now, "manual")
+}
+
+// AdvanceFrom records the move under a given source. "setup" marks the position
+// you declare when adding a title: it seeds progress without counting as an
+// action, so neither undo nor the year statistics pick it up.
+func (s *Store) AdvanceFrom(ctx context.Context, id int64, delta int, abs *int, now time.Time, source string) (Move, error) {
 	return s.reposition(ctx, id, now, func(cur, total int, hasTotal bool) int {
 		want := cur + delta
 		if abs != nil {
 			want = *abs
 		}
 		return clamp(want, total, hasTotal)
-	}, "manual")
+	}, source)
 }
 
 // Undo reverses the newest progress record. Status and position are recomputed
@@ -36,13 +43,19 @@ func (s *Store) Undo(ctx context.Context, id int64, now time.Time) (Move, error)
 	}
 	defer tx.Rollback()
 
+	// Only manual records are undoable. Backfill is the starting point you
+	// declared when adding the title, not something you did — walking past it
+	// would silently reset the entry to zero.
 	var progressID int64
 	var from int
 	err = tx.QueryRowContext(ctx, `
 		SELECT id, from_pos FROM progress
-		WHERE entry_id = ? AND undone_at IS NULL
+		WHERE entry_id = ? AND undone_at IS NULL AND source = 'manual'
 		ORDER BY at DESC, id DESC LIMIT 1`, id).Scan(&progressID, &from)
 	if err == sql.ErrNoRows {
+		// Never query through the pool while this transaction still holds the
+		// single connection: that is a guaranteed deadlock.
+		tx.Rollback()
 		e, err := s.GetEntry(ctx, id)
 		return Move{Entry: e, From: e.Position, To: e.Position}, err
 	}
@@ -84,6 +97,7 @@ func (s *Store) reposition(ctx context.Context, id int64, now time.Time, next fu
 
 	to := next(cur, total, hasTotal)
 	if to == cur {
+		tx.Rollback()
 		e, err := s.GetEntry(ctx, id)
 		return Move{Entry: e, From: cur, To: cur}, err
 	}

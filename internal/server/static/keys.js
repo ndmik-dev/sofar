@@ -276,15 +276,23 @@
       return;
     }
 
-    if (e.key === "Enter" && !isTyping(e.target)) {
+    if (e.key === "Enter") {
       var palette = document.getElementById("palette");
       if (!palette || !palette.open) {
-        if (!selected()) return;
+        if (isTyping(e.target) || !selected()) return;
         e.preventDefault();
         if (panelOpen()) window.closePanel(); else loadPanel();
         return;
       }
-      if (palette.querySelector("form") && isTyping(e.target)) return;
+      // The search field always holds focus while the palette is open, so
+      // "is the user typing" cannot gate this branch — only a real form can,
+      // and only when the caret sits inside that form.
+      var typedForm = isTyping(e.target) && e.target.closest("form[data-pal]");
+      if (typedForm) {
+        e.preventDefault();
+        typedForm.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        return;
+      }
       var first = palette.querySelector(".res.on") || palette.querySelector(".res");
       if (!first) {
         var form = palette.querySelector("form[data-pal]");
