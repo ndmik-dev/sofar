@@ -18,6 +18,7 @@ Not up for rediscussion — written down so they are not relitigated.
 | Stack | Go + htmx + SQLite | One binary, no frontend build, ~30 MB RAM |
 | Design | Track of cells | Progress has a shape, not just a percentage |
 | Catalogs | TMDB, Google Books, RAWG, iTunes | Metadata only |
+| Courses | Own kind, manual only | No catalog for them exists anywhere |
 | Catalog role | Fill metadata, **never define units**, never mandatory | All the pain was in the second part |
 | Friends | Not in v1 | But `user_id` in the schema from day one |
 | Progress | Append-only `progress` log | Undo, streaks, pace and stats fall out of it free |
@@ -103,9 +104,10 @@ time left = `(total_units - position) * runtime_min`.
 | ✅ | **M7** Panel | 5 h | Description, episodes, pace, note |
 | ✅ | **M8** Streak and year | 6 h | Gamification, per-type depth |
 | | **M9** Deploy | 5 h | Live on a domain, with backups |
-| | **M10** Pocket and night | 5 h | PWA, dark theme |
+| | **M10** Pocket | 3 h | PWA, installs on a phone |
 
-About 55 hours spent of roughly 59.
+About 58 hours spent of roughly 61. Dark theme and the responsive layout landed
+early, during the QA pass that followed M8, so M10 is only the PWA now.
 
 ### M7 · Panel — 5 h ✅
 
@@ -135,9 +137,12 @@ purging entries deleted more than 30 days ago. Dokploy, domain, HTTPS, a daily
 
 **Done when:** it runs on a domain and a backup has completed.
 
-### M10 · Pocket and night — 5 h
+### M10 · Pocket — 3 h
 
-Responsive layout, PWA manifest and service worker, dark theme on tokens.
+Manifest, icons, service worker. The responsive layout is done: rows reflow on
+their own container, so opening the panel and narrowing the window take the
+same path. The dark theme is done too, with a three-state switch in settings
+(system / light / dark) kept in `localStorage`.
 
 **Done when:** it installs on a phone and reads offline.
 
@@ -197,6 +202,9 @@ Recorded so they are not repeated.
 1. **Domain** — a subdomain of an existing one, or its own? Only affects M9.
 2. **Posters** — TMDB returns image URLs and they are stored. Nothing displays
    them yet; the M7 panel is the first place they would earn their space.
-3. **Importing history** — from Trakt, Simkl, a CSV? Not before M8.
-4. **Fira fonts** — currently a system stack with Fira first. Vendor the woff2
+3. **Importing history** — from Trakt, Simkl, a CSV? Not before M9.
+4. **Editing a title after adding** — a book saved without a page count is
+   stuck without a bar. The panel is where a total, a title or a step would be
+   corrected. Not scheduled.
+5. **Fira fonts** — currently a system stack with Fira first. Vendor the woff2
    files whenever the typography starts to matter.
