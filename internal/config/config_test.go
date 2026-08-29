@@ -44,6 +44,9 @@ func TestFixturesFollowDevUnlessDisabled(t *testing.T) {
 		{"1", "off", false},
 		{"", "1", false},
 	}
+	// A password keeps Load past the public-address check; this case is about
+	// fixtures, not about who may reach the server.
+	t.Setenv("SOFAR_PASSWORD", "pw")
 	for _, c := range cases {
 		t.Setenv("SOFAR_DEV", c.dev)
 		t.Setenv("SOFAR_FIXTURES", c.fixtures)
@@ -53,6 +56,29 @@ func TestFixturesFollowDevUnlessDisabled(t *testing.T) {
 		}
 		if cfg.Fixtures != c.want {
 			t.Errorf("dev=%q fixtures=%q: got %v, want %v", c.dev, c.fixtures, cfg.Fixtures, c.want)
+		}
+	}
+}
+
+func TestLoadRefusesAPublicAddressWithoutAPassword(t *testing.T) {
+	cases := []struct {
+		addr, dev, password string
+		wantErr             bool
+	}{
+		{":8099", "", "", true},
+		{":8099", "", "pw", false},
+		{":8099", "1", "", false},
+		{"127.0.0.1:8099", "", "", false},
+		{"localhost:8099", "", "", false},
+	}
+	for _, c := range cases {
+		t.Setenv("SOFAR_ADDR", c.addr)
+		t.Setenv("SOFAR_DEV", c.dev)
+		t.Setenv("SOFAR_PASSWORD", c.password)
+		_, err := Load()
+		if (err != nil) != c.wantErr {
+			t.Errorf("addr=%q dev=%q password=%q: err = %v, want error: %v",
+				c.addr, c.dev, c.password, err, c.wantErr)
 		}
 	}
 }
