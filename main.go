@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -23,10 +24,39 @@ import (
 
 func main() {
 	log := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	// The image is distroless: no shell, no curl. The binary checks itself so
+	// Docker can still have a healthcheck.
+	if len(os.Args) > 1 && os.Args[1] == "-healthcheck" {
+		if err := healthcheck(); err != nil {
+			log.Error("unhealthy", "err", err)
+			os.Exit(1)
+		}
+		return
+	}
 	if err := run(log); err != nil {
 		log.Error("fatal", "err", err)
 		os.Exit(1)
 	}
+}
+
+func healthcheck() error {
+	addr := os.Getenv("SOFAR_ADDR")
+	if addr == "" {
+		addr = ":8099"
+	}
+	if strings.HasPrefix(addr, ":") {
+		addr = "127.0.0.1" + addr
+	}
+	c := http.Client{Timeout: 3 * time.Second}
+	resp, err := c.Get("http://" + addr + "/healthz")
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("/healthz answered %s", resp.Status)
+	}
+	return nil
 }
 
 func run(log *slog.Logger) error {

@@ -1,0 +1,33 @@
+services:
+  sofar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      # Set these in Dokploy → Environment. The server refuses to start without
+      # a password on a public address, which is the point.
+      SOFAR_PASSWORD: ${SOFAR_PASSWORD}
+      TMDB_TOKEN: ${TMDB_TOKEN}
+      GOOGLE_BOOKS_KEY: ${GOOGLE_BOOKS_KEY}
+      RAWG_KEY: ${RAWG_KEY}
+      SOFAR_TZ: Europe/Kyiv
+    volumes:
+      # The whole application state is one SQLite file under here.
+      - sofar-data:/data
+    healthcheck:
+      # distroless has no shell and no curl, so the binary checks itself.
+      test: ["CMD", "/sofar", "-healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - dokploy-network
+
+volumes:
+  sofar-data:
+
+networks:
+  dokploy-network:
+    external: true

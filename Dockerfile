@@ -4,9 +4,13 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/sofar .
+# A fresh volume inherits the ownership of the directory it covers, and the
+# process runs as nonroot: without this the first start cannot create the file.
+RUN mkdir -p /out/data
 
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=build /out/sofar /sofar
+COPY --from=build --chown=65532:65532 /out/data /data
 ENV SOFAR_ADDR=:8080 SOFAR_DB=/data/sofar.db
 VOLUME /data
 EXPOSE 8080

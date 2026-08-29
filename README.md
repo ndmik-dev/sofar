@@ -229,12 +229,24 @@ GET  /entry/{id}/panel      detail panel fragment
 ## Deploy
 
 ```bash
-docker build -t sofar .
+docker compose up --build
 ```
 
 Multi-stage into distroless, `CGO_ENABLED=0`, runs as nonroot, database on a
 `/data` volume. About 14 MB of binary and one dependency
 (`modernc.org/sqlite`, a pure-Go driver, which is what keeps cgo out).
+
+`/data` is created in the image owned by uid 65532. A fresh volume inherits the
+ownership of the directory it covers, and without that the nonroot process
+cannot create the database on first start.
+
+The image has no shell, so `-healthcheck` makes the binary call its own
+`/healthz` — that is what the compose healthcheck runs.
+
+On Dokploy the service is a **Compose** application: `dokploy-network` is
+external and joined by the service, the domain is added in the Domains tab
+(Dokploy writes the Traefik labels itself, service `sofar`, port `8080`), and
+the keys go in the Environment tab.
 
 ## Attribution
 
