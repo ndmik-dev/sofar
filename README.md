@@ -39,6 +39,7 @@ A real environment variable always wins over the file.
 | `SOFAR_TZ` | `Europe/Kyiv` | timezone for day boundaries |
 | `SOFAR_DAY_START` | `4` | hour a day begins (see below) |
 | `SOFAR_ENV_FILE` | `.env` | path to the env file |
+| `SOFAR_PASSWORD` | — | the one password; **required** unless dev or loopback |
 | `TMDB_TOKEN` | — | v4 read access token, films and series |
 | `GOOGLE_BOOKS_KEY` | — | books |
 | `RAWG_KEY` | — | games |
@@ -46,6 +47,20 @@ A real environment variable always wins over the file.
 Podcasts use the iTunes Search API, which needs no key. Every catalog is
 optional: without a key the manual entry form still works. Courses have no
 catalog anywhere and are always entered by hand.
+
+## Access
+
+One password, no accounts. `SOFAR_PASSWORD` guards everything except `/login`,
+`/static/` and `/healthz`; a correct password sets a cookie that lasts a year.
+The cookie is signed with a key derived from the password, so changing the
+password logs every device out — the only revocation a single-password service
+can offer. Settings has a logout for one browser.
+
+The server **refuses to start** without a password unless it is in dev mode or
+listening on loopback: an instance that is quietly open is worse than one that
+did not come up. Failed logins are throttled per address, read from
+`CF-Connecting-IP` or `X-Forwarded-For` so a proxy does not lock out everyone at
+once.
 
 ## The track
 
@@ -192,6 +207,9 @@ GET  /settings              per-type tracking depth
 POST /settings/{kind}
 GET  /import                paste a list of titles
 POST /import
+GET  /login
+POST /login
+POST /logout
 GET  /healthz
 GET  /search?q=             ⌘K results fragment
 GET  /manual?...            manual form, prefilled from a catalog hit

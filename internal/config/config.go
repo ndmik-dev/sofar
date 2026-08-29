@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"strconv"
 	"time"
@@ -14,6 +15,7 @@ type Config struct {
 	Fixtures  bool
 	Loc       *time.Location
 	DayStart  int
+	Password  string
 	TMDBToken string
 	BooksKey  string
 	GamesKey  string
@@ -30,6 +32,7 @@ func Load() (Config, error) {
 		DBPath:    env("SOFAR_DB", "sofar.db"),
 		Dev:       env("SOFAR_DEV", "") != "",
 		DayStart:  4,
+		Password:  env("SOFAR_PASSWORD", ""),
 		TMDBToken: env("TMDB_TOKEN", ""),
 		BooksKey:  env("GOOGLE_BOOKS_KEY", ""),
 		GamesKey:  env("RAWG_KEY", ""),
@@ -55,7 +58,27 @@ func Load() (Config, error) {
 		cfg.DayStart = h
 	}
 
+	if cfg.Password == "" && !cfg.Dev && !loopback(cfg.Addr) {
+		return Config{}, fmt.Errorf(
+			"SOFAR_PASSWORD is empty and %s is reachable from outside — set a password or listen on 127.0.0.1",
+			cfg.Addr)
+	}
+
 	return cfg, nil
+}
+
+// A listener that only answers on the loopback interface is already private,
+// which is what makes a password optional in development and nowhere else.
+func loopback(addr string) bool {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return false
+	}
+	switch host {
+	case "127.0.0.1", "::1", "localhost":
+		return true
+	}
+	return false
 }
 
 // Anything before DayStart counts as the previous day: an episode at 01:30

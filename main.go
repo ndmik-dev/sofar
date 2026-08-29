@@ -48,6 +48,10 @@ func run(log *slog.Logger) error {
 		return err
 	}
 
+	if cfg.Password == "" {
+		log.Warn("no SOFAR_PASSWORD — anyone who can reach this address has full access")
+	}
+
 	if cfg.Fixtures {
 		n, err := st.SeedFixtures(ctx, 1, time.Now().In(cfg.Loc))
 		if err != nil {

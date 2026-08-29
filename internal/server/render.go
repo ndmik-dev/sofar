@@ -16,6 +16,10 @@ var pages = []string{"active.html", "backlog.html", "done.html", "year.html", "s
 
 var partials = []string{"row.html", "fragments.html", "nav.html", "panel.html"}
 
+// The login page is the one thing rendered before there is a session, so it
+// carries no sidebar and no layout.
+var standalone = []string{"login.html"}
+
 const devTemplateDir = "internal/server/templates"
 
 var funcs = template.FuncMap{
@@ -40,7 +44,14 @@ func loadTemplates(dev bool) (map[string]*template.Template, error) {
 		return nil, err
 	}
 
-	out := make(map[string]*template.Template, len(pages))
+	out := make(map[string]*template.Template, len(pages)+len(standalone))
+	for _, page := range standalone {
+		t, err := template.New(page).Funcs(funcs).ParseFS(tfs, page)
+		if err != nil {
+			return nil, fmt.Errorf("parse %s: %w", page, err)
+		}
+		out[page] = t
+	}
 	for _, page := range pages {
 		files := append([]string{"layout.html", page}, partials...)
 		t, err := template.New("layout.html").Funcs(funcs).ParseFS(tfs, files...)

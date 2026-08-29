@@ -195,6 +195,19 @@ adding a title. That is the whole point of the case.
 | 5 | Open **Рік** | The figures did **not** move: an import is backfill, not watching |
 | 6 | Open **Завершено** | The titles are there with full tracks |
 
+## TC-18 · The password
+
+Run this one with `SOFAR_PASSWORD=… SOFAR_DEV=1 go run .`
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Open the app in a private window | The login page, not the list |
+| 2 | Enter a wrong password | "Не той пароль", still on the login page |
+| 3 | Enter the right one | The list, and a reload does not ask again |
+| 4 | **Налаштування** → Вийти | Back to the login page |
+| 5 | Restart with a **different** password, reload | Asked again: the old cookie died with the old password |
+| 6 | `SOFAR_PASSWORD= SOFAR_ADDR=:8099 go run .` (no dev) | Refuses to start, and says why |
+
 ---
 
 ## Known behaviour, not bugs

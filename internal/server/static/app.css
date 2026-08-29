@@ -1267,3 +1267,27 @@ dialog .step .pstep { grid-template-columns: 168px 1fr; }
 .impr .ok { font-family: var(--mono); font-size: 11px; color: var(--ac); width: 62px; text-align: right; }
 .impr.miss { color: var(--mut); }
 .impr.miss .ok { color: var(--mut); }
+
+body.lg { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.lgb { width: min(360px, calc(100vw - 32px)); text-align: center; }
+.lgb .br { justify-content: center; margin-bottom: 26px; }
+.lgb form { display: flex; flex-direction: column; gap: 12px; }
+.lgb .v2 { text-align: center; font-size: 16px; padding: 10px 12px; }
+.lgb .primary { width: 100%; }
+.lgh, .lge { font-family: var(--mono); font-size: 11.5px; margin: 16px 0 0; line-height: 1.6; }
+.lgh { color: var(--mut); }
+.lge { color: var(--k-anime); }
+
+.ghostbtn {
+  appearance: none;
+  border: 1px solid var(--ln);
+  border-radius: 3px;
+  background: none;
+  color: var(--mid);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .07em;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+.ghostbtn:hover { border-color: var(--mid); color: var(--fg); }

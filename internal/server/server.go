@@ -24,6 +24,8 @@ type Server struct {
 	templates map[string]*template.Template
 	fragments *template.Template
 	mux       *http.ServeMux
+	attempts  *attempts
+	handler   http.Handler
 }
 
 func New(cfg config.Config, st *store.Store, cat *catalog.Catalog, log *slog.Logger) (*Server, error) {
@@ -48,10 +50,12 @@ func New(cfg config.Config, st *store.Store, cat *catalog.Catalog, log *slog.Log
 		templates: tmpls,
 		fragments: frags,
 		mux:       http.NewServeMux(),
+		attempts:  newAttempts(),
 	}
 	if err := s.routes(); err != nil {
 		return nil, err
 	}
+	s.handler = s.guard(s.mux)
 	return s, nil
 }
 
@@ -63,6 +67,9 @@ func (s *Server) routes() error {
 	s.mux.Handle("GET /static/", http.StripPrefix("/static/", static))
 
 	s.mux.HandleFunc("GET /healthz", s.handleHealth)
+	s.mux.HandleFunc("GET /login", s.handleLogin)
+	s.mux.HandleFunc("POST /login", s.handleLoginPost)
+	s.mux.HandleFunc("POST /logout", s.handleLogout)
 	s.mux.HandleFunc("GET /{$}", s.handleRoot)
 	s.mux.HandleFunc("GET /active", s.handleActive)
 	s.mux.HandleFunc("GET /backlog", s.handleBacklog)
@@ -108,5 +115,5 @@ func (s *Server) staticHandler() (http.Handler, error) {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.mux.ServeHTTP(w, r)
+	s.handler.ServeHTTP(w, r)
 }

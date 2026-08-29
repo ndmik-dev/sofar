@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} — Sofar</title>
+<link rel="stylesheet" href="/static/app.css">
+<script>
+  try {
+    var t = localStorage.getItem("sofar-theme");
+    if (t === "dark" || t === "light") document.documentElement.dataset.theme = t;
+  } catch (e) {}
+</script>
+</head>
+<body class="lg">
+<main class="lgb">
+  <div class="br">Sofar<em>_</em></div>
+  <form method="post" action="/login">
+    <input class="v2" type="password" name="password" autocomplete="current-password"
+           placeholder="Пароль" autofocus required aria-label="Пароль">
+    <button type="submit" class="primary">Увійти</button>
+  </form>
+  {{if .Locked}}
+  <p class="lge">Забагато спроб. Спробуй за чверть години.</p>
+  {{else if .Failed}}
+  <p class="lge">Не той пароль.</p>
+  {{else}}
+  <p class="lgh">Один пароль на весь сервіс. Далі рік нічого не питатиме.</p>
+  {{end}}
+</main>
+</body>
+</html>

@@ -25,7 +25,7 @@ Not up for rediscussion — written down so they are not relitigated.
 | Pause | No manual status | "Stale" is derived from `updated_at` |
 | Tracking depth | Per type | Games get three states, series get episodes |
 | Deploy | Dokploy droplet, one container | Already there, 4 GB, Caddy in front |
-| Auth | One password from the environment | Not accounts. Year-long cookie |
+| Auth | One password from the environment | Not accounts. Year-long cookie, key derived from the password so a change logs everyone out |
 | Day boundary | **04:00, Europe/Kyiv** | An episode at 01:30 belongs to the previous day |
 
 **Deliberately not in v1:** AniList, Open Library, HowLongToBeat, IGDB, Trakt
@@ -104,6 +104,7 @@ time left = `(total_units - position) * runtime_min`.
 | ✅ | **M7** Panel | 5 h | Description, episodes, pace, note |
 | ✅ | **M8** Streak and year | 6 h | Gamification, per-type depth |
 | ✅ | **M8.5** Edit and import | 3 h | Fix a saved entry, paste an archive |
+| ✅ | **M8.6** Password | 1.5 h | Nothing public without it |
 | | **M9** Deploy | 5 h | Live on a domain, with backups |
 | | **M10** Pocket | 3 h | PWA, installs on a phone |
 
@@ -139,6 +140,12 @@ its back. `/import` takes a pasted list against TMDB, tolerating a trailing
 year, a `| position` suffix and a CSV first column; an exact title beats a
 popular one. Everything imported is `backfill`, so an archive dump never shows
 up in the year.
+
+### M8.6 · Password — 1.5 h ✅
+
+Done. One password from `SOFAR_PASSWORD`, a year-long cookie signed with a key
+derived from it, per-address throttling that reads the proxy headers, and a
+startup that fails rather than serve a public address without a password.
 
 ### M9 · Deploy — 5 h
 
@@ -210,7 +217,7 @@ Recorded so they are not repeated.
 
 ## 7. Open questions
 
-1. **Domain** — a subdomain of an existing one, or its own? Only affects M9.
+1. ~~**Domain**~~ — settled: a subdomain of `the author's domain`.
 2. **Posters** — TMDB returns image URLs and they are stored. Nothing displays
    them yet; the M7 panel is the first place they would earn their space.
 3. **Importing history** — done as a pasted list against TMDB. A real Trakt or
