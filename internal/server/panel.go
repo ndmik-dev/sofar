@@ -51,6 +51,11 @@ type panelView struct {
 	SeasonTitle string
 	Episodes    []episodeRow
 	Facts       []factRow
+
+	SubtitleLabel string
+	Total         int
+	TotalEditable bool
+	UnitLabel     string
 }
 
 func (s *Server) handlePanel(w http.ResponseWriter, r *http.Request) {
@@ -91,6 +96,11 @@ func buildPanel(e store.Entry, pace store.Pace, today string, loc *time.Location
 		p.Dots[i] = i < p.Rating
 	}
 	p.Meta = panelMeta(e)
+	p.SubtitleLabel, _ = subtitleField(e.Media.Kind)
+	p.UnitLabel = unitLabels[e.Media.Unit]
+	p.Total = int(e.Media.TotalUnits.Int64)
+	// A total can only be typed while nothing is drawn from real episodes.
+	p.TotalEditable = len(e.Units) == 0 && e.Media.Unit != "none"
 
 	total := int(e.Media.TotalUnits.Int64)
 	if e.Media.TotalUnits.Valid {

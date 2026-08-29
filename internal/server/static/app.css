@@ -1204,3 +1204,66 @@ dialog .step .pstep { grid-template-columns: 168px 1fr; }
   .rw .pl, .rw > span:last-child { grid-area: btn; align-self: end; justify-self: end; }
   .rw .stq { justify-self: start; }
 }
+
+/* Editing is a repair, not a daily action: folded away until asked for. */
+.pedit { border-top: 1px solid var(--ln2); margin-top: 18px; }
+.pedit summary {
+  padding: 13px 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--mut);
+  cursor: pointer;
+}
+.pedit summary:hover { color: var(--mid); }
+.pedit form { padding: 0 20px 18px; }
+.pedit .fl { display: grid; grid-template-columns: 78px 1fr; gap: 10px; align-items: center; padding: 6px 0; }
+.pedit .primary { margin-top: 10px; }
+
+.imp { padding: 4px 24px 0; max-width: 760px; }
+.imp textarea {
+  width: 100%;
+  border: 1px solid var(--ln);
+  border-radius: 4px;
+  background: var(--el);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 12px 14px;
+  outline: none;
+  resize: vertical;
+}
+.imp textarea:focus { border-color: var(--ac); }
+.impf { display: flex; align-items: center; gap: 14px; margin: 12px 0 4px; flex-wrap: wrap; }
+.impf .sw { display: inline-flex; border: 1px solid var(--ln); border-radius: 3px; overflow: hidden; }
+.impf .sw label {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .07em;
+  padding: 7px 13px;
+  border-right: 1px solid var(--ln);
+  color: var(--mut);
+  cursor: pointer;
+}
+.impf .sw label:last-child { border-right: 0; }
+.impf .sw label:has(input:checked) { background: var(--fg); color: var(--bg); }
+.impf .sw input { position: absolute; opacity: 0; pointer-events: none; }
+.impf .htmx-indicator {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mut);
+  opacity: 0;
+}
+.impf .htmx-indicator.htmx-request { opacity: 1; }
+
+.impres { padding: 18px 24px 24px; max-width: 760px; }
+.impr { display: flex; align-items: center; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--ln2); font-size: 14px; }
+.impr:last-child { border-bottom: 0; }
+.impr .st { width: 3px; height: 15px; border-radius: 1px; flex: 0 0 3px; background: var(--ln); }
+.impr .nn { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.impr .tg { font-family: var(--mono); font-size: 11px; color: var(--mut); }
+.impr .ok { font-family: var(--mono); font-size: 11px; color: var(--ac); width: 62px; text-align: right; }
+.impr.miss { color: var(--mut); }
+.impr.miss .ok { color: var(--mut); }

@@ -110,6 +110,22 @@ later, `⌘` for finished, `⌥` for dropped. `⌘↵` and `⇧↵` also clear t
 keep focus, which is how the archive gets backfilled — a running log of what has
 landed appears below.
 
+## Importing and fixing
+
+`/import` takes a pasted list, one title per line, and looks each up in TMDB.
+A year in brackets narrows the search, `title | 12` sets a starting position,
+and the first column of a CSV works as well. An exact title beats a popular
+one, which is what keeps `Друзі` from becoming a 1951 film. Everything lands as
+`backfill`, so importing an archive never reads as a heroic watching day.
+Sixty lines per submission, because the whole batch is one blocking round of
+searches.
+
+The panel folds an edit form at the bottom: title, author or platform, and the
+total. The total is only editable while nothing is drawn from real episodes —
+`unit.idx` runs 1..N and a hand-typed number would contradict the rows the
+track is made of. Shrinking a total below your position clamps it, and the
+clamp is written to the progress log like any other move.
+
 A book opens a prefilled form rather than saving straight away: the catalog's
 page count belongs to some edition, not necessarily yours, so it arrives in an
 editable field. Games and podcasts have nothing to verify and add in one click.
@@ -174,6 +190,8 @@ GET  /active /backlog /done /dropped     ?kind= filters by type
 GET  /year /year/{y}        statistics for a year
 GET  /settings              per-type tracking depth
 POST /settings/{kind}
+GET  /import                paste a list of titles
+POST /import
 GET  /healthz
 GET  /search?q=             ⌘K results fragment
 GET  /manual?...            manual form, prefilled from a catalog hit
@@ -186,6 +204,7 @@ POST /entry/{id}/rating
 POST /entry/{id}/delete
 POST /entry/{id}/restore
 POST /entry/{id}/note
+POST /entry/{id}/edit       title, subtitle, total
 GET  /entry/{id}/panel      detail panel fragment
 ```
 

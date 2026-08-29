@@ -122,6 +122,33 @@
     <div style="height: 20px"></div>
   </div>
 
+  <details class="pedit">
+    <summary>Редагувати запис</summary>
+    <form hx-post="/entry/{{.EntryID}}/edit"
+          hx-target="#entry-{{.EntryID}}" hx-swap="outerHTML"
+          hx-on::after-request="reloadPanel()">
+      <div class="fl">
+        <span class="k2">Назва</span>
+        <input class="v2" type="text" name="title" value="{{.Title}}" required autocomplete="off">
+      </div>
+      <div class="fl">
+        <span class="k2">{{.SubtitleLabel}}</span>
+        <input class="v2" type="text" name="subtitle" value="{{.Original}}" autocomplete="off">
+      </div>
+      {{if .TotalEditable}}
+      <div class="fl">
+        <span class="k2">Всього</span>
+        <span class="withunit">
+          <input class="v2 num" type="number" name="total" min="0" inputmode="numeric"
+                 placeholder="0"{{if .Total}} value="{{.Total}}"{{end}}>
+          <s>{{.UnitLabel}}{{if not .Total}} · зараз без межі{{end}}</s>
+        </span>
+      </div>
+      {{end}}
+      <button type="submit" class="primary">Зберегти</button>
+    </form>
+  </details>
+
   <div class="pnf">
     <span><b>Space</b> +{{.Step}}</span>
     <span><b>E</b> оцінка</span>

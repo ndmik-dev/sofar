@@ -211,3 +211,19 @@
   </span>
 </div>
 {{end}}
+
+{{define "import-results"}}
+{{if .Results}}
+<div class="impres">
+  <div class="sc">Розібрано · {{.Matched}} знайдено · {{.Missed}} ні{{if .Overflow}} · {{.Overflow}} рядків понад ліміт пропущено{{end}}</div>
+  {{range .Results}}
+  <div class="impr{{if not .Matched}} miss{{end}}">
+    {{if .Matched}}<span class="st k-{{.Kind}}"></span>{{else}}<span class="st"></span>{{end}}
+    <span class="nn">{{if .Matched}}{{.Title}}{{else}}{{.Raw}}{{end}}</span>
+    <span class="tg">{{if .Matched}}{{.Meta}}{{else}}не знайдено{{end}}</span>
+    <span class="ok">{{if .Already}}вже було{{else if .Matched}}✓{{else}}—{{end}}</span>
+  </div>
+  {{end}}
+</div>
+{{end}}
+{{end}}

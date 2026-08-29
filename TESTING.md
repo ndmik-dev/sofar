@@ -173,6 +173,28 @@ adding a title. That is the whole point of the case.
 | 6 | Hover a track cell | Tooltip with the episode name and air date |
 | 7 | Rate a row `E` `8` | `★8` stands out from the type label beside it, in both themes |
 
+## TC-16 · Fixing what you typed
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Add a book through `к:` with **Всього** left empty | Row reads `50 · без межі` with a thin line, not a bar |
+| 2 | Open the panel, expand **Редагувати запис** | Назва, Автор and Всього, filled in |
+| 3 | Set Всього to `222`, Зберегти | Row turns into a real bar, `50 / 222`, toast "· збережено" |
+| 4 | Edit Всього to `20` | Position clamps to `20 / 20` — you cannot be past the last page |
+| 5 | Open a TMDB series panel and expand the same block | **No Всього field**: its episodes come from TMDB |
+| 6 | Clear the title, Зберегти | Refused, the row does not change |
+
+## TC-17 · Import a list
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Open **Імпорт**, paste four lines: a title, one with `(2008)`, one with `\| 96`, one CSV row | — |
+| 2 | Leave **завершено**, press Імпортувати | A line per row: matched title, year, `✓` |
+| 3 | Add a nonsense line and repeat | That one reads "не знайдено", the rest still import |
+| 4 | Repeat the same list | Every row reads "вже було" — no duplicates |
+| 5 | Open **Рік** | The figures did **not** move: an import is backfill, not watching |
+| 6 | Open **Завершено** | The titles are there with full tracks |
+
 ---
 
 ## Known behaviour, not bugs
@@ -186,7 +208,11 @@ adding a title. That is the whole point of the case.
   not matter. The note is on **N**, not H — Cyrillic `Н` looks like a Latin H on
   screen, which is a good reason to read these tables as Latin letters.
 - A book added without a page count shows a thin open line and "без межі"
-  instead of a bar: there is no total to be a percentage of.
+  instead of a bar: there is no total to be a percentage of. The panel's edit
+  block can give it one later.
+- Import matches one title per line and takes a single best guess. Check the
+  matched names in the result list; a year in brackets settles the ambiguous
+  ones.
 - Under a kind filter the figures bar is hidden: it describes the whole list,
   not the filtered subset, and showing it there would contradict the rows.
 - Seasons come from TMDB, which does not always match how a service markets a

@@ -103,6 +103,7 @@ time left = `(total_units - position) * runtime_min`.
 | ✅ | **M6** Keyboard | 5 h | A full session without the mouse |
 | ✅ | **M7** Panel | 5 h | Description, episodes, pace, note |
 | ✅ | **M8** Streak and year | 6 h | Gamification, per-type depth |
+| ✅ | **M8.5** Edit and import | 3 h | Fix a saved entry, paste an archive |
 | | **M9** Deploy | 5 h | Live on a domain, with backups |
 | | **M10** Pocket | 3 h | PWA, installs on a phone |
 
@@ -128,6 +129,16 @@ heroic watching day. `/year` shows four headline numbers, a day calendar
 coloured by the kind that dominated each day, and months as stacked bars.
 `⌘C` copies the year as plain text. `/settings` switches per-type depth and
 step live; `⌥1`–`⌥4` jump between pages.
+
+### M8.5 · Edit and import — 3 h ✅
+
+Done. The panel folds an edit form: title, subtitle and — only while no real
+episodes exist — the total. A total below the current position clamps it, and
+the clamp goes through the progress log rather than writing `position` behind
+its back. `/import` takes a pasted list against TMDB, tolerating a trailing
+year, a `| position` suffix and a CSV first column; an exact title beats a
+popular one. Everything imported is `backfill`, so an archive dump never shows
+up in the year.
 
 ### M9 · Deploy — 5 h
 
@@ -202,9 +213,7 @@ Recorded so they are not repeated.
 1. **Domain** — a subdomain of an existing one, or its own? Only affects M9.
 2. **Posters** — TMDB returns image URLs and they are stored. Nothing displays
    them yet; the M7 panel is the first place they would earn their space.
-3. **Importing history** — from Trakt, Simkl, a CSV? Not before M9.
-4. **Editing a title after adding** — a book saved without a page count is
-   stuck without a bar. The panel is where a total, a title or a step would be
-   corrected. Not scheduled.
-5. **Fira fonts** — currently a system stack with Fira first. Vendor the woff2
+3. **Importing history** — done as a pasted list against TMDB. A real Trakt or
+   Simkl export parser stays out until there is one to parse.
+4. **Fira fonts** — currently a system stack with Fira first. Vendor the woff2
    files whenever the typography starts to matter.

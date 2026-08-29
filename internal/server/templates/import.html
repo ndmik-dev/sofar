@@ -1,0 +1,34 @@
+{{define "content"}}
+<div class="gl">Імпорт списком</div>
+<p class="pp" style="padding: 0 24px; max-width: 68ch;">По одній назві в рядку. Кожна шукається в TMDB —
+беруться серіали й фільми, для книг та ігор лишається <b>⌘K</b>. Рік у дужках уточнює пошук,
+<code>назва | 12</code> задає позицію. Перший стовпчик CSV теж підходить.</p>
+
+{{if .Disabled}}
+<div class="hintline warn" style="padding: 0 24px 14px;">TMDB_TOKEN не заданий — імпорт нічого не знайде.</div>
+{{end}}
+
+<form class="imp" hx-post="/import" hx-target="#import-out" hx-swap="innerHTML"
+      hx-indicator="#import-busy">
+  <textarea name="list" rows="10" spellcheck="false" autocomplete="off"
+placeholder="Клан Сопрано
+Breaking Bad (2008)
+Друзі | 96
+&quot;The Wire&quot;,2002"></textarea>
+  <div class="impf">
+    <span class="sw">
+      <label><input type="radio" name="status" value="done" checked>завершено</label>
+      <label><input type="radio" name="status" value="backlog">колись</label>
+      <label><input type="radio" name="status" value="dropped">кинуто</label>
+    </span>
+    <button type="submit" class="primary">Імпортувати</button>
+    <span id="import-busy" class="htmx-indicator">шукаю в TMDB, це не швидко…</span>
+  </div>
+</form>
+
+<div id="import-out">{{template "import-results" .}}</div>
+
+<div class="ft">
+  <span class="rt">M9 · імпорт</span>
+</div>
+{{end}}
