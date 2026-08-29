@@ -1,6 +1,6 @@
 # Sofar
 
-Personal media tracker: series, anime, films, books, games, podcasts.
+Personal media tracker: series, anime, films, books, games, podcasts, courses.
 Go + htmx + SQLite, server-rendered, self-hosted, single user.
 
 Read [README.md](README.md) for what it is and how to run it, and
@@ -53,6 +53,8 @@ A day starts at 04:00 Europe/Kyiv — use `config.Day`, never `time.Now().Day()`
 
 ## Client-side gotchas
 
-htmx keeps moving nodes during `afterSwap`; client state such as the selected
+Shortcuts match both the letter and `e.code`, because a Ukrainian layout sends
+different letters and Chrome keeps `⌘1`–`⌘9` for its own tabs. htmx keeps moving
+nodes during `afterSwap`; client state such as the selected
 row must be re-applied on `afterSettle`. Keyboard handlers accept both Latin and
 Cyrillic key values — `⌘K` arrives as `к` on a Ukrainian layout.

@@ -1,6 +1,6 @@
 # Sofar
 
-Personal media tracker: series, anime, films, books, games, podcasts. One list
+Personal media tracker: series, anime, films, books, games, podcasts, courses. One list
 of what is in progress, progress down to the individual episode, and an archive
 of what is finished.
 
@@ -44,7 +44,8 @@ A real environment variable always wins over the file.
 | `RAWG_KEY` | — | games |
 
 Podcasts use the iTunes Search API, which needs no key. Every catalog is
-optional: without a key the manual entry form still works.
+optional: without a key the manual entry form still works. Courses have no
+catalog anywhere and are always entered by hand.
 
 ## The track
 
@@ -87,8 +88,9 @@ only gets a three-state control instead.
 | `⌥1`–`⌥4` | in progress · later · finished · year |
 | `?` | shortcuts |
 
-Both layouts are handled, by letter rather than key position: `E` arrives as `е`
-on a Ukrainian keyboard and `⌘K` as `к`, and the handler accepts either. The page
+Both layouts are handled: a shortcut matches the letter (`E` arrives as `е` on a
+Ukrainian keyboard, `⌘K` as `к`) and the physical key through `e.code`, so a
+layout the letter lists miss still works. The page
 shortcuts sit on `⌥` because Chrome keeps `⌘1`–`⌘9` for its own tabs and never
 delivers them to a page.
 
@@ -100,8 +102,8 @@ statistics for the same reason.
 
 `⌘K` opens one field. `↑` `↓` walk the results, `↵` takes the highlighted one.
 Type prefixes narrow it by type: `с:` series, `а:` anime,
-`ф:` films, `к:` books, `і:` games, `п:` podcasts. Latin equivalents work too
-(`s: a: m: b: g: p:`).
+`ф:` films, `к:` books, `і:` games, `п:` podcasts, `н:` courses. Latin equivalents work too
+(`s: a: m: b: g: p: c:`).
 
 Modifiers on `↵` choose where a title lands: plain for in progress, `⇧` for
 later, `⌘` for finished, `⌥` for dropped. `⌘↵` and `⇧↵` also clear the field and

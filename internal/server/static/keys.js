@@ -294,7 +294,12 @@
     var mod = e.metaKey || e.ctrlKey;
 
     // Layout matters: on a Ukrainian keyboard ⌘K arrives as "к", not "k".
+    // e.code is the physical key and settles the cases neither list catches.
     var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    function is(latin, cyr1, cyr2) {
+      return key === latin || key === cyr1 || key === cyr2 ||
+             e.code === "Key" + latin.toUpperCase();
+    }
 
     // Chrome keeps ⌘1–⌘9 for its own tabs and never hands them to the page, so
     // the pages are on ⌥. Matched by code, because ⌥1 types "¡" on macOS.
@@ -308,7 +313,7 @@
       }
     }
 
-    if (mod && !e.altKey && (key === "c" || key === "с")) {
+    if (mod && !e.altKey && is("c", "с", "с")) {
       var copySrc = document.getElementById("copy-year");
       if (copySrc && !isTyping(e.target) && !window.getSelection().toString()) {
         e.preventDefault();
@@ -319,13 +324,13 @@
       }
     }
 
-    if (mod && !e.altKey && (key === "k" || key === "к")) {
+    if (mod && !e.altKey && is("k", "к", "к")) {
       e.preventDefault();
       window.openPalette();
       return;
     }
 
-    if (mod && !e.shiftKey && !e.altKey && (key === "z" || key === "я" || key === "з")) {
+    if (mod && !e.shiftKey && !e.altKey && is("z", "я", "з")) {
       if (isTyping(e.target)) return;
       var undo = document.querySelector("#toast .toast button");
       if (!undo) return;
@@ -461,20 +466,20 @@
       return;
     }
 
-    if ((key === "s" || key === "і" || key === "с") && e.shiftKey) {
+    if (is("s", "і", "с") && e.shiftKey) {
       e.preventDefault();
       finishSeason();
       return;
     }
 
-    if ((key === "e" || key === "у" || key === "е") && selected()) {
+    if (is("e", "у", "е") && selected()) {
       e.preventDefault();
       awaitingRating = true;
       flash("Оцінка: 1–9, 0 — це десять, Esc — скасувати");
       return;
     }
 
-    if ((key === "n" || key === "т" || key === "н") && panelOpen()) {
+    if (is("n", "т", "н") && panelOpen()) {
       var note = document.getElementById("panel-note");
       if (note) {
         e.preventDefault();

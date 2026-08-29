@@ -69,11 +69,11 @@ The case that used to wipe a series back to zero.
 
 | # | Do | Expect |
 |---|---|---|
-| 1 | Select a row, press `Е` (Ukrainian layout) | A hint appears: "Оцінка: 1–9, 0 — це десять, Esc — скасувати" |
+| 1 | Select a row, press `E` (any layout) | A hint appears: "Оцінка: 1–9, 0 — це десять, Esc — скасувати" |
 | 2 | Press `8` | Toast "· оцінка 8", badge **8** next to the type |
 | 3 | Open the panel, hover across the rating squares | Preview: squares up to the cursor light up, the rest go quiet |
 | 4 | Move the mouse away without clicking | The eight squares are exactly as they were |
-| 5 | Click the tenth square | Rating 10 (`0` after `Е` does the same) |
+| 5 | Click the tenth square | Rating 10 (`0` after `E` does the same) |
 
 ## TC-6 · Delete returns to its place
 
@@ -135,7 +135,7 @@ The case that used to wipe a series back to zero.
 | 1 | Press `↵` | Panel opens on the right |
 | 2 | Press `↓` three times | The panel redraws for each new row |
 | 3 | Press `Space` | Row and the panel's "Далі" block update together |
-| 4 | Press `Н` | The panel scrolls to the note and the caret lands in it |
+| 4 | Press `N` (the key left of M — on a Ukrainian layout it types `т`) | The panel scrolls to the note and the caret lands in it |
 | 4a | Write a note, click Зберегти | Toast confirms |
 | 5 | Reload, reopen the panel | The note is there |
 | 6 | Press `Esc` | Panel closes |
@@ -171,7 +171,7 @@ adding a title. That is the whole point of the case.
 | 4 | Drag the window narrower, a bit at a time | Rows switch to the two-line layout before anything collides — no width where the track sits on top of the numbers |
 | 5 | Add a title with a very long name (`⌘K`, paste a 60-character title) | The name is cut with `…`; the type, track, position and button stay on their own columns |
 | 6 | Hover a track cell | Tooltip with the episode name and air date |
-| 7 | Rate a row `Е` `8` | `★8` stands out from the type label beside it, in both themes |
+| 7 | Rate a row `E` `8` | `★8` stands out from the type label beside it, in both themes |
 
 ---
 
@@ -182,6 +182,11 @@ adding a title. That is the whole point of the case.
   there are grouped by year.
 - `⇧Space` on a book steps back one page, not ten. Use `⌘Z` to reverse a `+10`.
 - Fixture entries give a streak of **0**: backfill never counts as watching.
+- Shortcuts are matched by physical key as well as by letter, so the layout does
+  not matter. The note is on **N**, not H — Cyrillic `Н` looks like a Latin H on
+  screen, which is a good reason to read these tables as Latin letters.
+- A book added without a page count shows a thin open line and "без межі"
+  instead of a bar: there is no total to be a percentage of.
 - Under a kind filter the figures bar is hidden: it describes the whole list,
   not the filtered subset, and showing it there would contradict the rows.
 - Seasons come from TMDB, which does not always match how a service markets a

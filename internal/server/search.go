@@ -19,19 +19,25 @@ var kindPrefixes = map[string]string{
 	"к": "book", "b": "book",
 	"і": "game", "и": "game", "g": "game",
 	"п": "podcast", "p": "podcast",
+	"н": "course", "c": "course",
 }
 
-var manualKinds = map[string]bool{"book": true, "game": true, "podcast": true}
+var manualKinds = map[string]bool{"book": true, "game": true, "podcast": true, "course": true}
+
+// Kinds a catalog can answer for. Courses have no such thing anywhere, so a
+// missing-key message would be a lie rather than a hint.
+var catalogKinds = map[string]bool{"book": true, "game": true, "podcast": true}
 
 var unitForKind = map[string]string{
 	"show": "episode", "anime": "episode",
 	"book": "page", "game": "hour",
 	"podcast": "none", "movie": "none",
+	"course": "lesson",
 }
 
 var unitLabels = map[string]string{
 	"episode": "серій", "page": "сторінок", "hour": "годин",
-	"chapter": "розділів", "none": "",
+	"chapter": "розділів", "lesson": "уроків", "none": "",
 }
 
 type searchResult struct {
@@ -128,6 +134,8 @@ func subtitleField(kind string) (label, placeholder string) {
 		return "Платформа", "PC, PS5, Switch…"
 	case "podcast":
 		return "Автор", "хто веде"
+	case "course":
+		return "Платформа", "Coursera, YouTube, курси в компанії…"
 	}
 	return "Оригінал", "назва мовою оригіналу"
 }
@@ -184,6 +192,10 @@ func (s *Server) fillOwnCatalog(w http.ResponseWriter, r *http.Request, view *se
 	defer func() { s.renderFragment(w, r, "search-results", view) }()
 
 	if len([]rune(q)) < 2 {
+		view.Manual = manualFormFor(q, kind)
+		return
+	}
+	if !catalogKinds[kind] {
 		view.Manual = manualFormFor(q, kind)
 		return
 	}

@@ -25,6 +25,7 @@ var kindLabels = map[string]string{
 	"book":    "книга",
 	"game":    "гра",
 	"podcast": "подкаст",
+	"course":  "курс",
 }
 
 var kindNav = []struct{ Kind, Label string }{
@@ -34,6 +35,7 @@ var kindNav = []struct{ Kind, Label string }{
 	{"book", "Книги"},
 	{"game", "Ігри"},
 	{"podcast", "Подкасти"},
+	{"course", "Курси"},
 }
 
 var statusWords = map[string]string{
@@ -48,6 +50,7 @@ var unitNames = map[string]string{
 	"page":    "сторінок",
 	"hour":    "год",
 	"chapter": "розділів",
+	"lesson":  "уроків",
 }
 
 type navItem struct {
