@@ -224,7 +224,10 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 		if len(view.Results) == 0 {
-			view.Message = "У каталозі нічого"
+			// A plain query only ever reaches TMDB, so a book will always come
+			// back empty here. Say where it lives instead of just "nothing".
+			view.Message = "TMDB нічого не знає. Книги — к:, ігри — і:, подкасти — п:, курси — н:"
+			view.Manual = manualFormFor(q, "")
 		} else {
 			view.Results[0].First = true
 		}
