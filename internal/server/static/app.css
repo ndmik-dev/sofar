@@ -769,8 +769,10 @@ button.kb:hover { border-color: var(--mid); color: var(--fg); }
 
 .blk {
   flex: 0 0 auto;
-  width: max(24px, calc(var(--n, 10) * 1.3px));
-  min-width: 14px;
+  /* Uniform, not proportional to the season's length: a width nobody can
+     count episodes from is noise pretending to be information, and the exact
+     number is one click away now that a block opens its season. */
+  width: 30px;
   overflow: hidden;
   height: var(--cell-h);
   border-radius: 2px;

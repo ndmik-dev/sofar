@@ -49,11 +49,11 @@
       <span class="tier big">
       {{- range .Blocks -}}
         {{- if eq .Kind "done" -}}
-          <button type="button" class="blk done" style="--n: {{.Count}}" title="Відкрити серії сезону {{.Season}}"
+          <button type="button" class="blk done" title="Відкрити серії сезону {{.Season}}"
                   hx-get="/entry/{{$.EntryID}}/panel?season={{.Season}}"
                   hx-target="#panel-slot" hx-swap="innerHTML">S{{.Season}}</button>
         {{- else if eq .Kind "later" -}}
-          <button type="button" class="blk later{{if .Aired}} out{{end}}" style="--n: {{.Count}}"
+          <button type="button" class="blk later{{if .Aired}} out{{end}}"
                   title="Відкрити серії сезону {{.Season}}"
                   hx-get="/entry/{{$.EntryID}}/panel?season={{.Season}}"
                   hx-target="#panel-slot" hx-swap="innerHTML">S{{.Season}}</button>

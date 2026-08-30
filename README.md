@@ -88,7 +88,9 @@ it comes free from TMDB air dates.
 
 Seasons collapse. Everything before the season you are in becomes a labelled
 block, everything after becomes an outline, and the season you are in keeps
-full-size cells. The blocks are buttons: clicking one opens that season's
+full-size cells. Every block is the same width: a width nobody can count
+episodes from is noise pretending to be information, and the exact number is
+one click away. The blocks are buttons: clicking one opens that season's
 episode list in the panel, which is the only way back into a season the track
 has folded away. They never move your position — a click that silently rewrote
 fifty episodes would be the wrong kind of shortcut. A show with 86 episodes and one with 19 therefore render cells

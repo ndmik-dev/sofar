@@ -45,12 +45,12 @@
   <span class="tier">
   {{- range .Blocks -}}
     {{- if eq .Kind "done" -}}
-      <button type="button" class="blk done" style="--n: {{.Count}}"
+      <button type="button" class="blk done"
               title="Сезон {{.Season}} · переглянуто · клік — відкрити серії"
               hx-get="/entry/{{$.EntryID}}/panel?season={{.Season}}"
               hx-target="#panel-slot" hx-swap="innerHTML">S{{.Season}}</button>
     {{- else if eq .Kind "later" -}}
-      <button type="button" class="blk later{{if .Aired}} out{{end}}" style="--n: {{.Count}}"
+      <button type="button" class="blk later{{if .Aired}} out{{end}}"
               title="Сезон {{.Season}} · {{.Count}} серій{{if .Aired}} · уже вийшов{{else}} · ще не вийшов{{end}} · клік — відкрити серії"
               hx-get="/entry/{{$.EntryID}}/panel?season={{.Season}}"
               hx-target="#panel-slot" hx-swap="innerHTML">S{{.Season}}</button>

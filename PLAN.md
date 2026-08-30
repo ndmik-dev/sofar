@@ -214,6 +214,10 @@ Recorded so they are not repeated.
   anime never notices the rule exists.
 - **Advertise nothing that does not exist.** A toast promising `⌘Z` before the
   keyboard layer shipped was worse than no label at all.
+- **An approximate signal beside an exact one is just noise.** Season blocks
+  were sized by episode count, which nobody could read and which made every row
+  look ragged. Once clicking a block gave the real number, the width had
+  nothing left to say.
 - **A control that sometimes does nothing reads as broken.** Clicking a season
   block set the position to that season's end — which, when you were already
   standing there, changed nothing and showed nothing. It opens the season now
