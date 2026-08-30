@@ -67,7 +67,7 @@
   {{- end -}}
   </span>
 {{else if eq .Mode "bar"}}
-  <span class="bar"><i style="width: {{.Percent}}%"></i></span>
+  <span class="bar hit" data-total="{{.Total}}" title="Клік — позначити прогрес сюди"><i style="width: {{.Percent}}%"></i></span>
 {{else if eq .Mode "open"}}
   <span class="bar open"></span>
 {{else}}

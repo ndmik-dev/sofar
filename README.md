@@ -85,8 +85,11 @@ block, everything after becomes an outline, and the season you are in keeps
 full-size cells. A show with 86 episodes and one with 19 therefore render cells
 of the same size. A finished show collapses entirely.
 
-Books and games have no episodes, so they get a bar; a game tracked by status
-only gets a three-state control instead.
+Books, films and games have no episodes, so they get a bar; a game tracked by
+status only gets a three-state control instead. The bar is clickable like a
+cell is: a click sets the position to that share of the total, backwards as
+readily as forwards. The panel has an exact field next to it, because a minute
+is hard to hit with a mouse.
 
 ## Keyboard
 

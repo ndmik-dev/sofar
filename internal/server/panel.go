@@ -53,6 +53,7 @@ type panelView struct {
 	Facts       []factRow
 
 	Links         []store.Link
+	Pos           int
 	SubtitleLabel string
 	Total         int
 	TotalEditable bool
@@ -108,6 +109,7 @@ func buildPanel(e store.Entry, pace store.Pace, today string, loc *time.Location
 	p.SubtitleLabel, _ = subtitleField(e.Media.Kind)
 	p.UnitLabel = unitLabels[e.Media.Unit]
 	p.Total = int(e.Media.TotalUnits.Int64)
+	p.Pos = e.Position
 	// A total can only be typed while nothing is drawn from real episodes.
 	p.TotalEditable = len(e.Units) == 0 && e.Media.Unit != "none"
 

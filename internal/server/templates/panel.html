@@ -24,7 +24,19 @@
   <div class="pns">
     {{if .HasBar}}
     <div class="pg"><span>Прогрес</span><b>{{.Position}}</b></div>
-    <div class="ptrk"><span class="bar" style="--tint: var(--k-{{.Kind}}); max-width: none;"><i style="width: {{.Percent}}%"></i></span></div>
+    <div class="ptrk"><span class="bar hit" data-total="{{.Total}}" title="Клік — позначити прогрес сюди"
+                            style="--tint: var(--k-{{.Kind}}); max-width: none;"><i style="width: {{.Percent}}%"></i></span></div>
+    <form class="setpos" hx-post="/entry/{{.EntryID}}/advance"
+          hx-target="#entry-{{.EntryID}}" hx-swap="outerHTML"
+          hx-on::after-request="reloadPanel()">
+      <span class="k2">Зупинився на</span>
+      <span class="withunit">
+        <input class="v2 num" type="number" name="abs" min="0" max="{{.Total}}"
+               inputmode="numeric" value="{{.Pos}}">
+        <s>{{.UnitLabel}} · можна й назад</s>
+      </span>
+      <button type="submit" class="ghostbtn">Ок</button>
+    </form>
     {{end}}
 
     {{with .StatusRow}}

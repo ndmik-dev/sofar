@@ -227,6 +227,19 @@ Run this one with `SOFAR_PASSWORD=… SOFAR_DEV=1 go run .`
 | 4 | Press `Space` | +5 minutes |
 | 5 | Check a film you had marked finished **before** this change | It reads `runtime / runtime`, not `1 / runtime` |
 
+## TC-20a · Going backwards on a bar
+
+The gap this closes: a track lets you click any episode, a bar had no way back
+except `⇧Space`, one page or one minute at a time.
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | On a book or film row, click the bar about a quarter along | The position jumps to a quarter of the total, toast with `⌘Z` |
+| 2 | Press `⌘Z` | Back where it was |
+| 3 | Open the panel, type a number in **Зупинився на**, Ок | Exactly that position, row and panel together |
+| 4 | Set it below the total on something marked finished | It returns to «у процесі» — a finished thing you rolled back is not finished |
+| 5 | Type a number larger than the total | Clamped to the total, not refused |
+
 ## TC-21 · Shelf search and export
 
 | # | Do | Expect |

@@ -88,6 +88,7 @@ type row struct {
 	Status    string
 	Pos       string
 	PosSub    string
+	Total     int
 	Btn       string
 	BtnWide   bool
 	Rating    int
@@ -648,6 +649,7 @@ func buildRow(e store.Entry, today string) row {
 
 	total := int(e.Media.TotalUnits.Int64)
 	hasTotal := e.Media.TotalUnits.Valid
+	rw.Total = total
 
 	switch {
 	case e.Depth == "status":

@@ -217,6 +217,28 @@
 
   document.addEventListener("DOMContentLoaded", function () { applyTheme(storedTheme()); });
 
+  // A track lets you click any episode to jump there. A bar had no way back
+  // at all: shift-space stepped one page or one minute at a time.
+  document.addEventListener("click", function (e) {
+    var bar = e.target.closest(".bar.hit");
+    if (!bar) return;
+    var total = parseInt(bar.dataset.total, 10);
+    var row = bar.closest("[data-entry]") || selected();
+    if (!total || !row) return;
+
+    var box = bar.getBoundingClientRect();
+    if (!box.width) return;
+    var share = (e.clientX - box.left) / box.width;
+    var to = Math.round(Math.min(1, Math.max(0, share)) * total);
+
+    window.htmx.ajax("POST", "/entry/" + row.dataset.entry + "/advance", {
+      source: document.body,
+      target: "#entry-" + row.dataset.entry,
+      swap: "outerHTML",
+      values: { abs: to },
+    }).then(function () { window.reloadPanel(); });
+  });
+
   document.addEventListener("click", function (e) {
     var el = e.target.closest("[data-pal]");
     if (!el || el.tagName === "FORM") return;
