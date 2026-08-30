@@ -31,6 +31,10 @@ func (u Unit) aired(today string) bool {
 	return u.AirDate != "" && u.AirDate <= today
 }
 
+// Label is the episode's name in the interface: S2E5 when a show has more than
+// one season, E5 when it does not.
+func Label(u Unit, multiSeason bool) string { return u.label(multiSeason) }
+
 func (u Unit) label(multiSeason bool) string {
 	if multiSeason && u.Season > 0 {
 		return fmt.Sprintf("S%dE%d", u.Season, u.Number)
@@ -133,4 +137,24 @@ func HoursMins(mins int) string {
 		return ""
 	}
 	return fmt.Sprintf("%d:%02d", mins/60, mins%60)
+}
+
+// FreshDays is how long "new" lasts. Two weeks covers a missed week without
+// turning the section into a second copy of the whole list.
+const FreshDays = 14
+
+// JustAired reports the first unwatched episode that landed between since and
+// today. It answers "what is there to watch tonight" from air dates alone —
+// the shelf already knows, nothing new has to be stored. Dates are ISO, so
+// string order is date order and no parsing is needed.
+func JustAired(units []Unit, position int, since, today string) (Unit, bool) {
+	for _, u := range units {
+		if u.Idx <= position || u.AirDate == "" {
+			continue
+		}
+		if u.AirDate > since && u.AirDate <= today {
+			return u, true
+		}
+	}
+	return Unit{}, false
 }

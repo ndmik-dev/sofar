@@ -5,12 +5,13 @@
      style="--tint: var(--k-{{.Kind}})"
      data-entry="{{.EntryID}}"
      data-step="{{.Step}}"
-     data-season-end="{{.SeasonEnd}}">
+     data-season-end="{{.SeasonEnd}}"
+     data-link="{{.LinkURL}}">
   <span class="lb">
     <span class="nm">{{.Title}}</span>
     {{with .Sub}}<span class="sb2">{{.}}</span>{{end}}
   </span>
-  <span class="tyc">{{.KindLabel}}{{with .Rating}}<b class="rate">★{{.}}</b>{{end}}</span>
+  <span class="tyc">{{.KindLabel}}{{with .Aired}}<b class="new" title="Вийшла {{.}}">{{.}}</b>{{end}}{{with .Rating}}<b class="rate">★{{.}}</b>{{end}}</span>
   {{template "progress" .}}
   <span class="pos">{{.Pos}}{{with .PosSub}}<s>{{.}}</s>{{end}}</span>
   <button class="del" type="button" title="Видалити" aria-label="Видалити {{.Title}}"

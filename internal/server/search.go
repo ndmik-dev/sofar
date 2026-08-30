@@ -2,6 +2,7 @@ package server
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -31,13 +32,13 @@ var catalogKinds = map[string]bool{"book": true, "game": true, "podcast": true}
 var unitForKind = map[string]string{
 	"show": "episode", "anime": "episode",
 	"book": "page", "game": "hour",
-	"podcast": "none", "movie": "none",
+	"podcast": "none", "movie": "minute",
 	"course": "lesson",
 }
 
 var unitLabels = map[string]string{
 	"episode": "серій", "page": "сторінок", "hour": "годин",
-	"chapter": "розділів", "lesson": "уроків", "none": "",
+	"chapter": "розділів", "lesson": "уроків", "minute": "хвилин", "none": "",
 }
 
 type searchResult struct {
@@ -83,9 +84,21 @@ type manualForm struct {
 	Cover               string
 }
 
+type shelfResult struct {
+	EntryID   int64
+	Title     string
+	Sub       string
+	Kind      string
+	KindLabel string
+	Where     string
+	Href      string
+	Pos       string
+}
+
 type searchView struct {
 	Query    string
 	Kind     string
+	Shelf    []shelfResult
 	Results  []searchResult
 	Manual   *manualForm
 	Message  string
@@ -104,6 +117,40 @@ func parseQuery(raw string) (kind, rest string) {
 		return "", raw
 	}
 	return k, strings.TrimSpace(after)
+}
+
+// What you already have comes first: reaching a title you own is a different
+// job from adding one, and the palette is the only search box there is.
+func (s *Server) shelfMatches(r *http.Request, kind, q string) []shelfResult {
+	if len([]rune(q)) < 2 {
+		return nil
+	}
+	found, err := s.store.SearchShelf(r.Context(), defaultUserID, q, 5)
+	if err != nil {
+		s.log.Error("shelf search", "q", q, "err", err)
+		return nil
+	}
+
+	var out []shelfResult
+	for _, f := range found {
+		if kind != "" && f.Kind != kind {
+			continue
+		}
+		res := shelfResult{
+			EntryID:   f.EntryID,
+			Title:     f.Title,
+			Sub:       f.Sub,
+			Kind:      f.Kind,
+			KindLabel: kindLabels[f.Kind],
+			Where:     statusWords[f.Status],
+			Href:      fmt.Sprintf("%s?focus=%d", statusPaths[f.Status], f.EntryID),
+		}
+		if f.HasEnd && f.Total > 1 {
+			res.Pos = fmt.Sprintf("%d / %d", f.Pos, f.Total)
+		}
+		out = append(out, res)
+	}
+	return out
 }
 
 func manualFormFor(title, kind string) *manualForm {
@@ -143,6 +190,7 @@ func subtitleField(kind string) (label, placeholder string) {
 func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	kind, q := parseQuery(r.URL.Query().Get("q"))
 	view := searchView{Query: q, Kind: kind}
+	view.Shelf = s.shelfMatches(r, kind, q)
 
 	switch {
 	case manualKinds[kind]:

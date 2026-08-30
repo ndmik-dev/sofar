@@ -1291,3 +1291,36 @@ body.lg { display: flex; align-items: center; justify-content: center; min-heigh
   cursor: pointer;
 }
 .ghostbtn:hover { border-color: var(--mid); color: var(--fg); }
+
+/* What landed while you were away, marked where the eye already is. */
+.gl.fresh { color: var(--ac); }
+.gl.fresh::after { background: color-mix(in srgb, var(--ac) 35%, transparent); }
+.tyc .new {
+  display: inline-block;
+  margin-left: 9px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--ac);
+  color: var(--el);
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: .02em;
+}
+
+.plinks { padding: 4px 0 2px; }
+.lnk { display: flex; align-items: center; gap: 10px; padding: 5px 20px; }
+.lnk a { flex: 1; min-width: 0; font-size: 14px; color: var(--ac); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lnk a:hover { text-decoration: underline; }
+.lnk button {
+  appearance: none; border: 0; background: none; cursor: pointer;
+  color: var(--mut); font: inherit; font-size: 12px; padding: 0 2px;
+}
+.lnk button:hover { color: var(--k-anime); }
+.lnkadd { display: flex; gap: 8px; padding: 8px 20px 4px; }
+.lnkadd .v2 { flex: 1; font-size: 13.5px; }
+
+/* Shelf hits are links, not add-buttons: the same row shape, a different job. */
+.res.mine { text-decoration: none; }
+.res.mine .yy { width: auto; min-width: 54px; }
+
+a.ghostbtn { display: inline-block; text-decoration: none; }

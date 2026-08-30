@@ -122,6 +122,26 @@
     <div style="height: 20px"></div>
   </div>
 
+  <div class="plinks">
+    <div class="pg"><span>Посилання</span>{{if .Links}}<b>O відкриє перше</b>{{end}}</div>
+    {{range .Links}}
+    <div class="lnk">
+      <a href="{{.URL}}" target="_blank" rel="noreferrer noopener">{{.Label}}</a>
+      <button type="button" title="Прибрати"
+              hx-post="/entry/{{$.EntryID}}/link/{{.ID}}/delete"
+              hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML"
+              hx-on::after-request="reloadPanel()">✕</button>
+    </div>
+    {{end}}
+    <form class="lnkadd" hx-post="/entry/{{.EntryID}}/link"
+          hx-target="#entry-{{.EntryID}}" hx-swap="outerHTML"
+          hx-on::after-request="reloadPanel()">
+      <input class="v2" type="url" name="url" placeholder="Вставити посилання"
+             autocomplete="off" required>
+      <button type="submit" class="ghostbtn">Додати</button>
+    </form>
+  </div>
+
   <details class="pedit">
     <summary>Редагувати запис</summary>
     <form hx-post="/entry/{{.EntryID}}/edit"

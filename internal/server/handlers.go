@@ -51,6 +51,7 @@ var unitNames = map[string]string{
 	"hour":    "год",
 	"chapter": "розділів",
 	"lesson":  "уроків",
+	"minute":  "хв",
 }
 
 type navItem struct {
@@ -93,6 +94,8 @@ type row struct {
 	Step      int
 	SeasonEnd int
 	Statuses  []statusOption
+	Aired     string
+	LinkURL   string
 	Stale     bool
 	Selected  bool
 }
@@ -167,6 +170,7 @@ type listPage struct {
 	NavView navView
 	Now     time.Time
 	Rows    []row
+	Fresh   []row
 	Stale   []row
 	Years   []yearGroup
 	Filters []filterChip
@@ -234,12 +238,18 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		Summary: summaryFrom(sum),
 	}
 
+	since := s.cfg.Day(now).AddDate(0, 0, -domain.FreshDays).Format("2006-01-02")
 	for i, e := range entries {
 		if kind != "" && e.Media.Kind != kind {
 			continue
 		}
 		rw := buildRow(e, today)
 		rw.Selected = i == 0
+		if u, ok := domain.JustAired(e.Units, e.Position, since, today); ok {
+			rw.Aired = domain.Label(u, domain.MultiSeason(e.Units))
+			page.Fresh = append(page.Fresh, rw)
+			continue
+		}
 		if e.UpdatedAt < staleBefore {
 			rw.Stale = true
 			page.Stale = append(page.Stale, rw)
@@ -247,7 +257,7 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		}
 		page.Rows = append(page.Rows, rw)
 	}
-	page.Empty = len(page.Rows) == 0 && len(page.Stale) == 0
+	page.Empty = len(page.Rows) == 0 && len(page.Stale) == 0 && len(page.Fresh) == 0
 	// The element stays in the page even with nothing to show, so an
 	// out-of-band swap has a target the moment the first row lands. Under a
 	// kind filter the figures describe the whole list, not what is on screen,
@@ -257,7 +267,7 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		page.Filter = &kindFilter{
 			Label: kindLabels[kind],
 			Kind:  kind,
-			Count: len(page.Rows) + len(page.Stale),
+			Count: len(page.Rows) + len(page.Stale) + len(page.Fresh),
 			Clear: "/active",
 		}
 	}
@@ -628,6 +638,7 @@ func buildRow(e store.Entry, today string) row {
 		Kind:      e.Media.Kind,
 		KindLabel: kindLabels[e.Media.Kind],
 		Step:      max(e.Step, 1),
+		LinkURL:   e.LinkURL,
 		Btn:       "+",
 	}
 	if rw.Step > 1 {

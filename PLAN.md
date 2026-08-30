@@ -105,6 +105,7 @@ time left = `(total_units - position) * runtime_min`.
 | ✅ | **M8** Streak and year | 6 h | Gamification, per-type depth |
 | ✅ | **M8.5** Edit and import | 3 h | Fix a saved entry, paste an archive |
 | ✅ | **M8.6** Password | 1.5 h | Nothing public without it |
+| ✅ | **M8.7** Links, nightly, shelf search, export | 5 h | The list keeps itself current |
 | | **M9** Deploy | 5 h | Live on a domain, with backups |
 | | **M10** Pocket | 3 h | PWA, installs on a phone |
 
@@ -146,6 +147,17 @@ up in the year.
 Done. One password from `SOFAR_PASSWORD`, a year-long cookie signed with a key
 derived from it, per-address throttling that reads the proxy headers, and a
 startup that fails rather than serve a public address without a password.
+
+### M8.7 · Links, nightly, shelf search, export — 5 h ✅
+
+Done. Links hang off the entry with a label read from the domain and `O` to
+open one. A nightly job re-imports running shows and purges deletions older
+than 30 days, which is what makes «Вийшло нове» possible at all — that section
+is pure derivation from air dates. `⌘K` searches the shelf before the catalog,
+matching in Go because SQLite's `LOWER` folds ASCII only and «дюна» would never
+find «Дюна». `/export` writes the whole shelf to one JSON file. Films are
+tracked in minutes, with a migration that moves already-finished ones to their
+runtime through the progress log rather than behind it.
 
 ### M9 · Deploy — 5 h
 
@@ -201,6 +213,9 @@ Recorded so they are not repeated.
   anime never notices the rule exists.
 - **Advertise nothing that does not exist.** A toast promising `⌘Z` before the
   keyboard layer shipped was worse than no label at all.
+- **SQLite's `LOWER` and `LIKE` fold ASCII only.** Searching «дюна» found
+  nothing at all in a Ukrainian shelf. Matching moved into Go, where case
+  folding knows about Cyrillic.
 - **Never query the pool from inside an open transaction.** With one pooled
   connection that is a guaranteed deadlock: the query waits for the connection
   the transaction is holding, the request never returns, and the browser sits on

@@ -44,6 +44,10 @@ A real environment variable always wins over the file.
 | `GOOGLE_BOOKS_KEY` | — | books |
 | `RAWG_KEY` | — | games |
 
+A film is tracked in minutes: TMDB gives the runtime, so the position is the
+minute you stopped at. Films default to status depth — switch them to
+«хвилини» in settings to use it.
+
 Podcasts use the iTunes Search API, which needs no key. Every catalog is
 optional: without a key the manual entry form still works. Courses have no
 catalog anywhere and are always entered by hand.
@@ -98,6 +102,7 @@ only gets a three-state control instead.
 | `⌘Z` | undo the last action |
 | `↵` | open or close the detail panel |
 | `N` | focus the note in an open panel |
+| `O` | open the entry's link in a new tab |
 | `⌘K` | search or add |
 | `↑` `↓` in the palette | walk the results |
 | `⌥1`–`⌥4` | in progress · later · finished · year |
@@ -125,7 +130,31 @@ later, `⌘` for finished, `⌥` for dropped. `⌘↵` and `⇧↵` also clear t
 keep focus, which is how the archive gets backfilled — a running log of what has
 landed appears below.
 
+## Links, freshness and the nightly job
+
+Links belong to the entry, not to the media — where *you* watch something is not
+a property of the show. Paste a URL in the panel and the label comes from the
+domain; `O` opens the first one in a new tab. Only `http` and `https` are
+accepted, because the value ends up in an `href`.
+
+A nightly job runs twenty minutes after the day starts. It re-imports running
+shows that somebody is actually watching, so new episodes appear on their own,
+and it finally deletes entries soft-deleted more than 30 days ago. Re-import
+replaces the unit list wholesale; progress lives on `entry`, so it is never
+disturbed.
+
+Rows with an unwatched episode that aired in the last two weeks move to a
+**Вийшло нове** section above the list. It is derived from `unit.air_date` and
+`position` — nothing is stored for it.
+
 ## Importing and fixing
+
+`⌘K` searches your own shelf first and the catalog after: reaching a title you
+own is a different job from adding one. A shelf hit links to
+`/{list}?focus={id}`, which selects and scrolls to that row.
+
+`/export` downloads everything as one JSON file — a dump, not an API: it
+answers once, promises no compatibility and has no client.
 
 `/import` takes a pasted list, one title per line, and looks each up in TMDB.
 A year in brackets narrows the search, `title | 12` sets a starting position,
@@ -175,6 +204,7 @@ Tables: `users`, `media`, `unit`, `entry`, `progress`, `type_settings`,
 main.go              config, database, server, graceful shutdown
 internal/config      environment parsing, .env reader, day boundary
 internal/domain      track building, pluralisation. No I/O.
+internal/nightly     refresh running shows, purge old deletions
 internal/fetch       cached JSON GET shared by every catalog adapter
 internal/tmdb        films and series
 internal/catalog     TMDB import plus Google Books, RAWG, iTunes
@@ -207,6 +237,7 @@ GET  /settings              per-type tracking depth
 POST /settings/{kind}
 GET  /import                paste a list of titles
 POST /import
+GET  /export                everything as one JSON file
 GET  /login
 POST /login
 POST /logout
@@ -223,6 +254,8 @@ POST /entry/{id}/delete
 POST /entry/{id}/restore
 POST /entry/{id}/note
 POST /entry/{id}/edit       title, subtitle, total
+POST /entry/{id}/link
+POST /entry/{id}/link/{link}/delete
 GET  /entry/{id}/panel      detail panel fragment
 ```
 

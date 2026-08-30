@@ -208,6 +208,45 @@ Run this one with `SOFAR_PASSWORD=… SOFAR_DEV=1 go run .`
 | 5 | Restart with a **different** password, reload | Asked again: the old cookie died with the old password |
 | 6 | `SOFAR_PASSWORD= SOFAR_ADDR=:8099 go run .` (no dev) | Refuses to start, and says why |
 
+## TC-19 · Links
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Open a panel, paste `netflix.com/title/123` in Посилання, Додати | A link labelled **Netflix** — the label came from the domain |
+| 2 | Select that row, press `O` | The link opens in a **new** tab; the list stays where it was |
+| 3 | Paste `javascript:alert(1)` | Refused — only http and https are accepted |
+| 4 | Press `✕` next to the link | It is gone, and `O` does nothing |
+
+## TC-20 · A film in minutes
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | **Налаштування** → Фільми → «хвилини», крок 5 | — |
+| 2 | Add a film through `ф:` | The row shows a bar and `0 / <runtime>` |
+| 3 | Click the bar about a third along | The position jumps to that minute |
+| 4 | Press `Space` | +5 minutes |
+| 5 | Check a film you had marked finished **before** this change | It reads `runtime / runtime`, not `1 / runtime` |
+
+## TC-21 · Shelf search and export
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | `⌘K`, type a Ukrainian title you already have, in **lowercase** | A **Уже на полиці** section above the catalog results |
+| 2 | Click your own result | The right list opens, scrolled to that row, with it selected |
+| 3 | Type something you do not have | Only catalog results, no shelf section |
+| 4 | **Імпорт** → Завантажити JSON | A `sofar-YYYY-MM-DD.json` with every list, positions, ratings, notes and links |
+
+## TC-22 · What aired
+
+Needs a running show with a recent episode you have not watched.
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Open **У процесі** | A **Вийшло нове** section above the list |
+| 2 | Look at the row | A green badge with the episode, e.g. `S5E1` |
+| 3 | Watch it (`Space` until past that episode) and reload | The row leaves the section for the normal list |
+| 4 | Check a show whose last episode aired years ago | Not in the section — old backlog is not news |
+
 ---
 
 ## Known behaviour, not bugs
@@ -223,6 +262,8 @@ Run this one with `SOFAR_PASSWORD=… SOFAR_DEV=1 go run .`
 - A book added without a page count shows a thin open line and "без межі"
   instead of a bar: there is no total to be a percentage of. The panel's edit
   block can give it one later.
+- The nightly job runs twenty minutes after the day starts (04:20 by default).
+  Nothing refreshes while you watch; restarting the server does not trigger it.
 - Import matches one title per line and takes a single best guess. Check the
   matched names in the result list; a year in brackets settles the ambiguous
   ones.

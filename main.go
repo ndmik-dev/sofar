@@ -17,6 +17,7 @@ import (
 
 	"github.com/ndmik-dev/sofar/internal/catalog"
 	"github.com/ndmik-dev/sofar/internal/config"
+	"github.com/ndmik-dev/sofar/internal/nightly"
 	"github.com/ndmik-dev/sofar/internal/server"
 	"github.com/ndmik-dev/sofar/internal/store"
 	"github.com/ndmik-dev/sofar/internal/tmdb"
@@ -102,6 +103,9 @@ func run(log *slog.Logger) error {
 	if !cat.Enabled() {
 		log.Warn("TMDB_TOKEN is not set — catalog search is disabled")
 	}
+
+	job := nightly.New(cfg, st, cat, log)
+	go job.Run(ctx)
 
 	srv, err := server.New(cfg, st, cat, log)
 	if err != nil {

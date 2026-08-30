@@ -284,11 +284,23 @@
     if (input) { input.value = ""; input.focus(); }
   });
 
+  // Arriving from a shelf search: land on the row you were looking for rather
+  // than at the top of a list that may be hundreds long.
+  function focusFromURL() {
+    var want = new URLSearchParams(location.search).get("focus");
+    if (!want) return;
+    var row = document.getElementById("entry-" + want);
+    if (!row) return;
+    select(row, false);
+    row.scrollIntoView({ block: "center" });
+  }
+
   // afterSettle, not afterSwap: htmx is still moving nodes during the swap
   // phase, and a highlight applied then is gone by the time it finishes.
   document.body.addEventListener("htmx:afterSettle", restore);
-  document.addEventListener("DOMContentLoaded", restore);
+  document.addEventListener("DOMContentLoaded", function () { restore(); focusFromURL(); });
   restore();
+  focusFromURL();
 
   document.addEventListener("keydown", function (e) {
     var mod = e.metaKey || e.ctrlKey;
@@ -477,6 +489,17 @@
       awaitingRating = true;
       flash("Оцінка: 1–9, 0 — це десять, Esc — скасувати");
       return;
+    }
+
+    // O opens where you watch it. A new tab, because losing the list to a
+    // streaming site is not what the key is for.
+    if (is("o", "щ", "о")) {
+      var withLink = selected();
+      if (withLink && withLink.dataset.link) {
+        e.preventDefault();
+        window.open(withLink.dataset.link, "_blank", "noopener");
+        return;
+      }
     }
 
     if (is("n", "т", "н") && panelOpen()) {

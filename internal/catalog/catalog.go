@@ -93,6 +93,11 @@ func (c *Catalog) Import(ctx context.Context, tmdbType string, tmdbID int, now t
 		units = unitsOf(d)
 		in.Unit = "episode"
 		in.TotalUnits = sql.NullInt64{Int64: int64(len(units)), Valid: len(units) > 0}
+	} else if d.Runtime > 0 {
+		// A film is one long unit, and the useful position inside it is the
+		// minute you stopped at. Without a runtime there is nothing to count.
+		in.Unit = "minute"
+		in.TotalUnits = sql.NullInt64{Int64: int64(d.Runtime), Valid: true}
 	} else {
 		in.Unit = "none"
 		in.TotalUnits = sql.NullInt64{Int64: 1, Valid: true}

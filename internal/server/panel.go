@@ -52,6 +52,7 @@ type panelView struct {
 	Episodes    []episodeRow
 	Facts       []factRow
 
+	Links         []store.Link
 	SubtitleLabel string
 	Total         int
 	TotalEditable bool
@@ -76,7 +77,15 @@ func (s *Server) handlePanel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderFragment(w, r, "panel", buildPanel(entry, pace, today, s.cfg.Loc))
+	links, err := s.store.LinksFor(r.Context(), id)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+
+	view := buildPanel(entry, pace, today, s.cfg.Loc)
+	view.Links = links
+	s.renderFragment(w, r, "panel", view)
 }
 
 func buildPanel(e store.Entry, pace store.Pace, today string, loc *time.Location) panelView {

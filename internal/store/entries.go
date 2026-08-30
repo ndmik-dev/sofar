@@ -35,6 +35,9 @@ type Entry struct {
 	Units      []domain.Unit
 	Depth      string
 	Step       int
+	// The first link, carried on the row so the keyboard can open it without
+	// asking the server a second time.
+	LinkURL string
 }
 
 const entrySelect = `
@@ -43,7 +46,8 @@ SELECT e.id, e.status, e.position, e.rating, COALESCE(e.note,''), e.updated_at,
        m.id, m.kind, m.source, m.title, COALESCE(m.title_orig,''), COALESCE(m.year,0),
        COALESCE(m.overview,''), COALESCE(m.runtime_min,0), m.total_units, m.unit,
        COALESCE(m.airing,''),
-       COALESCE(ts.depth,'units'), COALESCE(ts.step,1)
+       COALESCE(ts.depth,'units'), COALESCE(ts.step,1),
+       COALESCE((SELECT url FROM link WHERE entry_id = e.id ORDER BY id LIMIT 1), '')
 FROM entry e
 JOIN media m ON m.id = e.media_id
 LEFT JOIN type_settings ts ON ts.user_id = e.user_id AND ts.kind = m.kind
@@ -82,7 +86,7 @@ func (s *Store) queryEntries(ctx context.Context, q string, args ...any) ([]Entr
 			&e.Media.ID, &e.Media.Kind, &e.Media.Source, &e.Media.Title,
 			&e.Media.TitleOrig, &e.Media.Year, &e.Media.Overview,
 			&e.Media.RuntimeMin, &e.Media.TotalUnits, &e.Media.Unit, &e.Media.Airing,
-			&e.Depth, &e.Step,
+			&e.Depth, &e.Step, &e.LinkURL,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan entry: %w", err)

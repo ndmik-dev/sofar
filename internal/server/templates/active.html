@@ -9,6 +9,11 @@
 
 {{template "summary" .Summary}}
 
+{{if .Fresh}}
+<div class="gl fresh">Вийшло нове · за останні два тижні</div>
+{{range .Fresh}}{{template "row" .}}{{end}}
+{{end}}
+
 <div id="rows">{{range .Rows}}{{template "row" .}}{{end}}</div>
 
 {{if .Stale}}

@@ -55,6 +55,17 @@
 {{end}}
 
 {{define "search-results"}}
+{{if .Shelf}}
+  <div class="sc">Уже на полиці · {{len .Shelf}}</div>
+  {{range .Shelf}}
+  <a class="res mine" href="{{.Href}}">
+    <span class="st k-{{.Kind}}"></span>
+    <span class="nn">{{.Title}}{{with .Sub}} <s>· {{.}}</s>{{end}}</span>
+    <span class="tg">{{.Where}}</span>
+    <span class="yy">{{.Pos}}</span>
+  </a>
+  {{end}}
+{{end}}
 {{if .Results}}
   <div class="sc">{{if .Kind}}Каталог{{else}}TMDB{{end}} · {{len .Results}}</div>
   {{range .Results}}

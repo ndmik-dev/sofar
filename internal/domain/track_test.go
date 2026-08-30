@@ -127,3 +127,46 @@ func TestNextLabelDropsSeasonForSingleSeason(t *testing.T) {
 		t.Errorf("past the end should be empty, got %q", got)
 	}
 }
+
+func TestJustAired(t *testing.T) {
+	units := []Unit{
+		{Idx: 1, AirDate: "2026-08-01"},
+		{Idx: 2, AirDate: "2026-08-08"},
+		{Idx: 3, AirDate: "2026-08-22"},
+		{Idx: 4, AirDate: "2026-08-29"},
+		{Idx: 5, AirDate: "2026-09-05"},
+		{Idx: 6, AirDate: ""},
+	}
+	const since, today = "2026-08-16", "2026-08-30"
+
+	cases := []struct {
+		name     string
+		position int
+		wantIdx  int
+	}{
+		{"caught up to the last aired episode", 4, 0},
+		{"two fresh episodes waiting, the earlier one wins", 2, 3},
+		{"one fresh episode waiting", 3, 4},
+		{"far behind, but the backlog is old, not new", 0, 3},
+		{"everything watched", 6, 0},
+	}
+	for _, c := range cases {
+		u, ok := JustAired(units, c.position, since, today)
+		if c.wantIdx == 0 {
+			if ok {
+				t.Errorf("%s: got E%d, want nothing", c.name, u.Idx)
+			}
+			continue
+		}
+		if !ok || u.Idx != c.wantIdx {
+			t.Errorf("%s: got %v/%d, want E%d", c.name, ok, u.Idx, c.wantIdx)
+		}
+	}
+}
+
+func TestJustAiredIgnoresTheFuture(t *testing.T) {
+	units := []Unit{{Idx: 1, AirDate: "2026-12-01"}}
+	if _, ok := JustAired(units, 0, "2026-08-16", "2026-08-30"); ok {
+		t.Error("an episode that has not aired counted as fresh")
+	}
+}

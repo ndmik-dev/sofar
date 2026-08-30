@@ -30,10 +30,11 @@ var settingsMeta = map[string]struct {
 }{
 	"show":    {"серії", []int{1, 2}},
 	"anime":   {"серії", []int{1, 2}},
-	"movie":   {"галочка", []int{1}},
+	"movie":   {"хвилини", []int{1, 5, 10}},
 	"book":    {"сторінки", []int{1, 5, 10, 25}},
 	"game":    {"години", []int{1, 2}},
 	"podcast": {"епізоди", []int{1}},
+	"course":  {"уроки", []int{1, 2}},
 }
 
 func (s *Server) settingRows(r *http.Request) ([]settingRow, error) {
