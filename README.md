@@ -44,6 +44,12 @@ A real environment variable always wins over the file.
 | `GOOGLE_BOOKS_KEY` | — | books |
 | `RAWG_KEY` | — | games |
 
+A podcast never finishes, so "how far have you got" has no answer for it. It is
+an open counter — one press is one episode, no total — and its rows live in a
+folded **Слухаю постійно** section at the bottom of the list rather than among
+things with a finish line. They are never called stale: a habit does not go
+stale. The year counts them as випуски, separately from серії.
+
 A film is tracked in minutes: TMDB gives the runtime, so the position is the
 minute you stopped at. Films default to status depth — switch them to
 «хвилини» in settings to use it.

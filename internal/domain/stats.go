@@ -10,6 +10,8 @@ const dayFormat = "2006-01-02"
 type ProgressRow struct {
 	At      int64
 	Delta   int
+	To      int
+	Total   int
 	Kind    string
 	Unit    string
 	Runtime int
@@ -19,6 +21,9 @@ func (r ProgressRow) mins() int {
 	switch r.Unit {
 	case "episode", "none":
 		return r.Delta * r.Runtime
+	// A film is counted in minutes, so the delta already is the time.
+	case "minute":
+		return r.Delta
 	case "hour":
 		return r.Delta * 60
 	}
@@ -32,6 +37,7 @@ type DayCell struct {
 
 type YearStats struct {
 	Episodes int
+	Podcasts int
 	Films    int
 	Pages    int
 	Mins     int
@@ -56,10 +62,21 @@ func BuildYear(rows []ProgressRow, day func(int64) time.Time) YearStats {
 
 		st.Mins += mins
 		switch {
+		// A podcast counts episodes too, but they are not серії and they have
+		// no end, so they get their own number rather than inflating the shows.
+		case r.Kind == "podcast":
+			st.Podcasts += r.Delta
 		case r.Unit == "episode":
 			st.Episodes += r.Delta
+		// Films are counted when finished, not by the minute: watching two
+		// hours of one film is one film, not a hundred and twenty. A film with
+		// no runtime is still a single tick, and one tick is one film.
 		case r.Kind == "movie":
-			st.Films += r.Delta
+			if r.Unit != "minute" {
+				st.Films += r.Delta
+			} else if r.Total > 0 && r.To >= r.Total {
+				st.Films++
+			}
 		case r.Unit == "page":
 			st.Pages += r.Delta
 		}

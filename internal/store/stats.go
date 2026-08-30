@@ -12,7 +12,8 @@ import (
 // read as a heroic watching day.
 func (s *Store) ProgressRows(ctx context.Context, userID, from, to int64) ([]domain.ProgressRow, error) {
 	rows, err := s.DB.QueryContext(ctx, `
-		SELECT p.at, p.to_pos - p.from_pos, m.kind, m.unit, COALESCE(m.runtime_min, 0)
+		SELECT p.at, p.to_pos - p.from_pos, p.to_pos, COALESCE(m.total_units, 0),
+		       m.kind, m.unit, COALESCE(m.runtime_min, 0)
 		FROM progress p
 		JOIN entry e ON e.id = p.entry_id
 		JOIN media m ON m.id = e.media_id
@@ -27,7 +28,7 @@ func (s *Store) ProgressRows(ctx context.Context, userID, from, to int64) ([]dom
 	var out []domain.ProgressRow
 	for rows.Next() {
 		var r domain.ProgressRow
-		if err := rows.Scan(&r.At, &r.Delta, &r.Kind, &r.Unit, &r.Runtime); err != nil {
+		if err := rows.Scan(&r.At, &r.Delta, &r.To, &r.Total, &r.Kind, &r.Unit, &r.Runtime); err != nil {
 			return nil, err
 		}
 		out = append(out, r)

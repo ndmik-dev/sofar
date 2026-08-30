@@ -24,6 +24,7 @@ Not up for rediscussion — written down so they are not relitigated.
 | Progress | Append-only `progress` log | Undo, streaks, pace and stats fall out of it free |
 | Pause | No manual status | "Stale" is derived from `updated_at` |
 | Tracking depth | Per type | Games get three states, series get episodes |
+| Ongoing things | Open counter, own folded section | A podcast has no finish line, so "how far" has no answer |
 | Deploy | Dokploy droplet, one container | Already there, 4 GB, Caddy in front |
 | Auth | One password from the environment | Not accounts. Year-long cookie, key derived from the password so a change logs everyone out |
 | Day boundary | **04:00, Europe/Kyiv** | An episode at 01:30 belongs to the previous day |
@@ -213,6 +214,10 @@ Recorded so they are not repeated.
   anime never notices the rule exists.
 - **Advertise nothing that does not exist.** A toast promising `⌘Z` before the
   keyboard layer shipped was worse than no label at all.
+- **Changing a unit changes every number built on it.** Films became minutes
+  and the year began reporting "+342 фільми": the counter had been adding
+  deltas, which used to be one tick per film. Anything derived from a unit has
+  to be re-read when the unit moves.
 - **`unit.idx` is right for the machine and wrong for the person.** One integer
   across all seasons is what makes the track and undo simple, but nobody knows
   that S4E7 is episode 46. Ask in seasons, store in idx.

@@ -172,6 +172,8 @@ var unitForms = map[string][3]string{
 	"page":    {"сторінка", "сторінки", "сторінок"},
 	"hour":    {"година", "години", "годин"},
 	"chapter": {"розділ", "розділи", "розділів"},
+	"lesson":  {"урок", "уроки", "уроків"},
+	"minute":  {"хвилина", "хвилини", "хвилин"},
 }
 
 func countSeasons(units []domain.Unit) int {

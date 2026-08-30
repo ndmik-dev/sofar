@@ -176,6 +176,7 @@ type listPage struct {
 	Now     time.Time
 	Rows    []row
 	Fresh   []row
+	Ongoing []row
 	Stale   []row
 	Years   []yearGroup
 	Filters []filterChip
@@ -250,6 +251,10 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		}
 		rw := buildRow(e, today)
 		rw.Selected = i == 0
+		if ongoing(e) {
+			page.Ongoing = append(page.Ongoing, rw)
+			continue
+		}
 		if u, ok := domain.JustAired(e.Units, e.Position, since, today); ok {
 			rw.Aired = domain.Label(u, domain.MultiSeason(e.Units))
 			page.Fresh = append(page.Fresh, rw)
@@ -262,7 +267,8 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		}
 		page.Rows = append(page.Rows, rw)
 	}
-	page.Empty = len(page.Rows) == 0 && len(page.Stale) == 0 && len(page.Fresh) == 0
+	page.Empty = len(page.Rows) == 0 && len(page.Stale) == 0 &&
+		len(page.Fresh) == 0 && len(page.Ongoing) == 0
 	// The element stays in the page even with nothing to show, so an
 	// out-of-band swap has a target the moment the first row lands. Under a
 	// kind filter the figures describe the whole list, not what is on screen,
@@ -272,7 +278,7 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		page.Filter = &kindFilter{
 			Label: kindLabels[kind],
 			Kind:  kind,
-			Count: len(page.Rows) + len(page.Stale) + len(page.Fresh),
+			Count: len(page.Rows) + len(page.Stale) + len(page.Fresh) + len(page.Ongoing),
 			Clear: "/active",
 		}
 	}
@@ -615,11 +621,26 @@ func viewingList(r *http.Request, status string) bool {
 	return u.Path == statusPaths[status]
 }
 
+// unitNames is the genitive plural used after a fixed total ("усього 86
+// серій"). Naming an arbitrary number needs all three forms, which is what
+// unitForms holds.
+func unitWords(e store.Entry) (one, few, many string) {
+	// A podcast counts the same episodes by a different name.
+	if e.Media.Kind == "podcast" {
+		return "випуск", "випуски", "випусків"
+	}
+	f, ok := unitForms[e.Media.Unit]
+	if !ok {
+		return "", "", ""
+	}
+	return f[0], f[1], f[2]
+}
+
 func toastFor(move store.Move) toastView {
 	if !move.Changed {
 		return toastView{}
 	}
-	unit := unitNames[move.Entry.Media.Unit]
+	one, few, many := unitWords(move.Entry)
 	switch {
 	case move.To < move.From:
 		return toastView{
@@ -629,9 +650,9 @@ func toastFor(move store.Move) toastView {
 		}
 	case move.Finished:
 		return toastView{Text: move.Entry.Media.Title + " · завершено", EntryID: move.Entry.ID, Undo: true}
-	case unit != "":
+	case one != "":
 		return toastView{
-			Text:    fmt.Sprintf("%s · %d %s", move.Entry.Media.Title, move.To, unit),
+			Text:    move.Entry.Media.Title + " · " + domain.Count(move.To, one, few, many),
 			EntryID: move.Entry.ID,
 			Undo:    true,
 		}
@@ -666,6 +687,13 @@ func summaryFrom(s store.Summary) summaryView {
 		Airing:      s.Airing,
 		Active:      s.Active,
 	}
+}
+
+// ongoing marks what never finishes. A podcast is the only such thing today,
+// but the question the main list asks — how far have you got — has no answer
+// for any of them, so they get their own place rather than a blank position.
+func ongoing(e store.Entry) bool {
+	return e.Media.Kind == "podcast"
 }
 
 func buildRow(e store.Entry, today string) row {
@@ -704,6 +732,11 @@ func buildRow(e store.Entry, today string) row {
 		rw.Mode = "open"
 		rw.Pos = strconv.Itoa(e.Position)
 		rw.PosSub = "без межі"
+		if ongoing(e) {
+			one, few, many := unitWords(e)
+			rw.Pos = domain.Count(e.Position, one, few, many)
+			rw.PosSub = ""
+		}
 		rw.Sub = e.Media.TitleOrig
 	case len(e.Units) > 0:
 		rw.Mode = "cells"

@@ -32,7 +32,7 @@ var catalogKinds = map[string]bool{"book": true, "game": true, "podcast": true}
 var unitForKind = map[string]string{
 	"show": "episode", "anime": "episode",
 	"book": "page", "game": "hour",
-	"podcast": "none", "movie": "minute",
+	"podcast": "episode", "movie": "minute",
 	"course": "lesson",
 }
 

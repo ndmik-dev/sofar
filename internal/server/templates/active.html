@@ -16,6 +16,13 @@
 
 <div id="rows">{{range .Rows}}{{template "row" .}}{{end}}</div>
 
+{{if .Ongoing}}
+<details class="ong"{{if not .Rows}} open{{end}}>
+  <summary>Слухаю постійно · {{len .Ongoing}}</summary>
+  {{range .Ongoing}}{{template "row" .}}{{end}}
+</details>
+{{end}}
+
 {{if .Stale}}
 <div class="gl">Застоялось · без руху 30+ днів</div>
 {{range .Stale}}{{template "row" .}}{{end}}

@@ -1345,3 +1345,20 @@ a.ghostbtn { display: inline-block; text-decoration: none; }
   color: var(--mut);
 }
 .v2.num.sm { width: 58px; }
+
+/* Things without a finish line live at the bottom, folded: they are a habit to
+   tick, not a queue to work through. */
+.ong summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px 9px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--mut);
+  cursor: pointer;
+}
+.ong summary::after { content: ""; flex: 1; height: 1px; background: var(--ln2); }
+.ong summary:hover { color: var(--mid); }

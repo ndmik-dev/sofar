@@ -241,6 +241,17 @@ except `⇧Space`, one page or one minute at a time.
 | 4 | Set it below the total on something marked finished | It returns to «у процесі» — a finished thing you rolled back is not finished |
 | 5 | Type a number larger than the total | Clamped to the total, not refused |
 
+## TC-20b · Podcasts stay out of the way
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Add a podcast with `п:` | It is **not** among the ordinary rows |
+| 2 | Look at the bottom of **У процесі** | A folded **Слухаю постійно · N** |
+| 3 | Open it | The row has a thin open line and a count, no «хочу / у процесі / завершив» |
+| 4 | Click the row, press `Space` twice | «2 випуски», toast in випуски, not серії |
+| 5 | Press `⌥4` | The year shows «+N випусків» beside фільми, and «серій» did not move |
+| 6 | Leave it untouched for a month | It never appears under **Застоялось** |
+
 ## TC-21 · Shelf search and export
 
 | # | Do | Expect |
@@ -276,6 +287,8 @@ Needs a running show with a recent episode you have not watched.
 - A book added without a page count shows a thin open line and "без межі"
   instead of a bar: there is no total to be a percentage of. The panel's edit
   block can give it one later.
+- A film counts toward «фільмів» only when you reach its end; before that it
+  still adds its minutes to the hours.
 - The nightly job runs twenty minutes after the day starts (04:20 by default).
   Nothing refreshes while you watch; restarting the server does not trigger it.
 - In the "where did you stop" step, an episode past the end of its season lands

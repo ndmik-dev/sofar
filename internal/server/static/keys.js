@@ -217,6 +217,16 @@
 
   document.addEventListener("DOMContentLoaded", function () { applyTheme(storedTheme()); });
 
+  // Clicking a row selects it. Without this the keyboard kept acting on
+  // whatever the arrows last touched, so Space after a click hit the wrong
+  // title — the one bug that makes mouse and keyboard feel like two apps.
+  document.addEventListener("click", function (e) {
+    var row = e.target.closest(".rw[data-entry]");
+    if (!row || row === selected()) return;
+    select(row, false);
+    if (panelOpen()) loadPanel();
+  });
+
   // A track lets you click any episode to jump there. A bar had no way back
   // at all: shift-space stepped one page or one minute at a time.
   document.addEventListener("click", function (e) {

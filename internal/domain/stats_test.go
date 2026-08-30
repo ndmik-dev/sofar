@@ -103,3 +103,36 @@ func TestBuildYearCounts(t *testing.T) {
 		t.Errorf("months: %v %v", st.Months[2], st.Months[3])
 	}
 }
+
+func TestYearCountsEachKindInItsOwnUnit(t *testing.T) {
+	day := time.Date(2026, 5, 10, 20, 0, 0, 0, time.UTC).Unix()
+	rows := []ProgressRow{
+		// Three episodes of a 45-minute show.
+		{At: day, Delta: 3, To: 3, Total: 10, Kind: "show", Unit: "episode", Runtime: 45},
+		// A film watched to the end: one film, 120 minutes — not 120 films.
+		{At: day, Delta: 120, To: 120, Total: 120, Kind: "movie", Unit: "minute", Runtime: 120},
+		// A film left half-watched counts its minutes but is not a film yet.
+		{At: day, Delta: 50, To: 50, Total: 140, Kind: "movie", Unit: "minute", Runtime: 140},
+		// Podcast episodes are episodes, but they are not серії.
+		{At: day, Delta: 4, To: 4, Kind: "podcast", Unit: "episode"},
+		{At: day, Delta: 30, To: 30, Total: 300, Kind: "book", Unit: "page"},
+	}
+
+	st := BuildYear(rows, func(ts int64) time.Time { return time.Unix(ts, 0).UTC() })
+	if st.Episodes != 3 {
+		t.Errorf("Episodes = %d, want 3", st.Episodes)
+	}
+	if st.Films != 1 {
+		t.Errorf("Films = %d, want 1 — a film is one film however long it is", st.Films)
+	}
+	if st.Podcasts != 4 {
+		t.Errorf("Podcasts = %d, want 4", st.Podcasts)
+	}
+	if st.Pages != 30 {
+		t.Errorf("Pages = %d, want 30", st.Pages)
+	}
+	// 3*45 + 120 + 50 = 305
+	if st.Mins != 305 {
+		t.Errorf("Mins = %d, want 305 — minutes are the unit for a film", st.Mins)
+	}
+}
