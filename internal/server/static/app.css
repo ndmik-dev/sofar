@@ -218,6 +218,8 @@ a { color: inherit; text-decoration: none; }
   text-overflow: ellipsis;
 }
 .tyc {
+  /* A badge that outgrew this column used to sit on top of the track. */
+  overflow: hidden;
   font-family: var(--mono);
   font-size: 11.5px;
   letter-spacing: .09em;
@@ -1295,16 +1297,10 @@ body.lg { display: flex; align-items: center; justify-content: center; min-heigh
 /* What landed while you were away, marked where the eye already is. */
 .gl.fresh { color: var(--ac); }
 .gl.fresh::after { background: color-mix(in srgb, var(--ac) 35%, transparent); }
-.tyc .new {
-  display: inline-block;
-  margin-left: 9px;
-  padding: 1px 6px;
-  border-radius: 3px;
-  background: var(--ac);
-  color: var(--el);
+.sb2 .new {
+  color: var(--ac);
   font-weight: 600;
-  font-size: 11.5px;
-  letter-spacing: .02em;
+  font-style: normal;
 }
 
 .plinks { padding: 4px 0 2px; }
@@ -1362,3 +1358,36 @@ a.ghostbtn { display: inline-block; text-decoration: none; }
 }
 .ong summary::after { content: ""; flex: 1; height: 1px; background: var(--ln2); }
 .ong summary:hover { color: var(--mid); }
+
+/* Season blocks are buttons now: a finished season is the only way back into
+   one you already passed. */
+button.blk {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: transform .08s ease;
+}
+button.blk:hover { transform: scaleY(1.14); }
+button.blk:active { transform: scaleY(.94); }
+@media (prefers-reduced-motion: reduce) { button.blk { transition: none; } }
+
+/* Season tabs in the panel: a season you have passed is collapsed in the track,
+   so this is the only way to reach an episode inside it. */
+.stabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 2px 20px 8px; }
+.stabs button {
+  appearance: none;
+  border: 1px solid var(--ln);
+  border-radius: 3px;
+  background: none;
+  color: var(--mut);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.stabs button:hover { border-color: var(--mid); color: var(--fg); }
+.stabs button.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }

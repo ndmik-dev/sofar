@@ -49,9 +49,16 @@
       <span class="tier big">
       {{- range .Blocks -}}
         {{- if eq .Kind "done" -}}
-          <span class="blk done" style="--n: {{.Count}}">S{{.Season}}</span>
+          <button type="button" class="blk done" style="--n: {{.Count}}" title="Стати на кінець сезону {{.Season}}"
+                  hx-post="/entry/{{$.EntryID}}/advance" hx-vals='{"abs": {{.LastIdx}}}'
+                  hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML"
+                  hx-on::after-request="reloadPanel()">S{{.Season}}</button>
         {{- else if eq .Kind "later" -}}
-          <span class="blk later{{if .Aired}} out{{end}}" style="--n: {{.Count}}">S{{.Season}}</span>
+          <button type="button" class="blk later{{if .Aired}} out{{end}}" style="--n: {{.Count}}"
+                  title="Стати на кінець сезону {{.Season}}"
+                  hx-post="/entry/{{$.EntryID}}/advance" hx-vals='{"abs": {{.LastIdx}}}'
+                  hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML"
+                  hx-on::after-request="reloadPanel()">S{{.Season}}</button>
         {{- else if eq .Kind "bar" -}}
           <span class="blk barblk"><i style="width: {{.Percent}}%"></i></span>
         {{- else -}}
@@ -101,6 +108,14 @@
 
     {{if .Episodes}}
     <div class="pg"><span>{{.SeasonTitle}}</span></div>
+    {{if .SeasonTabs}}
+    <div class="stabs">
+      {{range .SeasonTabs}}
+      <button type="button" class="{{if .On}}on{{end}}"
+              hx-get="{{.Href}}" hx-target="#panel-slot" hx-swap="innerHTML">S{{.Number}}</button>
+      {{end}}
+    </div>
+    {{end}}
     <div class="eps">
       {{range .Episodes}}
       <button type="button" class="ep{{if .Current}} now{{end}}"

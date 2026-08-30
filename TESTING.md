@@ -228,6 +228,18 @@ Run this one with `SOFAR_PASSWORD=… SOFAR_DEV=1 go run .`
 | 4 | Press `Space` | +5 minutes |
 | 5 | Check a film you had marked finished **before** this change | It reads `runtime / runtime`, not `1 / runtime` |
 
+## TC-11a · Going back into an earlier season
+
+A collapsed season used to be unreachable: only the current season had cells.
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | On a multi-season show in season 5, click the **S2** block | Position moves to the **end of season 2**, toast with `⌘Z` |
+| 2 | Press `⌘Z` | Back where it was |
+| 3 | Open the panel, click the **S1** tab | Season 1's episode list, S1 highlighted |
+| 4 | Click E3 in that list | Position becomes S1E3 exactly, the row says «далі S1E4» |
+| 5 | Click a **future** season block | Position moves to the end of that season |
+
 ## TC-20a · Going backwards on a bar
 
 The gap this closes: a track lets you click any episode, a bar had no way back

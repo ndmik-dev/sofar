@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,6 +23,12 @@ type episodeRow struct {
 type factRow struct {
 	Label string
 	Value string
+}
+
+type seasonTab struct {
+	Number int
+	On     bool
+	Href   string
 }
 
 type panelView struct {
@@ -49,6 +56,7 @@ type panelView struct {
 	Step      int
 
 	SeasonTitle string
+	SeasonTabs  []seasonTab
 	Episodes    []episodeRow
 	Facts       []factRow
 
@@ -78,18 +86,20 @@ func (s *Server) handlePanel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	wantSeason, _ := strconv.Atoi(r.URL.Query().Get("season"))
+
 	links, err := s.store.LinksFor(r.Context(), id)
 	if err != nil {
 		s.fail(w, r, err)
 		return
 	}
 
-	view := buildPanel(entry, pace, today, s.cfg.Loc)
+	view := buildPanel(entry, pace, today, s.cfg.Loc, wantSeason)
 	view.Links = links
 	s.renderFragment(w, r, "panel", view)
 }
 
-func buildPanel(e store.Entry, pace store.Pace, today string, loc *time.Location) panelView {
+func buildPanel(e store.Entry, pace store.Pace, today string, loc *time.Location, wantSeason int) panelView {
 	p := panelView{
 		EntryID:   e.ID,
 		Title:     e.Media.Title,
@@ -133,7 +143,8 @@ func buildPanel(e store.Entry, pace store.Pace, today string, loc *time.Location
 	if len(e.Units) > 0 {
 		p.Blocks = domain.BuildTiered(e.Units, e.Position, today)
 		p.SeasonEnd = domain.CurrentSeasonEnd(p.Blocks)
-		p.Episodes, p.SeasonTitle = currentSeasonEpisodes(e, today)
+		p.Episodes, p.SeasonTitle = currentSeasonEpisodes(e, today, wantSeason)
+		p.SeasonTabs = seasonTabs(e, p.SeasonTitle)
 
 		if next, ok := domain.NextUnit(e.Units, e.Position); ok {
 			p.NextLabel = domain.NextLabel(e.Units, e.Position)
@@ -212,12 +223,34 @@ func nextMeta(next domain.Unit, e store.Entry, today string) string {
 	return strings.Join(parts, " · ")
 }
 
-func currentSeasonEpisodes(e store.Entry, today string) ([]episodeRow, string) {
+func seasonTabs(e store.Entry, showing string) []seasonTab {
+	seasons := domain.Seasons(e.Units)
+	if len(seasons) < 2 {
+		return nil
+	}
+	out := make([]seasonTab, 0, len(seasons))
+	for _, sn := range seasons {
+		out = append(out, seasonTab{
+			Number: sn.Number,
+			On:     showing == fmt.Sprintf("Сезон %d", sn.Number),
+			Href:   fmt.Sprintf("/entry/%d/panel?season=%d", e.ID, sn.Number),
+		})
+	}
+	return out
+}
+
+// A season you have already passed collapses in the track, so the panel is the
+// only place left to reach an episode inside it. want == 0 means "the one I am
+// in", which is what every request but a tab click asks for.
+func currentSeasonEpisodes(e store.Entry, today string, want int) ([]episodeRow, string) {
 	season := 0
 	if next, ok := domain.NextUnit(e.Units, e.Position); ok {
 		season = next.Season
 	} else {
 		season = e.Units[len(e.Units)-1].Season
+	}
+	if want > 0 {
+		season = want
 	}
 
 	multi := domain.MultiSeason(e.Units)

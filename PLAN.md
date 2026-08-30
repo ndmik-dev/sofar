@@ -214,6 +214,9 @@ Recorded so they are not repeated.
   anime never notices the rule exists.
 - **Advertise nothing that does not exist.** A toast promising `⌘Z` before the
   keyboard layer shipped was worse than no label at all.
+- **Collapsing something hides its controls too.** Seasons collapsed into
+  blocks to keep cells full-size, and with them went the only way back into a
+  season already passed. Anything folded away needs its own way in.
 - **Changing a unit changes every number built on it.** Films became minutes
   and the year began reporting "+342 фільми": the counter had been adding
   deltas, which used to be one tick per film. Anything derived from a unit has

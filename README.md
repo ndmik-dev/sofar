@@ -88,7 +88,9 @@ it comes free from TMDB air dates.
 
 Seasons collapse. Everything before the season you are in becomes a labelled
 block, everything after becomes an outline, and the season you are in keeps
-full-size cells. A show with 86 episodes and one with 19 therefore render cells
+full-size cells. The blocks are buttons: clicking one moves to the end of that
+season, backwards as readily as forwards. For an exact episode inside a season
+you have passed, the panel's season tabs open its episode list. A show with 86 episodes and one with 19 therefore render cells
 of the same size. A finished show collapses entirely.
 
 Books, films and games have no episodes, so they get a bar; a game tracked by

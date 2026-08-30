@@ -9,9 +9,11 @@
      data-link="{{.LinkURL}}">
   <span class="lb">
     <span class="nm">{{.Title}}</span>
-    {{with .Sub}}<span class="sb2">{{.}}</span>{{end}}
+    {{if or .Aired .Sub}}
+    <span class="sb2">{{with .Aired}}<b class="new">вийшла {{.}}</b> · {{end}}{{.Sub}}</span>
+    {{end}}
   </span>
-  <span class="tyc">{{.KindLabel}}{{with .Aired}}<b class="new" title="Вийшла {{.}}">{{.}}</b>{{end}}{{with .Rating}}<b class="rate">★{{.}}</b>{{end}}</span>
+  <span class="tyc">{{.KindLabel}}{{with .Rating}}<b class="rate">★{{.}}</b>{{end}}</span>
   {{template "progress" .}}
   <span class="pos">{{.Pos}}{{with .PosSub}}<s>{{.}}</s>{{end}}</span>
   <button class="del" type="button" title="Видалити" aria-label="Видалити {{.Title}}"
@@ -43,10 +45,15 @@
   <span class="tier">
   {{- range .Blocks -}}
     {{- if eq .Kind "done" -}}
-      <span class="blk done" style="--n: {{.Count}}" title="Сезон {{.Season}} · переглянуто">S{{.Season}}</span>
+      <button type="button" class="blk done" style="--n: {{.Count}}"
+              title="Сезон {{.Season}} · переглянуто · клік — стати на кінець сезону"
+              hx-post="/entry/{{$.EntryID}}/advance" hx-vals='{"abs": {{.LastIdx}}}'
+              hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML">S{{.Season}}</button>
     {{- else if eq .Kind "later" -}}
-      <span class="blk later{{if .Aired}} out{{end}}" style="--n: {{.Count}}"
-            title="Сезон {{.Season}} · {{.Count}} серій{{if .Aired}} · уже вийшов{{else}} · ще не вийшов{{end}}">S{{.Season}}</span>
+      <button type="button" class="blk later{{if .Aired}} out{{end}}" style="--n: {{.Count}}"
+              title="Сезон {{.Season}} · {{.Count}} серій{{if .Aired}} · уже вийшов{{else}} · ще не вийшов{{end}} · клік — стати на кінець сезону"
+              hx-post="/entry/{{$.EntryID}}/advance" hx-vals='{"abs": {{.LastIdx}}}'
+              hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML">S{{.Season}}</button>
     {{- else if eq .Kind "bar" -}}
       <span class="blk barblk"><i style="width: {{.Percent}}%"></i></span>
     {{- else -}}
