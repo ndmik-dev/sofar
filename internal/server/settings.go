@@ -71,7 +71,7 @@ func (s *Server) handleSettings(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	kindCounts, err := s.store.CountsByKind(r.Context(), defaultUserID, "")
+	kindCounts, err := s.store.CountsByKind(r.Context(), defaultUserID, "active")
 	if err != nil {
 		s.fail(w, r, err)
 		return

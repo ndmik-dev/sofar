@@ -15,12 +15,9 @@ const (
 )
 
 type Block struct {
-	Kind   string
-	Season int
-	Count  int
-	// LastIdx is the position "I have watched this whole season" means, which
-	// is what clicking a collapsed block should set — in either direction.
-	LastIdx int
+	Kind    string
+	Season  int
+	Count   int
 	Cells   []Cell
 	Dense   bool
 	Aired   bool
@@ -54,16 +51,14 @@ func BuildTiered(units []Unit, position int, today string) []Block {
 			blocks = append(blocks, cellsBlock(s, position, today))
 		case current < 0 || i < current:
 			blocks = append(blocks, Block{
-				Kind: BlockDone, Season: s[0].Season, Count: len(s),
-				LastIdx: s[len(s)-1].Idx, Percent: 100,
+				Kind: BlockDone, Season: s[0].Season, Count: len(s), Percent: 100,
 			})
 		default:
 			blocks = append(blocks, Block{
-				Kind:    BlockLater,
-				Season:  s[0].Season,
-				Count:   len(s),
-				LastIdx: s[len(s)-1].Idx,
-				Aired:   anyAired(s, today),
+				Kind:   BlockLater,
+				Season: s[0].Season,
+				Count:  len(s),
+				Aired:  anyAired(s, today),
 			})
 		}
 	}

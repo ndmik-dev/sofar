@@ -46,14 +46,14 @@
   {{- range .Blocks -}}
     {{- if eq .Kind "done" -}}
       <button type="button" class="blk done" style="--n: {{.Count}}"
-              title="Сезон {{.Season}} · переглянуто · клік — стати на кінець сезону"
-              hx-post="/entry/{{$.EntryID}}/advance" hx-vals='{"abs": {{.LastIdx}}}'
-              hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML">S{{.Season}}</button>
+              title="Сезон {{.Season}} · переглянуто · клік — відкрити серії"
+              hx-get="/entry/{{$.EntryID}}/panel?season={{.Season}}"
+              hx-target="#panel-slot" hx-swap="innerHTML">S{{.Season}}</button>
     {{- else if eq .Kind "later" -}}
       <button type="button" class="blk later{{if .Aired}} out{{end}}" style="--n: {{.Count}}"
-              title="Сезон {{.Season}} · {{.Count}} серій{{if .Aired}} · уже вийшов{{else}} · ще не вийшов{{end}} · клік — стати на кінець сезону"
-              hx-post="/entry/{{$.EntryID}}/advance" hx-vals='{"abs": {{.LastIdx}}}'
-              hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML">S{{.Season}}</button>
+              title="Сезон {{.Season}} · {{.Count}} серій{{if .Aired}} · уже вийшов{{else}} · ще не вийшов{{end}} · клік — відкрити серії"
+              hx-get="/entry/{{$.EntryID}}/panel?season={{.Season}}"
+              hx-target="#panel-slot" hx-swap="innerHTML">S{{.Season}}</button>
     {{- else if eq .Kind "bar" -}}
       <span class="blk barblk"><i style="width: {{.Percent}}%"></i></span>
     {{- else -}}

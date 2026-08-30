@@ -435,8 +435,9 @@ func navViewWithKind(statusCounts, kindCounts map[string]int, active, kind strin
 	nv := navView{OOB: oob, Kind: kind, Base: active}
 	kindBase := active
 	if _, isList := pathStatus[active]; !isList {
-		// Year and settings do not filter by kind, so their type links lead
-		// back to the main list.
+		// Year, settings and import do not filter by kind, so their type links
+		// lead back to the main list — and the counts beside them must describe
+		// that list, not everything on the shelf.
 		kindBase = "/active"
 	}
 	for _, n := range []struct{ Label, Href, Key string }{

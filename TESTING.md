@@ -234,11 +234,11 @@ A collapsed season used to be unreachable: only the current season had cells.
 
 | # | Do | Expect |
 |---|---|---|
-| 1 | On a multi-season show in season 5, click the **S2** block | Position moves to the **end of season 2**, toast with `⌘Z` |
-| 2 | Press `⌘Z` | Back where it was |
-| 3 | Open the panel, click the **S1** tab | Season 1's episode list, S1 highlighted |
-| 4 | Click E3 in that list | Position becomes S1E3 exactly, the row says «далі S1E4» |
-| 5 | Click a **future** season block | Position moves to the end of that season |
+| 1 | On a multi-season show, click the **S1** block in the row | The panel opens on season 1; the **position does not change** |
+| 2 | Click E3 in that list | Position becomes S1E3 exactly, the row says «далі S1E4» |
+| 3 | Click a **future** season block, e.g. **S5** | The panel shows season 5, position still untouched |
+| 4 | Stand exactly at the end of a season and click that season's block | It opens the season — it does not look broken by doing nothing |
+| 5 | Use the season tabs in the panel header | Same thing without leaving the panel |
 
 ## TC-20a · Going backwards on a bar
 
@@ -263,6 +263,13 @@ except `⇧Space`, one page or one minute at a time.
 | 4 | Click the row, press `Space` twice | «2 випуски», toast in випуски, not серії |
 | 5 | Press `⌥4` | The year shows «+N випусків» beside фільми, and «серій» did not move |
 | 6 | Leave it untouched for a month | It never appears under **Застоялось** |
+
+## TC-21a · The sidebar counts agree everywhere
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Note the type counts on **У процесі** | — |
+| 2 | Open **Налаштування**, **Рік**, **Імпорт** | The same numbers on every page: they describe where the links lead, which is always the active list |
 
 ## TC-21 · Shelf search and export
 
