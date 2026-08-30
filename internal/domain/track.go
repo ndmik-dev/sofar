@@ -158,3 +158,37 @@ func JustAired(units []Unit, position int, since, today string) (Unit, bool) {
 	}
 	return Unit{}, false
 }
+
+// Season lists a season and how many episodes it holds, so a person can be
+// told the shape of a show before being asked where they stopped.
+type Season struct {
+	Number   int
+	Episodes int
+}
+
+func Seasons(units []Unit) []Season {
+	var out []Season
+	for _, u := range units {
+		if n := len(out); n > 0 && out[n-1].Number == u.Season {
+			out[n-1].Episodes++
+			continue
+		}
+		out = append(out, Season{Number: u.Season, Episodes: 1})
+	}
+	return out
+}
+
+// ResolveEpisode turns a season and an episode number into the position the
+// whole app counts in. It is forgiving on purpose: this answers "where did you
+// stop", and refusing S4E20 because season four is thirteen long would send
+// the user off to count episodes by hand — the very thing it exists to avoid.
+// Everything up to and including the asked-for point counts as watched.
+func ResolveEpisode(units []Unit, season, episode int) int {
+	pos := 0
+	for _, u := range units {
+		if u.Season < season || (u.Season == season && u.Number <= episode) {
+			pos = u.Idx
+		}
+	}
+	return pos
+}

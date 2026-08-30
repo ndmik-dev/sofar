@@ -213,6 +213,9 @@ Recorded so they are not repeated.
   anime never notices the rule exists.
 - **Advertise nothing that does not exist.** A toast promising `⌘Z` before the
   keyboard layer shipped was worse than no label at all.
+- **`unit.idx` is right for the machine and wrong for the person.** One integer
+  across all seasons is what makes the track and undo simple, but nobody knows
+  that S4E7 is episode 46. Ask in seasons, store in idx.
 - **SQLite's `LOWER` and `LIKE` fold ASCII only.** Searching «дюна» found
   nothing at all in a Ukrainian shelf. Matching moved into Go, where case
   folding knows about Cyrillic.

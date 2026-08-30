@@ -21,8 +21,9 @@ Report a failure as the case id plus the step number: `TC-3 step 4`.
 |---|---|---|
 | 1 | Open the app on an empty database | "Порожньо" with two buttons |
 | 2 | Click **Заповнити архів** | The palette opens |
-| 3 | Type a series name, press `↵` | The palette **stays open**, the search field now holds the **title** instead of your query, and below it "Додано · …" with a **Де ти зупинився?** field and a hint like "усього 86 серій" |
-| 4 | Type `12`, press `↵` | Palette closes; the row appears reading `12 / 86`; "Порожньо" is gone and the figures bar is there **without a reload** |
+| 3 | Type a multi-season series, press `↵` | The palette **stays open**, the search field holds the **title**, and below it **Де ти зупинився?** with **сезон** and **серія** fields plus a hint like `S1·13 S2·13 …` |
+| 4 | Type season `4`, episode `7`, press `↵` | Palette closes; the row reads `46 / 86` and «далі S4E8» — the season lengths were added up for you |
+| 4a | Add a **single-season** title the same way | One field asking for the episode, no season |
 | 5 | Reload the page | The row and its position are still there |
 
 *The step in 3 exists so you never have to click twelve episodes by hand — it
@@ -277,6 +278,9 @@ Needs a running show with a recent episode you have not watched.
   block can give it one later.
 - The nightly job runs twenty minutes after the day starts (04:20 by default).
   Nothing refreshes while you watch; restarting the server does not trigger it.
+- In the "where did you stop" step, an episode past the end of its season lands
+  on that season's last one instead of being refused. Leaving the episode empty
+  means "finished everything before this season".
 - Import matches one title per line and takes a single best guess. Check the
   matched names in the result list; a year in brackets settles the ambiguous
   ones.

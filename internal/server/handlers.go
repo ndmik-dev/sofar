@@ -159,11 +159,15 @@ type flowItem struct {
 }
 
 type positionStep struct {
-	EntryID int64
-	Title   string
-	Total   int
-	Unit    string
-	Hint    string
+	EntryID  int64
+	Title    string
+	Total    int
+	Unit     string
+	Hint     string
+	BySeason bool
+	Seasons  []domain.Season
+	LastS    int
+	LastE    int
 }
 
 type listPage struct {
@@ -292,6 +296,28 @@ func (s *Server) handleAdvance(w http.ResponseWriter, r *http.Request) {
 		}
 		abs = &v
 	}
+	// Season and episode are the way a person remembers a series; the app
+	// counts in one number, so the translation happens here.
+	if raw := r.FormValue("season"); raw != "" {
+		season, err := strconv.Atoi(raw)
+		if err != nil {
+			http.Error(w, "season must be a number", http.StatusBadRequest)
+			return
+		}
+		episode, err := strconv.Atoi(orDefault(r.FormValue("episode"), "0"))
+		if err != nil {
+			http.Error(w, "episode must be a number", http.StatusBadRequest)
+			return
+		}
+		entry, err := s.store.GetEntry(r.Context(), id)
+		if err != nil {
+			s.failEntry(w, r, err)
+			return
+		}
+		v := domain.ResolveEpisode(entry.Units, season, episode)
+		abs = &v
+	}
+
 	delta, err := strconv.Atoi(orDefault(r.FormValue("n"), "1"))
 	if err != nil {
 		http.Error(w, "n must be a number", http.StatusBadRequest)
@@ -497,13 +523,24 @@ func positionStepFor(e store.Entry, created bool) *positionStep {
 	if unit != "" {
 		hint += " " + unit
 	}
-	return &positionStep{
+	step := &positionStep{
 		EntryID: e.ID,
 		Title:   e.Media.Title,
 		Total:   total,
 		Unit:    unit,
 		Hint:    hint,
 	}
+
+	// Asking for an absolute episode number is asking someone to add up season
+	// lengths in their head. With more than one season, ask the way people
+	// actually remember it.
+	if seasons := domain.Seasons(e.Units); len(seasons) > 1 {
+		step.BySeason = true
+		step.Seasons = seasons
+		last := seasons[len(seasons)-1]
+		step.LastS, step.LastE = last.Number, last.Episodes
+	}
+	return step
 }
 
 func (s *Server) respondMove(w http.ResponseWriter, r *http.Request, move store.Move, today string) {

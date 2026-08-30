@@ -170,3 +170,53 @@ func TestJustAiredIgnoresTheFuture(t *testing.T) {
 		t.Error("an episode that has not aired counted as fresh")
 	}
 }
+
+func seasonUnits() []Unit {
+	// Three seasons of different lengths: 3, 2, 4.
+	lens := []int{3, 2, 4}
+	var units []Unit
+	idx := 0
+	for s, n := range lens {
+		for e := 1; e <= n; e++ {
+			idx++
+			units = append(units, Unit{Idx: idx, Season: s + 1, Number: e})
+		}
+	}
+	return units
+}
+
+func TestSeasons(t *testing.T) {
+	got := Seasons(seasonUnits())
+	want := []Season{{1, 3}, {2, 2}, {3, 4}}
+	if len(got) != len(want) {
+		t.Fatalf("got %d seasons, want %d: %+v", len(got), len(want), got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("season %d = %+v, want %+v", i, got[i], want[i])
+		}
+	}
+}
+
+func TestResolveEpisode(t *testing.T) {
+	units := seasonUnits()
+	cases := []struct {
+		season, episode, want int
+		why                   string
+	}{
+		{1, 1, 1, "first episode of the first season"},
+		{1, 3, 3, "last episode of the first season"},
+		{2, 1, 4, "counting continues across the season boundary"},
+		{3, 4, 9, "the very last episode"},
+		// Seasons have different lengths, which is the whole reason this exists.
+		{2, 9, 5, "an episode past the end of its season lands on that season's last"},
+		{1, 0, 0, "nothing watched yet"},
+		{0, 5, 0, "a season before the first is nothing"},
+		{9, 1, 9, "a season past the last means the whole show"},
+	}
+	for _, c := range cases {
+		if got := ResolveEpisode(units, c.season, c.episode); got != c.want {
+			t.Errorf("S%dE%d = %d, want %d (%s)", c.season, c.episode, got, c.want, c.why)
+		}
+	}
+}

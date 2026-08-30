@@ -157,12 +157,27 @@
   <div class="sc">Додано · {{.Title}}</div>
   <form class="pstep" data-pal="position" data-entry="{{.EntryID}}">
     <input type="hidden" name="setup" value="1">
+    {{if .BySeason}}
+    <label class="k2" for="step-season">Де ти зупинився?</label>
+    <span class="withunit">
+      <span class="se">
+        <label for="step-season">сезон</label>
+        <input class="v2 num sm" type="number" id="step-season" name="season" min="0"
+               max="{{.LastS}}" inputmode="numeric" placeholder="0" autofocus>
+        <label for="step-episode">серія</label>
+        <input class="v2 num sm" type="number" id="step-episode" name="episode" min="0"
+               inputmode="numeric" placeholder="0">
+      </span>
+      <s>{{range .Seasons}}S{{.Number}}·{{.Episodes}} {{end}}</s>
+    </span>
+    {{else}}
     <label class="k2" for="step-abs">Де ти зупинився?</label>
     <span class="withunit">
       <input class="v2 num" type="number" id="step-abs" name="abs" min="0" max="{{.Total}}"
              inputmode="numeric" placeholder="0" autofocus>
       <s>{{.Hint}}</s>
     </span>
+    {{end}}
   </form>
   <div class="pfoot sfoot">
     <span><b>↵</b> зберегти</span>

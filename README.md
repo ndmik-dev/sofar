@@ -128,6 +128,13 @@ Type prefixes narrow it by type: `с:` series, `а:` anime,
 `ф:` films, `к:` books, `і:` games, `п:` podcasts, `н:` courses. Latin equivalents work too
 (`s: a: m: b: g: p: c:`).
 
+A series with more than one season asks for **season and episode**, not for an
+absolute number: seasons differ in length, and working out that S4E7 is episode
+46 of 86 is exactly the arithmetic the app exists to avoid. The seasons and
+their lengths are shown under the field. An episode past the end of its season
+resolves to that season's last one rather than being refused — the question is
+where you stopped, not a quiz.
+
 Modifiers on `↵` choose where a title lands: plain for in progress, `⇧` for
 later, `⌘` for finished, `⌥` for dropped. `⌘↵` and `⇧↵` also clear the field and
 keep focus, which is how the archive gets backfilled — a running log of what has

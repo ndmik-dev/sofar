@@ -1334,3 +1334,14 @@ a.ghostbtn { display: inline-block; text-decoration: none; }
   padding: 10px 20px 2px;
 }
 .setpos .v2.num { width: 84px; }
+
+/* Season and episode side by side: nobody remembers "episode 46 of 86". */
+.se { display: flex; align-items: baseline; gap: 8px; }
+.se label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+.v2.num.sm { width: 58px; }
