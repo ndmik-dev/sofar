@@ -253,6 +253,15 @@ except `⇧Space`, one page or one minute at a time.
 | 4 | Set it below the total on something marked finished | It returns to «у процесі» — a finished thing you rolled back is not finished |
 | 5 | Type a number larger than the total | Clamped to the total, not refused |
 
+## TC-9a · Type prefixes do not hide the answer
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | `⌘K`, `а: ` and the name of an anime **film** | It is found — an animated Japanese feature is anime, not a plain film |
+| 2 | Add it | The row is coloured as аніме and counted in minutes |
+| 3 | `а: ` and something that genuinely does not exist | «TMDB не знає такої назви серед цього типу», and the manual form below has **аніме** preselected — not книга |
+| 4 | Repeat with `ф:`, `к:`, `м:` | The form always keeps the type you typed |
+
 ## TC-20b · Manga
 
 | # | Do | Expect |

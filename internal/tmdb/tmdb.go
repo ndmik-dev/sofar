@@ -89,6 +89,7 @@ type searchResponse struct {
 		Release       string   `json:"release_date"`
 		GenreIDs      []int    `json:"genre_ids"`
 		OriginCountry []string `json:"origin_country"`
+		OriginalLang  string   `json:"original_language"`
 	} `json:"results"`
 }
 
@@ -117,7 +118,7 @@ func (c *Client) Search(ctx context.Context, query string, limit int) ([]Result,
 			Poster:   r.PosterPath,
 			Year:     yearOf(firstNonEmpty(r.FirstAir, r.Release)),
 		}
-		res.Kind = kindFor(r.MediaType, r.GenreIDs, r.OriginCountry)
+		res.Kind = kindFor(r.MediaType, r.GenreIDs, r.OriginCountry, r.OriginalLang)
 		if res.Original == res.Title {
 			res.Original = ""
 		}
@@ -140,6 +141,7 @@ type tvResponse struct {
 	InProduction  bool     `json:"in_production"`
 	EpisodeRunMin []int    `json:"episode_run_time"`
 	OriginCountry []string `json:"origin_country"`
+	OriginalLang  string   `json:"original_language"`
 	Genres        []struct {
 		ID int `json:"id"`
 	} `json:"genres"`
@@ -177,7 +179,7 @@ func (c *Client) TV(ctx context.Context, id int) (Details, error) {
 		Result: Result{
 			TMDBType: "tv",
 			TMDBID:   raw.ID,
-			Kind:     kindFor("tv", genres, raw.OriginCountry),
+			Kind:     kindFor("tv", genres, raw.OriginCountry, raw.OriginalLang),
 			Title:    raw.Name,
 			Original: raw.OriginalName,
 			Overview: raw.Overview,
@@ -252,13 +254,17 @@ func medianRuntime(eps []Episode) int {
 }
 
 type movieResponse struct {
-	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	OriginalT   string `json:"original_title"`
-	Overview    string `json:"overview"`
-	PosterPath  string `json:"poster_path"`
-	ReleaseDate string `json:"release_date"`
-	Runtime     int    `json:"runtime"`
+	ID           int    `json:"id"`
+	Title        string `json:"title"`
+	OriginalT    string `json:"original_title"`
+	Overview     string `json:"overview"`
+	PosterPath   string `json:"poster_path"`
+	ReleaseDate  string `json:"release_date"`
+	Runtime      int    `json:"runtime"`
+	OriginalLang string `json:"original_language"`
+	Genres       []struct {
+		ID int `json:"id"`
+	} `json:"genres"`
 }
 
 func (c *Client) Movie(ctx context.Context, id int) (Details, error) {
@@ -272,7 +278,7 @@ func (c *Client) Movie(ctx context.Context, id int) (Details, error) {
 		Result: Result{
 			TMDBType: "movie",
 			TMDBID:   raw.ID,
-			Kind:     "movie",
+			Kind:     kindFor("movie", movieGenres(raw), nil, raw.OriginalLang),
 			Title:    raw.Title,
 			Original: raw.OriginalT,
 			Overview: raw.Overview,
@@ -295,25 +301,47 @@ func (c *Client) Movie(ctx context.Context, id int) (Details, error) {
 }
 
 // Japanese animation gets its own kind so it can be filtered and coloured
-// separately, even though TMDB serves it as an ordinary series.
-func kindFor(mediaType string, genres []int, countries []string) string {
-	if mediaType == "movie" {
-		return "movie"
-	}
+// separately, even though TMDB serves it as an ordinary series or film. Films
+// count too: an animated Japanese feature is anime by any reading, and calling
+// it a plain film made the anime filter hide it.
+//
+// Movies carry no origin_country, so the Japanese signal there is the original
+// language instead.
+func kindFor(mediaType string, genres []int, countries []string, lang string) string {
 	animated := false
 	for _, g := range genres {
 		if g == animeGenre {
 			animated = true
 		}
 	}
-	if animated {
-		for _, c := range countries {
-			if strings.EqualFold(c, "JP") {
-				return "anime"
-			}
+	if !animated {
+		if mediaType == "movie" {
+			return "movie"
+		}
+		return "show"
+	}
+
+	japanese := strings.EqualFold(lang, "ja")
+	for _, c := range countries {
+		if strings.EqualFold(c, "JP") {
+			japanese = true
 		}
 	}
+	if japanese {
+		return "anime"
+	}
+	if mediaType == "movie" {
+		return "movie"
+	}
 	return "show"
+}
+
+func movieGenres(raw movieResponse) []int {
+	out := make([]int, 0, len(raw.Genres))
+	for _, g := range raw.Genres {
+		out = append(out, g.ID)
+	}
+	return out
 }
 
 func yearOf(date string) int {

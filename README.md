@@ -162,6 +162,11 @@ their lengths are shown under the field. An episode past the end of its season
 resolves to that season's last one rather than being refused — the question is
 where you stopped, not a quiz.
 
+A type prefix filters the catalog results, so anime detection has to be right
+or the filter throws away the only correct hit. Animated **films** in Japanese
+count as anime too: TMDB serves them as ordinary movies, and it gives movies an
+`original_language` rather than an `origin_country`, so both signals are read.
+
 Modifiers on `↵` choose where a title lands: plain for in progress, `⇧` for
 later, `⌘` for finished, `⌥` for dropped. `⌘↵` and `⇧↵` also clear the field and
 keep focus, which is how the archive gets backfilled — a running log of what has

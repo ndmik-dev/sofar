@@ -215,6 +215,10 @@ Recorded so they are not repeated.
   anime never notices the rule exists.
 - **Advertise nothing that does not exist.** A toast promising `⌘Z` before the
   keyboard layer shipped was worse than no label at all.
+- **A filter is only as good as the classifier behind it.** `а:` returned
+  nothing for an anime film because anime was detected for series only, so the
+  one right answer was filtered out and the fallback form silently defaulted to
+  a book. A filter that silently drops the correct hit is worse than no filter.
 - **A type that answers no question should go.** Podcasts got a counter, a
   folded section and a year figure, and none of it made them worth having on a
   shelf built around "how far have you got". Removed; the entries were

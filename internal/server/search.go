@@ -225,10 +225,14 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 		if len(view.Results) == 0 {
-			// A plain query only ever reaches TMDB, so a book will always come
-			// back empty here. Say where it lives instead of just "nothing".
-			view.Message = "TMDB нічого не знає. Книги — к:, манґа — м:, ігри — і:, курси — н:"
-			view.Manual = manualFormFor(q, "")
+			// Keep the type the person typed: dropping it sent every failed
+			// anime search to a book form.
+			view.Manual = manualFormFor(q, kind)
+			if kind != "" {
+				view.Message = "TMDB не знає такої назви серед цього типу"
+			} else {
+				view.Message = "TMDB нічого не знає. Книги — к:, манґа — м:, ігри — і:, курси — н:"
+			}
 		} else {
 			view.Results[0].First = true
 		}
