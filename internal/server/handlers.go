@@ -52,6 +52,7 @@ var unitNames = map[string]string{
 	"chapter": "розділів",
 	"lesson":  "уроків",
 	"minute":  "хв",
+	"volume":  "томів",
 }
 
 type navItem struct {
@@ -250,8 +251,13 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		}
 		rw := buildRow(e, today)
 		rw.Selected = i == 0
+		if label, ok := freshVolume(e, now); ok {
+			rw.Aired = label
+			page.Fresh = append(page.Fresh, rw)
+			continue
+		}
 		if u, ok := domain.JustAired(e.Units, e.Position, since, today); ok {
-			rw.Aired = domain.Label(u, domain.MultiSeason(e.Units))
+			rw.Aired = "вийшла " + domain.Label(u, domain.MultiSeason(e.Units))
 			page.Fresh = append(page.Fresh, rw)
 			continue
 		}
@@ -678,6 +684,18 @@ func summaryFrom(s store.Summary) summaryView {
 		Airing:      s.Airing,
 		Active:      s.Active,
 	}
+}
+
+// freshVolume answers the same question JustAired answers for episodes: has
+// something you have not read turned up lately.
+func freshVolume(e store.Entry, now time.Time) (string, bool) {
+	if e.WatchVol <= e.Position || e.WatchFoundAt == 0 {
+		return "", false
+	}
+	if now.Sub(time.Unix(e.WatchFoundAt, 0)) > domain.FreshDays*24*time.Hour {
+		return "", false
+	}
+	return fmt.Sprintf("вийшов том %d", e.WatchVol), true
 }
 
 func buildRow(e store.Entry, today string) row {

@@ -44,9 +44,26 @@ A real environment variable always wins over the file.
 | `GOOGLE_BOOKS_KEY` | — | books |
 | `RAWG_KEY` | — | games |
 
-Manga is counted in chapters. A series still being published has no total, and
-an entry with no total is simply an open counter — leave the field empty and it
-counts up without pretending to know the end.
+Manga is counted in **volumes** — what you buy and read. Chapter numbering
+belongs to scanlations, and a Ukrainian edition splits volumes its own way, so
+neither a chapter count nor a catalog's volume count is worth trusting. Leave
+the total empty for a series still being published and it is simply an open
+counter.
+
+The panel can **watch a manga for new volumes**. No catalog knows when a
+Ukrainian edition ships, so the source is the publisher's own shop: Nasha Idea
+runs WooCommerce with its REST API open, and a new volume is literally a new
+product whose title carries `Том N`. The nightly job asks once a day; when the
+number grows past your position the row moves to **Вийшло нове** with «вийшов
+том N» and a link to the listing.
+
+The query is editable because the shop's search is fuzzy: `Given` finds the
+series, its full Ukrainian subtitle would not. Results that do not carry the
+query in their title are dropped — a watch that quietly follows the wrong series
+is worse than one that finds nothing.
+
+AniList would give a volume total, but it returns nothing for series still
+running — exactly the ones worth watching — so it is not used at all.
 
 A film is tracked in minutes: TMDB gives the runtime, so the position is the
 minute you stopped at. Films default to status depth — switch them to
@@ -224,7 +241,7 @@ Tables: `users`, `media`, `unit`, `entry`, `progress`, `type_settings`,
 main.go              config, database, server, graceful shutdown
 internal/config      environment parsing, .env reader, day boundary
 internal/domain      track building, pluralisation. No I/O.
-internal/nightly     refresh running shows, purge old deletions
+internal/nightly     refresh running shows, poll manga watches, purge deletions
 internal/fetch       cached JSON GET shared by every catalog adapter
 internal/tmdb        films and series
 internal/catalog     TMDB import plus Google Books and RAWG
@@ -276,6 +293,8 @@ POST /entry/{id}/note
 POST /entry/{id}/edit       title, subtitle, total
 POST /entry/{id}/link
 POST /entry/{id}/link/{link}/delete
+POST /entry/{id}/watch      follow a manga for new volumes
+POST /entry/{id}/unwatch
 GET  /entry/{id}/panel      detail panel fragment
 ```
 

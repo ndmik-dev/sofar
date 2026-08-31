@@ -88,6 +88,8 @@ func (s *Server) routes() error {
 	s.mux.HandleFunc("GET /entry/{id}/panel", s.handlePanel)
 	s.mux.HandleFunc("POST /entry/{id}/note", s.handleNote)
 	s.mux.HandleFunc("POST /entry/{id}/edit", s.handleEdit)
+	s.mux.HandleFunc("POST /entry/{id}/watch", s.handleWatch)
+	s.mux.HandleFunc("POST /entry/{id}/unwatch", s.handleUnwatch)
 	s.mux.HandleFunc("POST /entry/{id}/link", s.handleAddLink)
 	s.mux.HandleFunc("POST /entry/{id}/link/{link}/delete", s.handleDeleteLink)
 	s.mux.HandleFunc("POST /entry/{id}/rating", s.handleRating)

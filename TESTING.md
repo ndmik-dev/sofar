@@ -258,10 +258,21 @@ except `⇧Space`, one page or one minute at a time.
 | # | Do | Expect |
 |---|---|---|
 | 1 | `⌘K`, type `м: ` and a title | The manual form, type **манґа** preselected, second field labelled Автор |
-| 2 | Fill a chapter count and a position, save | A bar with `120 / 374` and a percentage |
+| 2 | Fill a volume count and a position, save | A bar with `2 / 9` and a percentage, counted in **томи** |
 | 3 | Add one and leave **Всього** empty | An open counter: a thin line and «без межі», which is what an unfinished series is |
 | 4 | Check the sidebar and the year legend | Манґа has its own colour and its own count |
 | 5 | Look for **Подкасти** anywhere | Gone — sidebar, prefixes, settings, year legend |
+
+## TC-20c · Watching for new volumes
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Open a manga panel | A **Нові томи** block with the title prefilled as the query |
+| 2 | Change it to something the publisher actually lists (`Given`), press Стежити | Toast «Стежу · зараз у продажу том N» — it checks at once rather than waiting for the night |
+| 3 | Set your position below that number and reload | The row is in **Вийшло нове** reading «вийшов том N» |
+| 4 | Advance past that volume | It leaves the section |
+| 5 | Type a query that matches nothing | «томів поки не знайшов» — no wrong series is adopted |
+| 6 | Press **Не стежити** | The block goes back to offering to watch |
 
 ## TC-21 · Shelf search and export
 

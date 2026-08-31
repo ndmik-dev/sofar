@@ -24,7 +24,8 @@ Not up for rediscussion — written down so they are not relitigated.
 | Progress | Append-only `progress` log | Undo, streaks, pace and stats fall out of it free |
 | Pause | No manual status | "Stale" is derived from `updated_at` |
 | Tracking depth | Per type | Games get three states, series get episodes |
-| Manga | Own kind, counted in chapters, manual only | Volumes differ by edition; chapters do not |
+| Manga | Own kind, counted in volumes, manual only | A volume is what you buy; chapters belong to scanlations |
+| Release watch | Publisher's own shop, not a catalog | Nobody but the publisher knows when a Ukrainian edition ships |
 | Deploy | Dokploy droplet, one container | Already there, 4 GB, Caddy in front |
 | Auth | One password from the environment | Not accounts. Year-long cookie, key derived from the password so a change logs everyone out |
 | Day boundary | **04:00, Europe/Kyiv** | An episode at 01:30 belongs to the previous day |
@@ -258,7 +259,11 @@ Recorded so they are not repeated.
 1. ~~**Domain**~~ — settled: a subdomain of `the author's domain`.
 2. **Posters** — TMDB returns image URLs and they are stored. Nothing displays
    them yet; the M7 panel is the first place they would earn their space.
-3. **Importing history** — done as a pasted list against TMDB. A real Trakt or
+3. **More publishers to watch** — Mal'opus has a sitemap with volume slugs but
+   no `lastmod`, so new volumes would be found by diffing the URL list between
+   runs. Molfar and Lantsuta did not answer at all; Yakaboo returns 403 to
+   everything. Only add a second source when the first proves itself.
+4. **Importing history** — done as a pasted list against TMDB. A real Trakt or
    Simkl export parser stays out until there is one to parse.
-4. **Fira fonts** — currently a system stack with Fira first. Vendor the woff2
+5. **Fira fonts** — currently a system stack with Fira first. Vendor the woff2
    files whenever the typography starts to matter.

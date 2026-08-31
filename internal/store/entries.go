@@ -38,6 +38,9 @@ type Entry struct {
 	// The first link, carried on the row so the keyboard can open it without
 	// asking the server a second time.
 	LinkURL string
+	// The newest volume a watch has seen, and when it turned up.
+	WatchVol     int
+	WatchFoundAt int64
 }
 
 const entrySelect = `
@@ -47,7 +50,9 @@ SELECT e.id, e.status, e.position, e.rating, COALESCE(e.note,''), e.updated_at,
        COALESCE(m.overview,''), COALESCE(m.runtime_min,0), m.total_units, m.unit,
        COALESCE(m.airing,''),
        COALESCE(ts.depth,'units'), COALESCE(ts.step,1),
-       COALESCE((SELECT url FROM link WHERE entry_id = e.id ORDER BY id LIMIT 1), '')
+       COALESCE((SELECT url FROM link WHERE entry_id = e.id ORDER BY id LIMIT 1), ''),
+       COALESCE((SELECT last_vol FROM watch WHERE entry_id = e.id), 0),
+       COALESCE((SELECT found_at FROM watch WHERE entry_id = e.id), 0)
 FROM entry e
 JOIN media m ON m.id = e.media_id
 LEFT JOIN type_settings ts ON ts.user_id = e.user_id AND ts.kind = m.kind
@@ -86,7 +91,7 @@ func (s *Store) queryEntries(ctx context.Context, q string, args ...any) ([]Entr
 			&e.Media.ID, &e.Media.Kind, &e.Media.Source, &e.Media.Title,
 			&e.Media.TitleOrig, &e.Media.Year, &e.Media.Overview,
 			&e.Media.RuntimeMin, &e.Media.TotalUnits, &e.Media.Unit, &e.Media.Airing,
-			&e.Depth, &e.Step, &e.LinkURL,
+			&e.Depth, &e.Step, &e.LinkURL, &e.WatchVol, &e.WatchFoundAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan entry: %w", err)

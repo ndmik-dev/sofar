@@ -10,7 +10,7 @@
   <span class="lb">
     <span class="nm">{{.Title}}</span>
     {{if or .Aired .Sub}}
-    <span class="sb2">{{with .Aired}}<b class="new">вийшла {{.}}</b> · {{end}}{{.Sub}}</span>
+    <span class="sb2">{{with .Aired}}<b class="new">{{.}}</b> · {{end}}{{.Sub}}</span>
     {{end}}
   </span>
   <span class="tyc">{{.KindLabel}}{{with .Rating}}<b class="rate">★{{.}}</b>{{end}}</span>

@@ -48,6 +48,52 @@ func (j *Job) Run(ctx context.Context) {
 	}
 }
 
+// checkWatches asks each publisher whether a volume appeared. It runs whatever
+// the TMDB key is: a manga watch has nothing to do with films.
+func (j *Job) checkWatches(ctx context.Context, now time.Time) {
+	watches, err := j.store.DueWatches(ctx)
+	if err != nil {
+		j.log.Error("list watches", "err", err)
+		return
+	}
+
+	var found int
+	for _, w := range watches {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(betweenCalls):
+		}
+
+		vols, err := j.catalog.Volumes(ctx, w.Query)
+		if err != nil {
+			j.log.Warn("watch failed", "title", w.Title, "err", err)
+			continue
+		}
+		newest := catalog.Release{}
+		for _, v := range vols {
+			if v.Volume > newest.Volume {
+				newest = v
+			}
+		}
+		if newest.Volume <= w.LastVol {
+			if err := j.store.MarkChecked(ctx, w.EntryID, now); err != nil {
+				j.log.Error("mark checked", "title", w.Title, "err", err)
+			}
+			continue
+		}
+		if err := j.store.RecordRelease(ctx, w.EntryID, newest.Volume, newest.Title, newest.URL, now); err != nil {
+			j.log.Error("record release", "title", w.Title, "err", err)
+			continue
+		}
+		j.log.Info("new volume", "title", w.Title, "volume", newest.Volume)
+		found++
+	}
+	if len(watches) > 0 {
+		j.log.Info("checked watches", "watches", len(watches), "new", found)
+	}
+}
+
 func (j *Job) nextRun(now time.Time) time.Time {
 	next := time.Date(now.Year(), now.Month(), now.Day(), j.cfg.DayStart, 20, 0, 0, j.cfg.Loc)
 	if !next.After(now) {
@@ -65,6 +111,8 @@ func (j *Job) Once(ctx context.Context) {
 	} else if n > 0 {
 		j.log.Info("purged deleted entries", "entries", n)
 	}
+
+	j.checkWatches(ctx, now)
 
 	if !j.catalog.Enabled() {
 		return

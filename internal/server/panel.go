@@ -61,6 +61,8 @@ type panelView struct {
 	Facts       []factRow
 
 	Links         []store.Link
+	Watch         watchView
+	CanWatch      bool
 	Pos           int
 	SubtitleLabel string
 	Total         int
@@ -93,9 +95,20 @@ func (s *Server) handlePanel(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
+	watch, watching, err := s.store.WatchFor(r.Context(), id)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
 
 	view := buildPanel(entry, pace, today, s.cfg.Loc, wantSeason)
 	view.Links = links
+	// Only a printed series has volumes to wait for.
+	view.CanWatch = entry.Media.Kind == "manga"
+	view.Watch = buildWatch(watch, watching, s.cfg.Loc)
+	if view.Watch.Query == "" {
+		view.Watch.Query = entry.Media.Title
+	}
 	s.renderFragment(w, r, "panel", view)
 }
 
@@ -185,6 +198,7 @@ var unitForms = map[string][3]string{
 	"chapter": {"розділ", "розділи", "розділів"},
 	"lesson":  {"урок", "уроки", "уроків"},
 	"minute":  {"хвилина", "хвилини", "хвилин"},
+	"volume":  {"том", "томи", "томів"},
 }
 
 func countSeasons(units []domain.Unit) int {

@@ -33,12 +33,13 @@ var unitForKind = map[string]string{
 	"show": "episode", "anime": "episode",
 	"book": "page", "game": "hour",
 	"movie":  "minute",
-	"course": "lesson", "manga": "chapter",
+	"course": "lesson", "manga": "volume",
 }
 
 var unitLabels = map[string]string{
 	"episode": "серій", "page": "сторінок", "hour": "годин",
-	"chapter": "розділів", "lesson": "уроків", "minute": "хвилин", "none": "",
+	"chapter": "розділів", "lesson": "уроків", "minute": "хвилин",
+	"volume": "томів", "none": "",
 }
 
 type searchResult struct {

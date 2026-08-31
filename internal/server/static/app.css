@@ -1377,3 +1377,17 @@ button.blk:active { transform: scaleY(.94); }
 }
 .stabs button:hover { border-color: var(--mid); color: var(--fg); }
 .stabs button.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+.pwatch { padding: 4px 0 2px; }
+.wform { display: flex; gap: 8px; padding: 6px 20px 4px; }
+.wform .v2 { flex: 1; font-size: 13.5px; }
+.wfound { display: flex; align-items: baseline; gap: 10px; padding: 4px 20px 2px; }
+.wfound a { font-size: 14px; color: var(--ac); text-decoration: none; }
+.wfound a:hover { text-decoration: underline; }
+.wfound s { text-decoration: none; font-family: var(--mono); font-size: 10.5px; color: var(--mut); }
+.wstop {
+  appearance: none; border: 0; background: none; cursor: pointer;
+  font-family: var(--mono); font-size: 10.5px; color: var(--mut);
+  padding: 2px 20px 6px;
+}
+.wstop:hover { color: var(--k-anime); }

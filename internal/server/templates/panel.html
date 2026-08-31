@@ -147,6 +147,41 @@
     <div style="height: 20px"></div>
   </div>
 
+  {{if .CanWatch}}
+  <div class="pwatch">
+    <div class="pg"><span>Нові томи</span>{{if .Watch.Checked}}<b>перевірено {{.Watch.Checked}}</b>{{end}}</div>
+    {{if .Watch.On}}
+      {{if .Watch.LastVol}}
+      <div class="wfound">
+        <a href="{{.Watch.LastURL}}" target="_blank" rel="noreferrer noopener">{{.Watch.LastTitle}}</a>
+        <s>зʼявився {{.Watch.Found}}</s>
+      </div>
+      {{else}}
+      <div class="hintline">Томів за цим запитом поки немає.</div>
+      {{end}}
+      <form class="wform" hx-post="/entry/{{.EntryID}}/watch"
+            hx-target="#entry-{{.EntryID}}" hx-swap="outerHTML"
+            hx-on::after-request="reloadPanel()">
+        <input class="v2" type="text" name="query" value="{{.Watch.Query}}" autocomplete="off" required>
+        <button type="submit" class="ghostbtn">Оновити запит</button>
+      </form>
+      <form hx-post="/entry/{{.EntryID}}/unwatch"
+            hx-target="#entry-{{.EntryID}}" hx-swap="outerHTML"
+            hx-on::after-request="reloadPanel()">
+        <button type="submit" class="wstop">Не стежити</button>
+      </form>
+    {{else}}
+      <form class="wform" hx-post="/entry/{{.EntryID}}/watch"
+            hx-target="#entry-{{.EntryID}}" hx-swap="outerHTML"
+            hx-on::after-request="reloadPanel()">
+        <input class="v2" type="text" name="query" value="{{.Watch.Query}}" autocomplete="off" required>
+        <button type="submit" class="ghostbtn">Стежити</button>
+      </form>
+      <div class="hintline">Раз на добу питаю «Нашу Ідею», чи вийшов новий том. Запит — те, що шукається в їхньому магазині.</div>
+    {{end}}
+  </div>
+  {{end}}
+
   <div class="plinks">
     <div class="pg"><span>Посилання</span>{{if .Links}}<b>O відкриє перше</b>{{end}}</div>
     {{range .Links}}

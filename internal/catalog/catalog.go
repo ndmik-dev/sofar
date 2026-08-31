@@ -12,17 +12,23 @@ import (
 )
 
 type Catalog struct {
-	tmdb  *tmdb.Client
-	books *Books
-	games *Games
-	store *store.Store
+	tmdb     *tmdb.Client
+	books    *Books
+	games    *Games
+	releases *Releases
+	store    *store.Store
 }
 
-func New(t *tmdb.Client, b *Books, g *Games, s *store.Store) *Catalog {
-	return &Catalog{tmdb: t, books: b, games: g, store: s}
+func New(t *tmdb.Client, b *Books, g *Games, rel *Releases, s *store.Store) *Catalog {
+	return &Catalog{tmdb: t, books: b, games: g, releases: rel, store: s}
 }
 
 func (c *Catalog) Enabled() bool { return c.tmdb.Enabled() }
+
+// Volumes asks the publisher what it has printed, for a watch.
+func (c *Catalog) Volumes(ctx context.Context, query string) ([]Release, error) {
+	return c.releases.Volumes(ctx, query)
+}
 
 // FindByKind routes to whichever catalog owns that type. A provider without a
 // key returns nothing rather than an error: the manual form still works.
