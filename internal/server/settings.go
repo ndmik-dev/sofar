@@ -28,13 +28,13 @@ var settingsMeta = map[string]struct {
 	UnitsLabel string
 	Steps      []int
 }{
-	"show":    {"серії", []int{1, 2}},
-	"anime":   {"серії", []int{1, 2}},
-	"movie":   {"хвилини", []int{1, 5, 10}},
-	"book":    {"сторінки", []int{1, 5, 10, 25}},
-	"game":    {"години", []int{1, 2}},
-	"podcast": {"випуски", []int{1}},
-	"course":  {"уроки", []int{1, 2}},
+	"show":   {"серії", []int{1, 2}},
+	"anime":  {"серії", []int{1, 2}},
+	"movie":  {"хвилини", []int{1, 5, 10}},
+	"book":   {"сторінки", []int{1, 5, 10, 25}},
+	"game":   {"години", []int{1, 2}},
+	"course": {"уроки", []int{1, 2}},
+	"manga":  {"розділи", []int{1, 5, 10}},
 }
 
 func (s *Server) settingRows(r *http.Request) ([]settingRow, error) {

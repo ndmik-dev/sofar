@@ -17,14 +17,14 @@ Not up for rediscussion — written down so they are not relitigated.
 | Form | Web app, server-rendered | The design is keyboard-first; this is a web app, not an adaptation |
 | Stack | Go + htmx + SQLite | One binary, no frontend build, ~30 MB RAM |
 | Design | Track of cells | Progress has a shape, not just a percentage |
-| Catalogs | TMDB, Google Books, RAWG, iTunes | Metadata only |
+| Catalogs | TMDB, Google Books, RAWG | Metadata only |
 | Courses | Own kind, manual only | No catalog for them exists anywhere |
 | Catalog role | Fill metadata, **never define units**, never mandatory | All the pain was in the second part |
 | Friends | Not in v1 | But `user_id` in the schema from day one |
 | Progress | Append-only `progress` log | Undo, streaks, pace and stats fall out of it free |
 | Pause | No manual status | "Stale" is derived from `updated_at` |
 | Tracking depth | Per type | Games get three states, series get episodes |
-| Ongoing things | Open counter, own folded section | A podcast has no finish line, so "how far" has no answer |
+| Manga | Own kind, counted in chapters, manual only | Volumes differ by edition; chapters do not |
 | Deploy | Dokploy droplet, one container | Already there, 4 GB, Caddy in front |
 | Auth | One password from the environment | Not accounts. Year-long cookie, key derived from the password so a change logs everyone out |
 | Day boundary | **04:00, Europe/Kyiv** | An episode at 01:30 belongs to the previous day |
@@ -55,7 +55,7 @@ from `unit.season` changing.
 users (id, name, created_at)
 
 media (
-  id, kind,        -- show|movie|anime|book|game|podcast
+  id, kind,        -- show|movie|anime|book|manga|game|course
   source,          -- tmdb|manual|gbooks|rawg|itunes
   tmdb_type, tmdb_id, ext_id,
   title, title_orig, year, overview, poster_path,
@@ -214,6 +214,10 @@ Recorded so they are not repeated.
   anime never notices the rule exists.
 - **Advertise nothing that does not exist.** A toast promising `⌘Z` before the
   keyboard layer shipped was worse than no label at all.
+- **A type that answers no question should go.** Podcasts got a counter, a
+  folded section and a year figure, and none of it made them worth having on a
+  shelf built around "how far have you got". Removed; the entries were
+  soft-deleted so a month of second thoughts is free.
 - **An approximate signal beside an exact one is just noise.** Season blocks
   were sized by episode count, which nobody could read and which made every row
   look ragged. Once clicking a block gave the real number, the width had

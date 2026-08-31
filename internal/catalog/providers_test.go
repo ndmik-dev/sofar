@@ -56,23 +56,6 @@ func TestLiveGames(t *testing.T) {
 	}
 }
 
-func TestLivePodcasts(t *testing.T) {
-	p := NewPodcasts(t.TempDir())
-	res, err := p.Search(context.Background(), "darknet diaries", 5)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(res) == 0 {
-		t.Fatal("no results")
-	}
-	for _, r := range res {
-		t.Logf("%-40s %-26s %d", trunc(r.Title, 38), trunc(r.Subtitle, 24), r.Year)
-	}
-	if res[0].Kind != "podcast" {
-		t.Errorf("kind = %q, want podcast", res[0].Kind)
-	}
-}
-
 func trunc(s string, n int) string {
 	r := []rune(s)
 	if len(r) <= n {

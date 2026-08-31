@@ -113,8 +113,8 @@ func TestYearCountsEachKindInItsOwnUnit(t *testing.T) {
 		{At: day, Delta: 120, To: 120, Total: 120, Kind: "movie", Unit: "minute", Runtime: 120},
 		// A film left half-watched counts its minutes but is not a film yet.
 		{At: day, Delta: 50, To: 50, Total: 140, Kind: "movie", Unit: "minute", Runtime: 140},
-		// Podcast episodes are episodes, but they are not серії.
-		{At: day, Delta: 4, To: 4, Kind: "podcast", Unit: "episode"},
+		// Manga is read in chapters and often has no end at all.
+		{At: day, Delta: 6, To: 6, Kind: "manga", Unit: "chapter"},
 		{At: day, Delta: 30, To: 30, Total: 300, Kind: "book", Unit: "page"},
 	}
 
@@ -124,9 +124,6 @@ func TestYearCountsEachKindInItsOwnUnit(t *testing.T) {
 	}
 	if st.Films != 1 {
 		t.Errorf("Films = %d, want 1 — a film is one film however long it is", st.Films)
-	}
-	if st.Podcasts != 4 {
-		t.Errorf("Podcasts = %d, want 4", st.Podcasts)
 	}
 	if st.Pages != 30 {
 		t.Errorf("Pages = %d, want 30", st.Pages)

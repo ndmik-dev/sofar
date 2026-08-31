@@ -12,15 +12,14 @@ import (
 )
 
 type Catalog struct {
-	tmdb     *tmdb.Client
-	books    *Books
-	games    *Games
-	podcasts *Podcasts
-	store    *store.Store
+	tmdb  *tmdb.Client
+	books *Books
+	games *Games
+	store *store.Store
 }
 
-func New(t *tmdb.Client, b *Books, g *Games, p *Podcasts, s *store.Store) *Catalog {
-	return &Catalog{tmdb: t, books: b, games: g, podcasts: p, store: s}
+func New(t *tmdb.Client, b *Books, g *Games, s *store.Store) *Catalog {
+	return &Catalog{tmdb: t, books: b, games: g, store: s}
 }
 
 func (c *Catalog) Enabled() bool { return c.tmdb.Enabled() }
@@ -33,8 +32,6 @@ func (c *Catalog) FindByKind(ctx context.Context, kind, query string, limit int)
 		return c.books.Search(ctx, query, limit)
 	case "game":
 		return c.games.Search(ctx, query, limit)
-	case "podcast":
-		return c.podcasts.Search(ctx, query, limit)
 	}
 	return nil, nil
 }
@@ -45,8 +42,6 @@ func (c *Catalog) HasProvider(kind string) bool {
 		return c.books.Enabled()
 	case "game":
 		return c.games.Enabled()
-	case "podcast":
-		return c.podcasts.Enabled()
 	}
 	return false
 }

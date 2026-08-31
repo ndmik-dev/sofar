@@ -1,6 +1,6 @@
 # Sofar
 
-Personal media tracker: series, anime, films, books, games, podcasts, courses. One list
+Personal media tracker: series, anime, films, books, manga, games, courses. One list
 of what is in progress, progress down to the individual episode, and an archive
 of what is finished.
 
@@ -44,19 +44,18 @@ A real environment variable always wins over the file.
 | `GOOGLE_BOOKS_KEY` | — | books |
 | `RAWG_KEY` | — | games |
 
-A podcast never finishes, so "how far have you got" has no answer for it. It is
-an open counter — one press is one episode, no total — and its rows live in a
-folded **Слухаю постійно** section at the bottom of the list rather than among
-things with a finish line. They are never called stale: a habit does not go
-stale. The year counts them as випуски, separately from серії.
+Manga is counted in chapters. A series still being published has no total, and
+an entry with no total is simply an open counter — leave the field empty and it
+counts up without pretending to know the end.
 
 A film is tracked in minutes: TMDB gives the runtime, so the position is the
 minute you stopped at. Films default to status depth — switch them to
 «хвилини» in settings to use it.
 
-Podcasts use the iTunes Search API, which needs no key. Every catalog is
-optional: without a key the manual entry form still works. Courses have no
-catalog anywhere and are always entered by hand.
+Every catalog is optional: without a key the manual entry form still works.
+Manga and courses have no catalog worth trusting for counts, so they are always
+entered by hand — a chapter count is exactly the sort of thing a catalog gets
+wrong per edition.
 
 ## Access
 
@@ -136,8 +135,8 @@ statistics for the same reason.
 
 `⌘K` opens one field. `↑` `↓` walk the results, `↵` takes the highlighted one.
 Type prefixes narrow it by type: `с:` series, `а:` anime,
-`ф:` films, `к:` books, `і:` games, `п:` podcasts, `н:` courses. Latin equivalents work too
-(`s: a: m: b: g: p: c:`).
+`ф:` films, `к:` books, `м:` manga, `і:` games, `н:` courses. Latin equivalents work too
+(`s: a: m: b: g: c:`, and `manga:`).
 
 A series with more than one season asks for **season and episode**, not for an
 absolute number: seasons differ in length, and working out that S4E7 is episode
@@ -193,7 +192,7 @@ clamp is written to the progress log like any other move.
 
 A book opens a prefilled form rather than saving straight away: the catalog's
 page count belongs to some edition, not necessarily yours, so it arrives in an
-editable field. Games and podcasts have nothing to verify and add in one click.
+editable field. Games have nothing to verify and add in one click.
 
 ## Data model
 
@@ -228,7 +227,7 @@ internal/domain      track building, pluralisation. No I/O.
 internal/nightly     refresh running shows, purge old deletions
 internal/fetch       cached JSON GET shared by every catalog adapter
 internal/tmdb        films and series
-internal/catalog     TMDB import plus Google Books, RAWG, iTunes
+internal/catalog     TMDB import plus Google Books and RAWG
 internal/store       SQLite and queries. No HTML, no external APIs.
 internal/server      routing, rendering, handlers
   templates/         layout plus one file per page or fragment
@@ -305,5 +304,4 @@ the keys go in the Environment tab.
 ## Attribution
 
 This product uses the TMDB API but is not endorsed or certified by TMDB. Game
-data comes from RAWG, book data from Google Books, podcast data from the iTunes
-Search API. The application displays the attribution these terms require.
+data comes from RAWG and book data from Google Books. The application displays the attribution these terms require.

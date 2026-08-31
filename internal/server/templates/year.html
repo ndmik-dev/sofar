@@ -11,7 +11,7 @@
 
 <div class="big4">
   <div><div class="n">{{.Hours}}</div><div class="u">годин</div>{{with .HoursSub}}<div class="d">{{.}}</div>{{end}}</div>
-  <div><div class="n">{{.Episodes}}</div><div class="u">{{plural .Episodes "серія" "серії" "серій"}}</div><div class="d">+{{.Films}} {{plural .Films "фільм" "фільми" "фільмів"}}{{if .Podcasts}} · +{{.Podcasts}} {{plural .Podcasts "випуск" "випуски" "випусків"}}{{end}}</div></div>
+  <div><div class="n">{{.Episodes}}</div><div class="u">{{plural .Episodes "серія" "серії" "серій"}}</div><div class="d">+{{.Films}} {{plural .Films "фільм" "фільми" "фільмів"}}</div></div>
   <div><div class="n">{{.Books}}</div><div class="u">{{plural .Books "книга" "книги" "книг"}}</div>{{if .Pages}}<div class="d">{{.Pages}} стор.</div>{{end}}</div>
   <div><div class="n">{{.Streak.Best}}</div><div class="u">рекорд стріку</div><div class="d">зараз <em>{{.Streak.Current}}</em></div></div>
 </div>
@@ -25,7 +25,9 @@
   <span><i class="k-anime"></i>аніме</span>
   <span><i class="k-movie"></i>фільми</span>
   <span><i class="k-book"></i>книги</span>
+  <span><i class="k-manga"></i>манґа</span>
   <span><i class="k-game"></i>ігри</span>
+  <span><i class="k-course"></i>курси</span>
 </div>
 
 {{if .Months}}

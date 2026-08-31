@@ -30,8 +30,8 @@ var siteNames = map[string]string{
 	"udemy.com":              "Udemy",
 	"themoviedb.org":         "TMDB",
 	"imdb.com":               "IMDb",
-	"open.spotify.com":       "Spotify",
-	"podcasts.apple.com":     "Apple Podcasts",
+	"mangadex.org":           "MangaDex",
+	"myanimelist.net":        "MyAnimeList",
 }
 
 // normalizeLink accepts what a person actually pastes. Only http and https are

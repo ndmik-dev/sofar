@@ -253,23 +253,15 @@ except `⇧Space`, one page or one minute at a time.
 | 4 | Set it below the total on something marked finished | It returns to «у процесі» — a finished thing you rolled back is not finished |
 | 5 | Type a number larger than the total | Clamped to the total, not refused |
 
-## TC-20b · Podcasts stay out of the way
+## TC-20b · Manga
 
 | # | Do | Expect |
 |---|---|---|
-| 1 | Add a podcast with `п:` | It is **not** among the ordinary rows |
-| 2 | Look at the bottom of **У процесі** | A folded **Слухаю постійно · N** |
-| 3 | Open it | The row has a thin open line and a count, no «хочу / у процесі / завершив» |
-| 4 | Click the row, press `Space` twice | «2 випуски», toast in випуски, not серії |
-| 5 | Press `⌥4` | The year shows «+N випусків» beside фільми, and «серій» did not move |
-| 6 | Leave it untouched for a month | It never appears under **Застоялось** |
-
-## TC-21a · The sidebar counts agree everywhere
-
-| # | Do | Expect |
-|---|---|---|
-| 1 | Note the type counts on **У процесі** | — |
-| 2 | Open **Налаштування**, **Рік**, **Імпорт** | The same numbers on every page: they describe where the links lead, which is always the active list |
+| 1 | `⌘K`, type `м: ` and a title | The manual form, type **манґа** preselected, second field labelled Автор |
+| 2 | Fill a chapter count and a position, save | A bar with `120 / 374` and a percentage |
+| 3 | Add one and leave **Всього** empty | An open counter: a thin line and «без межі», which is what an unfinished series is |
+| 4 | Check the sidebar and the year legend | Манґа has its own colour and its own count |
+| 5 | Look for **Подкасти** anywhere | Gone — sidebar, prefixes, settings, year legend |
 
 ## TC-21 · Shelf search and export
 

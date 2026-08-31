@@ -1,6 +1,6 @@
 # Sofar
 
-Personal media tracker: series, anime, films, books, games, podcasts, courses.
+Personal media tracker: series, anime, films, books, manga, games, courses.
 Go + htmx + SQLite, server-rendered, self-hosted, single user.
 
 Read [README.md](README.md) for what it is and how to run it, and

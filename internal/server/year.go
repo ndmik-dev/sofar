@@ -37,7 +37,6 @@ type yearPage struct {
 	Hours    string
 	HoursSub string
 	Episodes int
-	Podcasts int
 	Films    int
 	Books    int
 	Pages    int
@@ -108,7 +107,6 @@ func (s *Server) handleYear(w http.ResponseWriter, r *http.Request) {
 		Years:    []int{now.Year(), now.Year() - 1, now.Year() - 2},
 		Hours:    domain.HoursMins(stats.Mins),
 		Episodes: stats.Episodes,
-		Podcasts: stats.Podcasts,
 		Films:    stats.Films,
 		Books:    books,
 		Pages:    stats.Pages,
@@ -182,7 +180,7 @@ func buildMonths(stats domain.YearStats) []monthBar {
 	for i, kinds := range stats.Months {
 		bar := monthBar{Label: monthNames[i]}
 		var total int
-		for _, kind := range []string{"show", "anime", "movie", "book", "game", "podcast"} {
+		for _, kind := range []string{"show", "anime", "movie", "book", "manga", "game", "course"} {
 			w := kinds[kind]
 			if w == 0 {
 				continue
@@ -202,23 +200,15 @@ func buildMonths(stats domain.YearStats) []monthBar {
 }
 
 // buildCopyText renders the year as the plain text ⌘C puts on the clipboard.
-func podcastLine(n int) string {
-	if n == 0 {
-		return ""
-	}
-	return " · " + domain.Count(n, "випуск", "випуски", "випусків")
-}
-
 func buildCopyText(p yearPage) string {
 	out := fmt.Sprintf("Sofar · %d\n\n", p.Year)
 	out += fmt.Sprintf("%s годин", p.Hours)
 	if p.HoursSub != "" {
 		out += " (" + p.HoursSub + ")"
 	}
-	out += fmt.Sprintf("\n%s · %s%s\n%s",
+	out += fmt.Sprintf("\n%s · %s\n%s",
 		domain.Count(p.Episodes, "серія", "серії", "серій"),
 		domain.Count(p.Films, "фільм", "фільми", "фільмів"),
-		podcastLine(p.Podcasts),
 		domain.Count(p.Books, "книга", "книги", "книг"))
 	if p.Pages > 0 {
 		out += fmt.Sprintf(" · %s", domain.Count(p.Pages, "сторінка", "сторінки", "сторінок"))

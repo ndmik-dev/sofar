@@ -19,13 +19,13 @@ const (
 )
 
 var kindLabels = map[string]string{
-	"show":    "серіал",
-	"anime":   "аніме",
-	"movie":   "фільм",
-	"book":    "книга",
-	"game":    "гра",
-	"podcast": "подкаст",
-	"course":  "курс",
+	"show":   "серіал",
+	"anime":  "аніме",
+	"movie":  "фільм",
+	"book":   "книга",
+	"game":   "гра",
+	"course": "курс",
+	"manga":  "манга",
 }
 
 var kindNav = []struct{ Kind, Label string }{
@@ -33,8 +33,8 @@ var kindNav = []struct{ Kind, Label string }{
 	{"anime", "Аніме"},
 	{"movie", "Фільми"},
 	{"book", "Книги"},
+	{"manga", "Манґа"},
 	{"game", "Ігри"},
-	{"podcast", "Подкасти"},
 	{"course", "Курси"},
 }
 
@@ -176,7 +176,6 @@ type listPage struct {
 	Now     time.Time
 	Rows    []row
 	Fresh   []row
-	Ongoing []row
 	Stale   []row
 	Years   []yearGroup
 	Filters []filterChip
@@ -251,10 +250,6 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		}
 		rw := buildRow(e, today)
 		rw.Selected = i == 0
-		if ongoing(e) {
-			page.Ongoing = append(page.Ongoing, rw)
-			continue
-		}
 		if u, ok := domain.JustAired(e.Units, e.Position, since, today); ok {
 			rw.Aired = domain.Label(u, domain.MultiSeason(e.Units))
 			page.Fresh = append(page.Fresh, rw)
@@ -267,8 +262,7 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		}
 		page.Rows = append(page.Rows, rw)
 	}
-	page.Empty = len(page.Rows) == 0 && len(page.Stale) == 0 &&
-		len(page.Fresh) == 0 && len(page.Ongoing) == 0
+	page.Empty = len(page.Rows) == 0 && len(page.Stale) == 0 && len(page.Fresh) == 0
 	// The element stays in the page even with nothing to show, so an
 	// out-of-band swap has a target the moment the first row lands. Under a
 	// kind filter the figures describe the whole list, not what is on screen,
@@ -278,7 +272,7 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		page.Filter = &kindFilter{
 			Label: kindLabels[kind],
 			Kind:  kind,
-			Count: len(page.Rows) + len(page.Stale) + len(page.Fresh) + len(page.Ongoing),
+			Count: len(page.Rows) + len(page.Stale) + len(page.Fresh),
 			Clear: "/active",
 		}
 	}
@@ -626,10 +620,6 @@ func viewingList(r *http.Request, status string) bool {
 // серій"). Naming an arbitrary number needs all three forms, which is what
 // unitForms holds.
 func unitWords(e store.Entry) (one, few, many string) {
-	// A podcast counts the same episodes by a different name.
-	if e.Media.Kind == "podcast" {
-		return "випуск", "випуски", "випусків"
-	}
 	f, ok := unitForms[e.Media.Unit]
 	if !ok {
 		return "", "", ""
@@ -690,13 +680,6 @@ func summaryFrom(s store.Summary) summaryView {
 	}
 }
 
-// ongoing marks what never finishes. A podcast is the only such thing today,
-// but the question the main list asks — how far have you got — has no answer
-// for any of them, so they get their own place rather than a blank position.
-func ongoing(e store.Entry) bool {
-	return e.Media.Kind == "podcast"
-}
-
 func buildRow(e store.Entry, today string) row {
 	rw := row{
 		EntryID:   e.ID,
@@ -733,11 +716,6 @@ func buildRow(e store.Entry, today string) row {
 		rw.Mode = "open"
 		rw.Pos = strconv.Itoa(e.Position)
 		rw.PosSub = "без межі"
-		if ongoing(e) {
-			one, few, many := unitWords(e)
-			rw.Pos = domain.Count(e.Position, one, few, many)
-			rw.PosSub = ""
-		}
 		rw.Sub = e.Media.TitleOrig
 	case len(e.Units) > 0:
 		rw.Mode = "cells"

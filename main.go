@@ -97,7 +97,6 @@ func run(log *slog.Logger) error {
 		tmdb.New(cfg.TMDBToken, cfg.CacheDir),
 		catalog.NewBooks(cfg.BooksKey, cfg.CacheDir),
 		catalog.NewGames(cfg.GamesKey, cfg.CacheDir),
-		catalog.NewPodcasts(cfg.CacheDir),
 		st,
 	)
 	if !cat.Enabled() {

@@ -37,7 +37,6 @@ type DayCell struct {
 
 type YearStats struct {
 	Episodes int
-	Podcasts int
 	Films    int
 	Pages    int
 	Mins     int
@@ -62,10 +61,6 @@ func BuildYear(rows []ProgressRow, day func(int64) time.Time) YearStats {
 
 		st.Mins += mins
 		switch {
-		// A podcast counts episodes too, but they are not серії and they have
-		// no end, so they get their own number rather than inflating the shows.
-		case r.Kind == "podcast":
-			st.Podcasts += r.Delta
 		case r.Unit == "episode":
 			st.Episodes += r.Delta
 		// Films are counted when finished, not by the minute: watching two

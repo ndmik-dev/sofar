@@ -19,21 +19,21 @@ var kindPrefixes = map[string]string{
 	"ф": "movie", "f": "movie", "m": "movie",
 	"к": "book", "b": "book",
 	"і": "game", "и": "game", "g": "game",
-	"п": "podcast", "p": "podcast",
 	"н": "course", "c": "course",
+	"м": "manga", "манга": "manga", "manga": "manga",
 }
 
-var manualKinds = map[string]bool{"book": true, "game": true, "podcast": true, "course": true}
+var manualKinds = map[string]bool{"book": true, "game": true, "course": true, "manga": true}
 
 // Kinds a catalog can answer for. Courses have no such thing anywhere, so a
 // missing-key message would be a lie rather than a hint.
-var catalogKinds = map[string]bool{"book": true, "game": true, "podcast": true}
+var catalogKinds = map[string]bool{"book": true, "game": true}
 
 var unitForKind = map[string]string{
 	"show": "episode", "anime": "episode",
 	"book": "page", "game": "hour",
-	"podcast": "episode", "movie": "minute",
-	"course": "lesson",
+	"movie":  "minute",
+	"course": "lesson", "manga": "chapter",
 }
 
 var unitLabels = map[string]string{
@@ -179,8 +179,8 @@ func subtitleField(kind string) (label, placeholder string) {
 		return "Автор", "можна пропустити"
 	case "game":
 		return "Платформа", "PC, PS5, Switch…"
-	case "podcast":
-		return "Автор", "хто веде"
+	case "manga":
+		return "Автор", "мангака"
 	case "course":
 		return "Платформа", "Coursera, YouTube, курси в компанії…"
 	}
@@ -226,7 +226,7 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 		if len(view.Results) == 0 {
 			// A plain query only ever reaches TMDB, so a book will always come
 			// back empty here. Say where it lives instead of just "nothing".
-			view.Message = "TMDB нічого не знає. Книги — к:, ігри — і:, подкасти — п:, курси — н:"
+			view.Message = "TMDB нічого не знає. Книги — к:, манґа — м:, ігри — і:, курси — н:"
 			view.Manual = manualFormFor(q, "")
 		} else {
 			view.Results[0].First = true
@@ -236,7 +236,7 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	s.renderFragment(w, r, "search-results", view)
 }
 
-// Books, games and podcasts each have their own catalog. Whatever it returns is
+// Books and games each have their own catalog. Whatever it returns is
 // a suggestion: the last row always offers the manual form, and a book carries
 // its page count into an editable field rather than straight into the database.
 func (s *Server) fillOwnCatalog(w http.ResponseWriter, r *http.Request, view *searchView, kind, q string) {
