@@ -44,6 +44,13 @@ A real environment variable always wins over the file.
 | `GOOGLE_BOOKS_KEY` | — | books |
 | `RAWG_KEY` | — | games |
 
+Manga with a known count gets a **track**, not a bar: one cell per volume, each
+clickable, the way a series gets one cell per episode. The cells are synthesised
+from the total rather than stored, so correcting the total simply redraws them.
+Every volume that exists reads as "out, unread" — there are no air dates to tell
+printed volumes apart. Without a total it stays an open counter, and past 130
+volumes it falls back to a bar like any long season.
+
 Manga is counted in **volumes** — what you buy and read. Chapter numbering
 belongs to scanlations, and a Ukrainian edition splits volumes its own way, so
 neither a chapter count nor a catalog's volume count is worth trusting. Leave

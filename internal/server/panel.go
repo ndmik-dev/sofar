@@ -146,6 +146,9 @@ func buildPanel(e store.Entry, pace store.Pace, today string, loc *time.Location
 	switch {
 	case e.Depth == "status":
 		p.StatusRow = statusWords[e.Status]
+	case volumeTrack(e):
+		p.Blocks = domain.BuildVolumes(total, e.Position)
+		p.SeasonEnd = total
 	case len(e.Units) == 0 && e.Media.TotalUnits.Valid && total > 1:
 		// Books have no named units, but their progress deserves more than a
 		// number: the same bar the list shows.

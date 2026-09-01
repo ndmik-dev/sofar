@@ -698,6 +698,13 @@ func freshVolume(e store.Entry, now time.Time) (string, bool) {
 	return fmt.Sprintf("вийшов том %d", e.WatchVol), true
 }
 
+// volumeTrack is true for something counted in volumes with a known count and
+// no unit rows of its own to draw from.
+func volumeTrack(e store.Entry) bool {
+	return e.Media.Unit == "volume" && len(e.Units) == 0 &&
+		e.Media.TotalUnits.Valid && e.Media.TotalUnits.Int64 > 1
+}
+
 func buildRow(e store.Entry, today string) row {
 	rw := row{
 		EntryID:   e.ID,
@@ -746,6 +753,18 @@ func buildRow(e store.Entry, today string) row {
 		} else {
 			rw.Sub = "усе переглянуто"
 		}
+	case volumeTrack(e):
+		// Volumes are countable things you finish one by one, which is what a
+		// track is for. A solid bar hides that a series has thirteen of them.
+		rw.Mode = "cells"
+		rw.Blocks = domain.BuildVolumes(total, e.Position)
+		rw.SeasonEnd = total
+		rw.Pos = fmt.Sprintf("%d / %d", e.Position, total)
+		rw.PosSub = domain.Count(total-e.Position, "том", "томи", "томів") + " лишилось"
+		if e.Position >= total {
+			rw.PosSub = "усе прочитано"
+		}
+		rw.Sub = e.Media.TitleOrig
 	default:
 		rw.Mode = "bar"
 		if total > 0 {

@@ -128,3 +128,48 @@ func TestSeasonEndFullyAired(t *testing.T) {
 		t.Errorf("season end = %d, want 8", got)
 	}
 }
+
+func TestBuildVolumes(t *testing.T) {
+	blocks := BuildVolumes(13, 7)
+	if len(blocks) != 1 || blocks[0].Kind != BlockCells {
+		t.Fatalf("got %+v, want one block of cells", blocks)
+	}
+	cells := blocks[0].Cells
+	if len(cells) != 13 {
+		t.Fatalf("got %d cells, want 13", len(cells))
+	}
+
+	want := map[int]string{
+		1: StateWatched, 7: StateWatched,
+		// A volume that exists but is unread is "out", never "not out yet":
+		// there are no air dates to tell them apart, and every printed volume
+		// is on a shelf somewhere.
+		8: StateNext, 9: StateAired, 13: StateAired,
+	}
+	for idx, state := range want {
+		if got := cells[idx-1].State; got != state {
+			t.Errorf("volume %d is %q, want %q", idx, got, state)
+		}
+	}
+	if cells[0].Hint != "Том 1" {
+		t.Errorf("hint = %q, want \"Том 1\"", cells[0].Hint)
+	}
+}
+
+func TestBuildVolumesFallsBackToABarWhenHuge(t *testing.T) {
+	blocks := BuildVolumes(MaxCells+1, 10)
+	if len(blocks) != 1 || blocks[0].Kind != BlockBar {
+		t.Fatalf("got %+v, want a bar", blocks)
+	}
+	if blocks[0].Percent == 0 {
+		t.Error("a bar with progress showed none")
+	}
+}
+
+func TestBuildVolumesNeedsMoreThanOne(t *testing.T) {
+	for _, total := range []int{0, 1, -3} {
+		if b := BuildVolumes(total, 0); b != nil {
+			t.Errorf("BuildVolumes(%d) = %+v, want nothing to draw", total, b)
+		}
+	}
+}

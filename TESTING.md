@@ -268,9 +268,12 @@ except `⇧Space`, one page or one minute at a time.
 |---|---|---|
 | 1 | `⌘K`, type `м: фрірен` | Series from the shop, e.g. «Проводжальниця Фрірен · до тому 6» — the **series**, never one volume of it |
 | 1a | Click one | The form prefilled: title, and the newest volume as an editable total in **томи** |
+| 1c | Look at the added row | A **track of cells**, one per volume, not a solid bar; hovering a cell says «Том N» |
+| 1d | Click volume 5 | Position becomes 5, toast with `⌘Z` — same as clicking an episode |
+| 1e | Edit the total to a different number | The track redraws with that many cells |
 | 1b | Type `м: наруто` | Nothing, and the manual form below with **манґа** selected — it is not published in Ukrainian, and that is not a bug |
 | 2 | Fill a volume count and a position, save | A bar with `2 / 9` and a percentage, counted in **томи** |
-| 3 | Add one and leave **Всього** empty | An open counter: a thin line and «без межі», which is what an unfinished series is |
+| 3 | Add one and leave **Всього** empty | An open counter: a thin line and «без межі», which is what an unfinished series is — no cells, since there is no count to draw |
 | 4 | Check the sidebar and the year legend | Манґа has its own colour and its own count |
 | 5 | Look for **Подкасти** anywhere | Gone — sidebar, prefixes, settings, year legend |
 

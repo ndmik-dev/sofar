@@ -1,5 +1,7 @@
 package domain
 
+import "fmt"
+
 const (
 	// Thresholds now apply to a single season rather than a whole show, which
 	// is the only place they ever made sense.
@@ -144,4 +146,33 @@ func CurrentSeasonEnd(blocks []Block) int {
 		return end
 	}
 	return 0
+}
+
+// BuildVolumes draws one cell per printed volume. Manga has no per-volume
+// records — only a count — so the track is synthesised from the total, which
+// also means correcting the total simply redraws it. Every volume that exists
+// is "out but unread": there are no air dates to distinguish them by.
+func BuildVolumes(total, position int) []Block {
+	if total <= 1 {
+		return nil
+	}
+	b := Block{Kind: BlockCells, Season: 1, Count: total, Dense: total > DenseCells}
+	if total > MaxCells {
+		b.Kind = BlockBar
+		b.Percent = min(position, total) * 100 / total
+		return []Block{b}
+	}
+
+	b.Cells = make([]Cell, 0, total)
+	for i := 1; i <= total; i++ {
+		state := StateAired
+		switch {
+		case i <= position:
+			state = StateWatched
+		case i == position+1:
+			state = StateNext
+		}
+		b.Cells = append(b.Cells, Cell{Idx: i, State: state, Hint: fmt.Sprintf("Том %d", i)})
+	}
+	return []Block{b}
 }

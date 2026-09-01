@@ -215,6 +215,10 @@ Recorded so they are not repeated.
   anime never notices the rule exists.
 - **Advertise nothing that does not exist.** A toast promising `⌘Z` before the
   keyboard layer shipped was worse than no label at all.
+- **A bar hides what a track shows.** Thirteen volumes as a solid bar is one
+  number; thirteen cells is a shape you can click into. Cells do not need
+  stored units — synthesising them from a count costs nothing and keeps the
+  total editable.
 - **A filter is only as good as the classifier behind it.** `а:` returned
   nothing for an anime film because anime was detected for series only, so the
   one right answer was filtered out and the fallback form silently defaulted to
