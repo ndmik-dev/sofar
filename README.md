@@ -222,6 +222,13 @@ one, which is what keeps `Друзі` from becoming a 1951 film. Everything land
 Sixty lines per submission, because the whole batch is one blocking round of
 searches.
 
+The panel moves an entry between lists — **у процесі · колись · завершено ·
+кинуто** — whatever it is tracked by. Only status-depth types used to have that
+control, so a series could reach «завершено» by being finished and «кинуто» by
+`⌘⌫`, and no other way at all. Marking something done writes the jump to the
+end into the progress log like any other move, which means it counts in the
+year and `⌘Z` reverses it.
+
 The panel folds an edit form at the bottom: title, author or platform, and the
 total. The total is only editable while nothing is drawn from real episodes —
 `unit.idx` runs 1..N and a hand-typed number would contradict the rows the

@@ -84,6 +84,16 @@ The case that used to wipe a series back to zero.
 | 2 | Hover the **second** row, click `×` | Row disappears, toast "· видалено · ⌘Z повернути" |
 | 3 | Press `⌘Z` | Row returns to **position two**; the whole order is identical to step 1 |
 
+## TC-6a · Moving between lists
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Open the panel of a **series or anime** | A **Список** switch: у процесі · колись · завершено · кинуто |
+| 2 | Press «колись» | The row leaves the list, sidebar counts move, toast offers `⌘Z` |
+| 3 | Open **Колись**, open its panel, press «у процесі» | It comes back, and the switch itself updates — the panel must not keep showing the old list |
+| 4 | Press «завершено» on something half-watched | Position jumps to the end, and the year counts it: pressing it is a claim that you finished it |
+| 5 | Press `⌘Z` | Back to where it was, position included |
+
 ## TC-7 · Drop and change your mind
 
 | # | Do | Expect |

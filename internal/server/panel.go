@@ -35,7 +35,6 @@ type panelView struct {
 	EntryID   int64
 	Percent   int
 	HasBar    bool
-	StatusRow string
 	Title     string
 	Original  string
 	Kind      string
@@ -61,6 +60,7 @@ type panelView struct {
 	Facts       []factRow
 
 	Links         []store.Link
+	Statuses      []statusOption
 	Watch         watchView
 	CanWatch      bool
 	Pos           int
@@ -129,6 +129,7 @@ func buildPanel(e store.Entry, pace store.Pace, today string, loc *time.Location
 		p.Dots[i] = i < p.Rating
 	}
 	p.Meta = panelMeta(e)
+	p.Statuses = panelStatuses(e.Status)
 	p.SubtitleLabel, _ = subtitleField(e.Media.Kind)
 	p.UnitLabel = unitLabels[e.Media.Unit]
 	p.Total = int(e.Media.TotalUnits.Int64)
@@ -145,7 +146,7 @@ func buildPanel(e store.Entry, pace store.Pace, today string, loc *time.Location
 
 	switch {
 	case e.Depth == "status":
-		p.StatusRow = statusWords[e.Status]
+		// Nothing to draw: the switch above is the whole of its progress.
 	case volumeTrack(e):
 		p.Blocks = domain.BuildVolumes(total, e.Position)
 		p.SeasonEnd = total
@@ -238,6 +239,18 @@ func nextMeta(next domain.Unit, e store.Entry, today string) string {
 		parts = append(parts, "лишилось "+left)
 	}
 	return strings.Join(parts, " · ")
+}
+
+// Every entry can be moved between lists, not just the ones tracked by status.
+// The row has no room for a fourth control, and this is where you already come
+// to say what a title is to you.
+func panelStatuses(current string) []statusOption {
+	return []statusOption{
+		{"active", "у процесі", current == "active"},
+		{"backlog", "колись", current == "backlog"},
+		{"done", "завершено", current == "done"},
+		{"dropped", "кинуто", current == "dropped"},
+	}
 }
 
 func seasonTabs(e store.Entry, showing string) []seasonTab {

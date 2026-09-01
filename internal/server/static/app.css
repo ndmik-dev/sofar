@@ -1391,3 +1391,21 @@ button.blk:active { transform: scaleY(.94); }
   padding: 2px 20px 6px;
 }
 .wstop:hover { color: var(--k-anime); }
+
+.pstat { padding: 2px 20px 10px; }
+.pstat .sw { display: inline-flex; border: 1px solid var(--ln); border-radius: 3px; overflow: hidden; }
+.pstat .sw button {
+  appearance: none;
+  border: 0;
+  border-right: 1px solid var(--ln);
+  background: none;
+  color: var(--mut);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 6px 11px;
+  cursor: pointer;
+}
+.pstat .sw button:last-child { border-right: 0; }
+.pstat .sw button:hover:not(.on) { color: var(--fg); background: var(--ln2); }
+.pstat .sw button.on { background: var(--fg); color: var(--bg); }

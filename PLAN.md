@@ -215,6 +215,9 @@ Recorded so they are not repeated.
   anime never notices the rule exists.
 - **Advertise nothing that does not exist.** A toast promising `⌘Z` before the
   keyboard layer shipped was worse than no label at all.
+- **An endpoint with no caller is a missing feature, not a finished one.**
+  `POST /entry/{id}/status` accepted all four lists from the start, but only
+  status-depth rows ever called it, so a series had no way to «колись».
 - **A bar hides what a track shows.** Thirteen volumes as a solid bar is one
   number; thirteen cells is a shape you can click into. Cells do not need
   stored units — synthesising them from a count costs nothing and keeps the

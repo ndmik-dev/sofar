@@ -39,9 +39,18 @@
     </form>
     {{end}}
 
-    {{with .StatusRow}}
-    <div class="pg"><span>Статус</span><b>{{.}}</b></div>
-    {{end}}
+    <div class="pg"><span>Список</span></div>
+    <div class="pstat">
+      <span class="sw">
+        {{range .Statuses}}
+        <button type="button" class="{{if .On}}on{{end}}"
+                hx-post="/entry/{{$.EntryID}}/status"
+                hx-vals='{"status": "{{.Value}}"}'
+                hx-target="#entry-{{$.EntryID}}" hx-swap="outerHTML"
+                hx-on::after-request="reloadPanel()">{{.Label}}</button>
+        {{end}}
+      </span>
+    </div>
 
     {{if .Blocks}}
     <div class="pg"><span>Прогрес</span><b>{{.Position}}</b></div>

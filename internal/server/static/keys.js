@@ -153,8 +153,18 @@
     });
   }
 
+  // The panel refreshes by its own entry, not by the selected row: moving a
+  // title to another list deletes that row, and then there was nothing left to
+  // reload from and the panel kept showing the old state.
   window.reloadPanel = function () {
-    if (panelOpen()) loadPanel();
+    var panel = document.getElementById("panel");
+    var slot = document.getElementById("panel-slot");
+    if (!panel || !slot) return;
+    window.htmx.ajax("GET", "/entry/" + panel.dataset.entry + "/panel", {
+      source: slot,
+      target: "#panel-slot",
+      swap: "innerHTML",
+    });
   };
 
   window.closePalette = function () {
