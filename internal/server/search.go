@@ -27,7 +27,7 @@ var manualKinds = map[string]bool{"book": true, "game": true, "course": true, "m
 
 // Kinds a catalog can answer for. Courses have no such thing anywhere, so a
 // missing-key message would be a lie rather than a hint.
-var catalogKinds = map[string]bool{"book": true, "game": true}
+var catalogKinds = map[string]bool{"book": true, "game": true, "manga": true}
 
 var unitForKind = map[string]string{
 	"show": "episode", "anime": "episode",
@@ -55,7 +55,10 @@ type searchResult struct {
 	Total     int
 	Cover     string
 	NeedsForm bool
-	First     bool
+	// What the number means depends on the type: pages for a book, volumes on
+	// sale for manga.
+	TotalLabel string
+	First      bool
 }
 
 type kindChoice struct {
@@ -244,6 +247,19 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 // Books and games each have their own catalog. Whatever it returns is
 // a suggestion: the last row always offers the manual form, and a book carries
 // its page count into an editable field rather than straight into the database.
+// A number beside a search hit needs its own noun: 320 pages of a book, but
+// "до тому 6" for manga, where it is the newest volume on sale rather than a
+// length.
+func totalLabel(kind string, total int) string {
+	if total == 0 {
+		return ""
+	}
+	if kind == "manga" {
+		return fmt.Sprintf("до тому %d", total)
+	}
+	return fmt.Sprintf("%d стор.", total)
+}
+
 func (s *Server) fillOwnCatalog(w http.ResponseWriter, r *http.Request, view *searchView, kind, q string) {
 	defer func() { s.renderFragment(w, r, "search-results", view) }()
 
@@ -271,17 +287,18 @@ func (s *Server) fillOwnCatalog(w http.ResponseWriter, r *http.Request, view *se
 
 	for i, f := range found {
 		view.Results = append(view.Results, searchResult{
-			Source:    f.Source,
-			ExtID:     f.ExtID,
-			Kind:      f.Kind,
-			KindLabel: kindLabels[f.Kind],
-			Title:     f.Title,
-			Original:  f.Subtitle,
-			Meta:      yearLabel(f.Year),
-			Total:     f.Total,
-			Cover:     f.Cover,
-			NeedsForm: kind == "book",
-			First:     i == 0,
+			Source:     f.Source,
+			ExtID:      f.ExtID,
+			Kind:       f.Kind,
+			KindLabel:  kindLabels[f.Kind],
+			Title:      f.Title,
+			Original:   f.Subtitle,
+			Meta:       yearLabel(f.Year),
+			Total:      f.Total,
+			TotalLabel: totalLabel(f.Kind, f.Total),
+			Cover:      f.Cover,
+			NeedsForm:  kind == "book" || kind == "manga",
+			First:      i == 0,
 		})
 	}
 	if len(view.Results) == 0 {

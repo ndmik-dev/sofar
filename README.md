@@ -50,20 +50,29 @@ neither a chapter count nor a catalog's volume count is worth trusting. Leave
 the total empty for a series still being published and it is simply an open
 counter.
 
-The panel can **watch a manga for new volumes**. No catalog knows when a
-Ukrainian edition ships, so the source is the publisher's own shop: Nasha Idea
-runs WooCommerce with its REST API open, and a new volume is literally a new
-product whose title carries `Том N`. The nightly job asks once a day; when the
-number grows past your position the row moves to **Вийшло нове** with «вийшов
-том N» and a link to the listing.
+`м:` searches a shop rather than a catalog. No catalog knows what is printed in
+Ukrainian, and most publishers have no API at all — but ComicsMania carries all
+of them and runs WooCommerce with its REST API open. Results are grouped from
+volumes into series, so you pick "Проводжальниця Фрірен", not volume six of it,
+and the newest volume on sale arrives as an editable suggested total.
 
-The query is editable because the shop's search is fuzzy: `Given` finds the
-series, its full Ukrainian subtitle would not. Results that do not carry the
+The same source **watches a manga for new volumes**. The nightly job asks once a
+day; when the number grows past your position the row moves to **Вийшло нове**
+with «вийшов том N» and a link to the listing. It compares volume *numbers*, not
+dates, so a shop re-importing its catalogue does not fire every watch at once.
+
+Only `product_cat=86` — «манга українською мовою» — is read: the same shop sells
+keychains and photocards, and they answer to a search for a series name.
+
+The query is editable because the shop's search is fuzzy, and a short name hits
+more often than a full one. Results that do not carry the
 query in their title are dropped — a watch that quietly follows the wrong series
 is worse than one that finds nothing.
 
-AniList would give a volume total, but it returns nothing for series still
-running — exactly the ones worth watching — so it is not used at all.
+Coverage is partial by nature: «Наруто» and «Ван Піс» are not published in
+Ukrainian at all, so nothing will find them and the manual form stays the
+answer. AniList would give a volume total, but it returns nothing for series
+still running — exactly the ones worth watching — so it is not used either.
 
 A film is tracked in minutes: TMDB gives the runtime, so the position is the
 minute you stopped at. Films default to status depth — switch them to

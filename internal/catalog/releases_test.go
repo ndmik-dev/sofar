@@ -23,9 +23,25 @@ func TestVolumeOf(t *testing.T) {
 	}
 }
 
+func TestSeriesOf(t *testing.T) {
+	cases := map[string]string{
+		"Берсерк. Том 3":               "Берсерк",
+		"Given, Том 3":                 "Given",
+		"Проводжальниця Фрірен. Том 1": "Проводжальниця Фрірен",
+		"Токійські месники. Том 14":    "Токійські месники",
+		"Клинок та Бастард. Том 1":     "Клинок та Бастард",
+		"Дрон-Сіті Том 1 Робовечірка":  "Дрон-Сіті",
+	}
+	for title, want := range cases {
+		if got := seriesOf(title); got != want {
+			t.Errorf("seriesOf(%q) = %q, want %q", title, got, want)
+		}
+	}
+}
+
 func TestLiveVolumes(t *testing.T) {
 	r := NewReleases(t.TempDir())
-	got, err := r.Volumes(context.Background(), "Given")
+	got, err := r.Volumes(context.Background(), "Берсерк")
 	if err != nil {
 		t.Skipf("publisher unreachable: %v", err)
 	}
@@ -42,14 +58,36 @@ func TestLiveVolumes(t *testing.T) {
 
 func TestLiveVolumesIgnoresUnrelatedHits(t *testing.T) {
 	r := NewReleases(t.TempDir())
-	got, err := r.Volumes(context.Background(), "Given")
+	// "Ван Піс" is not published in Ukrainian, but the shop's fuzzy search
+	// answers with whatever it likes. A watch must not adopt those.
+	got, err := r.Volumes(context.Background(), "Ван Піс")
 	if err != nil {
-		t.Skipf("publisher unreachable: %v", err)
+		t.Skipf("shop unreachable: %v", err)
 	}
-	// The shop's search is fuzzy; a watch must not follow the wrong series.
 	for _, v := range got {
-		if !contains(v.Title, "Given") {
+		if !contains(v.Title, "Ван Піс") {
 			t.Errorf("unrelated title kept: %q", v.Title)
+		}
+	}
+}
+
+func TestLiveSearchMangaGroupsVolumes(t *testing.T) {
+	r := NewReleases(t.TempDir())
+	got, err := r.SearchManga(context.Background(), "Фрірен", 5)
+	if err != nil {
+		t.Skipf("shop unreachable: %v", err)
+	}
+	if len(got) == 0 {
+		t.Fatal("no series for a title the shop certainly carries")
+	}
+	for _, f := range got {
+		t.Logf("%s · до тому %d", f.Title, f.Total)
+		if f.Kind != "manga" || f.Title == "" || f.Total == 0 {
+			t.Errorf("incomplete series: %+v", f)
+		}
+		// The series, not one of its volumes.
+		if volumeOf(f.Title) != 0 {
+			t.Errorf("a volume leaked in as a series: %q", f.Title)
 		}
 	}
 }

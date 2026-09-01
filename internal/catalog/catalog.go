@@ -38,6 +38,8 @@ func (c *Catalog) FindByKind(ctx context.Context, kind, query string, limit int)
 		return c.books.Search(ctx, query, limit)
 	case "game":
 		return c.games.Search(ctx, query, limit)
+	case "manga":
+		return c.releases.SearchManga(ctx, query, limit)
 	}
 	return nil, nil
 }
@@ -48,6 +50,9 @@ func (c *Catalog) HasProvider(kind string) bool {
 		return c.books.Enabled()
 	case "game":
 		return c.games.Enabled()
+	case "manga":
+		// No key, so it is always there — like the shop itself.
+		return true
 	}
 	return false
 }

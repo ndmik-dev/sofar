@@ -16,7 +16,7 @@ func TestWatchLifecycle(t *testing.T) {
 		t.Fatalf("a fresh entry should not be watched: on=%v err=%v", on, err)
 	}
 
-	if err := st.SetWatch(ctx, id, "nashaidea", "Given", now); err != nil {
+	if err := st.SetWatch(ctx, id, "comicsmania", "Given", now); err != nil {
 		t.Fatal(err)
 	}
 	w, on, err := st.WatchFor(ctx, id)
@@ -47,7 +47,7 @@ func TestWatchLifecycle(t *testing.T) {
 
 	// Setting it again keeps the volume already found: re-watching is not
 	// forgetting.
-	if err := st.SetWatch(ctx, id, "nashaidea", "Given ранобе", now); err != nil {
+	if err := st.SetWatch(ctx, id, "comicsmania", "Given ранобе", now); err != nil {
 		t.Fatal(err)
 	}
 	if w, _, _ := st.WatchFor(ctx, id); w.LastVol != 3 || w.Query != "Given ранобе" {
@@ -68,7 +68,7 @@ func TestDueWatchesSkipsDeletedEntries(t *testing.T) {
 	id := seedEntry(t, st, 10)
 	now := time.Unix(1_800_000_000, 0)
 
-	if err := st.SetWatch(ctx, id, "nashaidea", "Given", now); err != nil {
+	if err := st.SetWatch(ctx, id, "comicsmania", "Given", now); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := st.SoftDelete(ctx, id, now); err != nil {

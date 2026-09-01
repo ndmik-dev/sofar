@@ -75,7 +75,7 @@
           data-total="{{.Total}}" data-source="{{.Source}}" data-ext-id="{{.ExtID}}" data-cover="{{.Cover}}">
     <span class="st k-{{.Kind}}"></span>
     <span class="nn">{{.Title}}{{with .Original}} <s>· {{.}}</s>{{end}}</span>
-    {{with .Total}}<span class="tg">{{.}} стор.</span>{{end}}
+    {{with .TotalLabel}}<span class="tg">{{.}}</span>{{end}}
     <span class="yy">{{.Meta}}</span>
   </button>
   {{else}}
