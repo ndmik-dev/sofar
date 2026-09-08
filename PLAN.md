@@ -338,6 +338,15 @@ shape — and it holds in both themes. Notes, not complaints:
   sentence ("перша серія — і тут зʼявиться рік") beats four zeros.
 - Row hover and the selected-row tint are close in value in the light theme;
   worth one notch more contrast on `--sel`.
+- **A click on the title does not open the panel.** It selects the row; only
+  `Enter` opens. For the mouse that reads as "nothing happened". Title click
+  should do what `Enter` does.
+- Empty states across the app are numbers or "Порожньо". The first screen after
+  `rm sofar.db` should say what to do next in one sentence — the palette exists,
+  the empty page should point at it.
+- One accent per screen holds here: `--ac` is the action, `.new` is attention.
+  Keep it that way when adding "next up" to the summary strip — it is
+  information, not a button.
 
 ### Ideas, in the order they would earn their place
 
