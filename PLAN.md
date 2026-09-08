@@ -108,7 +108,7 @@ time left = `(total_units - position) * runtime_min`.
 | ✅ | **M8.5** Edit and import | 3 h | Fix a saved entry, paste an archive |
 | ✅ | **M8.6** Password | 1.5 h | Nothing public without it |
 | ✅ | **M8.7** Links, nightly, shelf search, export | 5 h | The list keeps itself current |
-| | **M9** Deploy | 5 h | Live on a domain, with backups |
+| | **M9** Deploy | 5 h | Live on a domain — done; **backups are not** (see §8) |
 | | **M10** Pocket | 3 h | PWA, installs on a phone |
 
 About 58 hours spent of roughly 61. Dark theme and the responsive layout landed
@@ -279,3 +279,80 @@ Recorded so they are not repeated.
    Simkl export parser stays out until there is one to parse.
 5. **Fira fonts** — currently a system stack with Fira first. Vendor the woff2
    files whenever the typography starts to matter.
+
+---
+
+## 8. Review — September 2026
+
+A pass over code, design and decisions, made while the app is deployed and in
+daily use. Nothing here is implemented yet; it is the list to work from.
+
+### Fix first
+
+- **There are no backups.** The whole state is one SQLite file on a Dokploy
+  volume, and nothing copies it anywhere. Day boundary logic, the progress log,
+  every manga watch — one disk failure away. Port the nightly `VACUUM INTO`
+  from an earlier project (`internal/store/backup.go`, keeps the newest N under
+  `/data/backups`), run it from the existing nightly job, and pull a copy
+  off-box once a month. This is the only item on this page that matters.
+- **Row selection under a kind filter.** `handleActive` sets
+  `rw.Selected = i == 0` on the unfiltered index; when the first entry is
+  filtered out by `?kind=`, no row is selected and the keyboard layer starts
+  nowhere. Select the first *rendered* row.
+- **Two unit dictionaries disagree.** `unitNames` (handlers.go) says
+  `год`/`хв`, `unitLabels` (search.go) says `годин`/`хвилин`. One map in
+  `domain`, used by both, and `unitForms` beside it.
+
+### Cleanups
+
+- `handleActive` is the one list that does not go through `renderList`; it
+  builds fresh/stale/rows by hand. Give `listSpec` a hook for the active
+  split so all four lists share one path.
+- `handlers.go` at 800 lines mixes view types, handlers, sidebands and row
+  building. `views.go` for the types, `rows.go` for `buildRow`/`toastFor`/
+  `remainingLabel`; handlers stay.
+- `sidebands` recomputes `staleBefore` via `s.now()` although the caller
+  already has it; pass it in.
+- The `AGENTS.md` "podcasts" lesson and the migration `0008_podcasts_open` are
+  history now — fine to keep, but README still lists podcasts nowhere and the
+  nav has seven kinds; make sure `kindNav`, `kindLabels`, `unitForKind` and
+  the CSS `--k-*` tokens are the same seven, in one place, so adding a kind is
+  one edit.
+
+### Design
+
+The interface has a thesis — a dark, mono-labelled shelf where progress has a
+shape — and it holds in both themes. Notes, not complaints:
+
+- The summary strip ("вийшло й чекає · якщо все додивитись · ще виходять ·
+  у процесі") is the best screen in the app; it answers the evening question
+  before the list does. Keep it the first thing on `/active`.
+- Season blocks `S1 … S6` plus the current season's cells read well; the
+  `+10` step button on a book reads as an unexplained number next to `+` on
+  everything else. Either label it (`+10 стор.`) or make step visible in the
+  panel where it is set.
+- The empty backlog shows the time buckets with nothing to filter. Hide the
+  buckets when the list is empty; the "Нічого не підходить" copy assumes a
+  filter was applied.
+- `/year` with a fresh database shows four zeros and an empty heatmap. A first
+  sentence ("перша серія — і тут зʼявиться рік") beats four zeros.
+- Row hover and the selected-row tint are close in value in the light theme;
+  worth one notch more contrast on `--sel`.
+
+### Ideas, in the order they would earn their place
+
+1. **Backups** (above). Not an idea — a debt.
+2. **PWA / phone** (M10). The one place a media tracker is used is a phone at
+   23:40. Manifest, icon, standalone display; nothing else.
+3. **"Next up" on the summary strip**: the single episode/volume you would
+   watch next if you sat down now — the oldest active entry with something
+   aired. Derived, no state.
+4. **Posters in the panel** (open question §7.2) — data already stored.
+5. **Manga watch, second source** — only when ComicsMania visibly misses
+   something owned (§7.3 stands).
+
+### Decided against, again
+
+Accounts, social, recommendations, a JSON API, Trakt sync, a native app.
+The reasons in §1 have not changed.
+

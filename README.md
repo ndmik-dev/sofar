@@ -7,7 +7,8 @@ of what is finished.
 Self-hosted, single user, server-rendered. Go + htmx + SQLite, one binary, one
 dependency, no frontend build. The interface is Ukrainian.
 
-Status: milestones M0–M8 done, M9–M10 remaining. See [PLAN.md](PLAN.md).
+Status: deployed and in daily use. What is left, and a September 2026 review of
+code, design and decisions, is in [PLAN.md](PLAN.md) §8.
 
 ## Run
 
