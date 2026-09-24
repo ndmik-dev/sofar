@@ -223,6 +223,15 @@ open **Налаштування → Резервна копія** and download t
 bucket and no cron outside the process — the person who owns the data carries
 the copy.
 
+On a phone the same pages install as an app: Share → «На Початковий екран» on
+iOS, «Install app» in Chrome. There is a manifest and an icon but no service
+worker, so it needs the network — a list that could be stale is worse than one
+that says it cannot load. The layout under 720px is the phone one: figures in
+two columns, the four lists in a tab bar at the bottom, the kind filters in the
+scrolling row at the top, and each row as title over progress with one 48px
+button on the right. An installed app has its own cookie jar, so it asks for the
+password once.
+
 `/import` takes a pasted list, one title per line, and looks each up in TMDB.
 A year in brackets narrows the search, `title | 12` sets a starting position,
 and the first column of a CSV works as well. An exact title beats a popular

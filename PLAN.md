@@ -109,7 +109,7 @@ time left = `(total_units - position) * runtime_min`.
 | ✅ | **M8.6** Password | 1.5 h | Nothing public without it |
 | ✅ | **M8.7** Links, nightly, shelf search, export | 5 h | The list keeps itself current |
 | ✅ | **M9** Deploy | 5 h | Live on a domain, nightly copies, monthly download |
-| | **M10** Pocket | 3 h | PWA, installs on a phone |
+| ✅ | **M10** Pocket | 3 h | Manifest, icon, standalone, a tab bar under the thumb |
 
 About 58 hours spent of roughly 61. Dark theme and the responsive layout landed
 early, during the QA pass that followed M8, so M10 is only the PWA now.
@@ -172,12 +172,16 @@ monthly off-box copy — no S3, no credentials, no second process.
 
 ### M10 · Pocket — 3 h
 
-Manifest, icons, service worker. The responsive layout is done: rows reflow on
-their own container, so opening the panel and narrowing the window take the
-same path. The dark theme is done too, with a three-state switch in settings
-(system / light / dark) kept in `localStorage`.
+Manifest, icons, standalone display — and no service worker. Offline for a
+server-rendered app means caching HTML that goes stale the moment an episode is
+marked from another device, and a stale list is worse than "no connection".
+The phone layout is the same template and the same CSS: the summary in two
+columns, the row as title over progress with one 48px button on the right, the
+four lists in a tab bar at the bottom, kinds in the scrolling row at the top.
+The responsive reflow was already done: rows follow their own container, so
+opening the panel and narrowing the window take the same path.
 
-**Done when:** it installs on a phone and reads offline.
+**Done when:** it installs on a phone and «+1» is under the thumb. Done.
 
 ---
 
@@ -350,8 +354,7 @@ shape — and it holds in both themes. Notes, not complaints:
 ### Ideas, in the order they would earn their place
 
 1. ~~**Backups**~~ (above). Done.
-2. **PWA / phone** (M10). The one place a media tracker is used is a phone at
-   23:40. Manifest, icon, standalone display; nothing else.
+2. ~~**PWA / phone**~~ (M10). Done — manifest, icon, standalone, tab bar.
 3. **"Next up" on the summary strip**: the single episode/volume you would
    watch next if you sat down now — the oldest active entry with something
    aired. Derived, no state.

@@ -1,0 +1,16 @@
+{
+  "name": "Sofar",
+  "short_name": "Sofar",
+  "description": "Скільки серій чекає — і на чому ти зупинився.",
+  "lang": "uk",
+  "start_url": "/active",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0D1211",
+  "theme_color": "#0D1211",
+  "icons": [
+    { "src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

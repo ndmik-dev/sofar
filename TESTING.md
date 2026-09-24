@@ -317,6 +317,19 @@ except `⇧Space`, one page or one minute at a time.
 | 4 | Click **Зробити зараз** again the same day | Still 1 копія — the day's file is replaced, not duplicated |
 | 5 | Check the server log after 04:20 | `backup written file=sofar-… pruned=0` |
 
+## TC-21b · On a phone
+
+Real device, not a narrowed window: install prompts only show on one.
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Open the site in Safari (iOS) or Chrome (Android) | Under 720px: figures in two columns, a tab bar at the bottom with У процесі · Колись · Завершено · Рік, kinds in a scrolling row under the logo |
+| 2 | iOS: Share → «На Початковий екран». Android: menu → «Install app» | The icon is the six-cell track on a dark ground, named Sofar |
+| 3 | Open it from the home screen | No browser chrome; the password is asked once; it lands on У процесі |
+| 4 | Look at a row | Title over the progress strip, a 48px `+1` on the right; no kind label, no keyboard footer |
+| 5 | Tap `+1`, then a season block | Progress moves; the panel fills the screen with ✕ at the top |
+| 6 | Swipe the strip of a long show sideways | The whole tier scrolls; the current season keeps full-size cells |
+
 ## TC-22 · What aired
 
 Needs a running show with a recent episode you have not watched.

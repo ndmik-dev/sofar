@@ -56,6 +56,7 @@ var unitNames = map[string]string{
 }
 
 type navItem struct {
+	Key    string
 	Label  string
 	Href   string
 	Count  int
@@ -447,7 +448,7 @@ func navViewWithKind(statusCounts, kindCounts map[string]int, active, kind strin
 		{"Кинуто", "/dropped", "dropped"},
 	} {
 		nv.Nav = append(nv.Nav, navItem{
-			Label: n.Label, Href: n.Href, Count: statusCounts[n.Key], Active: n.Href == active,
+			Key: n.Key, Label: n.Label, Href: n.Href, Count: statusCounts[n.Key], Active: n.Href == active,
 		})
 	}
 	for _, k := range kindNav {

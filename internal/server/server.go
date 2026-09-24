@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/fs"
 	"log/slog"
+	"mime"
 	"net/http"
 
 	"github.com/ndmik-dev/sofar/internal/catalog"
@@ -105,6 +106,8 @@ func (s *Server) routes() error {
 }
 
 func (s *Server) staticHandler() (http.Handler, error) {
+	// Go's table stops at .json; a manifest served as text/plain is ignored.
+	_ = mime.AddExtensionType(".webmanifest", "application/manifest+json")
 	if s.cfg.Dev {
 		// Heuristic caching serves a stale app.css or keys.js long after the
 		// file changed, which reads exactly like the bug you just fixed.
