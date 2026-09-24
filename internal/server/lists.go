@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"sort"
@@ -40,6 +41,15 @@ type yearGroup struct {
 	Rows  []row
 }
 
+func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
+	s.renderList(w, r, listSpec{
+		Status: "active",
+		Title:  "У процесі",
+		Href:   "/active",
+		Page:   "active.html",
+	})
+}
+
 func (s *Server) handleBacklog(w http.ResponseWriter, r *http.Request) {
 	s.renderList(w, r, listSpec{
 		Status: "backlog",
@@ -76,7 +86,7 @@ type listSpec struct {
 
 func (s *Server) renderList(w http.ResponseWriter, r *http.Request, spec listSpec) {
 	ctx := r.Context()
-	now, today, _ := s.now()
+	c := s.now()
 
 	entries, err := s.store.ListEntries(ctx, defaultUserID, spec.Status)
 	if err != nil {
@@ -108,7 +118,7 @@ func (s *Server) renderList(w http.ResponseWriter, r *http.Request, spec listSpe
 	page := listPage{
 		Title:   spec.Title,
 		NavView: navViewWithKind(statusCounts, kindCounts, spec.Href, kind, false),
-		Now:     now,
+		Now:     c.Now,
 	}
 
 	if kind != "" {
@@ -116,19 +126,69 @@ func (s *Server) renderList(w http.ResponseWriter, r *http.Request, spec listSpe
 	}
 
 	switch spec.Status {
+	case "active":
+		if err := s.fillActive(ctx, &page, entries, c, kind); err != nil {
+			s.fail(w, r, err)
+			return
+		}
 	case "backlog":
-		s.fillBacklog(&page, entries, r.URL.Query().Get("t"), kind, today)
+		s.fillBacklog(&page, entries, r.URL.Query().Get("t"), kind, c.Today)
 	default:
-		fillArchive(&page, entries, today)
+		fillArchive(&page, entries, c.Today)
 	}
+	// The first row on screen, not the first in the query: under a kind
+	// filter those differ, and the keyboard used to start on nothing.
 	switch {
+	case len(page.Fresh) > 0:
+		page.Fresh[0].Selected = true
 	case len(page.Rows) > 0:
 		page.Rows[0].Selected = true
+	case len(page.Stale) > 0:
+		page.Stale[0].Selected = true
 	case len(page.Years) > 0 && len(page.Years[0].Rows) > 0:
 		page.Years[0].Rows[0].Selected = true
 	}
 
 	s.render(w, r, spec.Page, page)
+}
+
+// fillActive splits the list three ways — new since you last looked, moving,
+// stale — and hangs the figures over it.
+func (s *Server) fillActive(ctx context.Context, page *listPage, entries []store.Entry, c clock, kind string) error {
+	sum, err := s.store.Summary(ctx, defaultUserID, c.Today, c.StaleBefore)
+	if err != nil {
+		return err
+	}
+	page.Summary = summaryFrom(sum)
+	page.Summary.Next = s.nextUp(ctx, c.Today, c.StaleBefore)
+
+	since := s.cfg.Day(c.Now).AddDate(0, 0, -domain.FreshDays).Format("2006-01-02")
+	for _, e := range entries {
+		rw := buildRow(e, c.Today)
+		if label, ok := freshVolume(e, c.Now); ok {
+			rw.Aired = label
+			page.Fresh = append(page.Fresh, rw)
+			continue
+		}
+		if u, ok := domain.JustAired(e.Units, e.Position, since, c.Today); ok {
+			rw.Aired = "вийшла " + domain.Label(u, domain.MultiSeason(e.Units))
+			page.Fresh = append(page.Fresh, rw)
+			continue
+		}
+		if e.UpdatedAt < c.StaleBefore {
+			rw.Stale = true
+			page.Stale = append(page.Stale, rw)
+			continue
+		}
+		page.Rows = append(page.Rows, rw)
+	}
+	page.Empty = len(page.Rows) == 0 && len(page.Stale) == 0 && len(page.Fresh) == 0
+	// The element stays in the page even with nothing to show, so an
+	// out-of-band swap has a target the moment the first row lands. Under a
+	// kind filter the figures describe the whole list, not what is on screen,
+	// so they stay hidden rather than contradict it.
+	page.Summary.Off = page.Empty || kind != ""
+	return nil
 }
 
 func (s *Server) fillBacklog(page *listPage, entries []store.Entry, filter, kind, today string) {

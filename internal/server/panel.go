@@ -75,14 +75,14 @@ func (s *Server) handlePanel(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	now, today, _ := s.now()
+	c := s.now()
 
 	entry, err := s.store.GetEntry(r.Context(), id)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
 	}
-	pace, err := s.store.Pace(r.Context(), id, now)
+	pace, err := s.store.Pace(r.Context(), id, c.Now)
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -101,7 +101,7 @@ func (s *Server) handlePanel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	view := buildPanel(entry, pace, today, s.cfg.Loc, wantSeason)
+	view := buildPanel(entry, pace, c.Today, s.cfg.Loc, wantSeason)
 	view.Links = links
 	// Only a printed series has volumes to wait for.
 	view.CanWatch = entry.Media.Kind == "manga"

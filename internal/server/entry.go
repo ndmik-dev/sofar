@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/ndmik-dev/sofar/internal/store"
 )
@@ -15,15 +14,15 @@ func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	now := time.Now().In(s.cfg.Loc)
+	c := s.now()
 
-	entry, err := s.store.SoftDelete(r.Context(), id, now)
+	entry, err := s.store.SoftDelete(r.Context(), id, c.Now)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
 	}
 
-	s.renderSidebands(w, r, removedRow{
+	s.renderSidebands(w, r, c, removedRow{
 		EntryID: id,
 		Toast: toastView{
 			Text:    entry.Media.Title + " · видалено",
@@ -44,8 +43,8 @@ func (s *Server) handleRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	now, today, _ := s.now()
-	entry, err := s.store.SetRating(r.Context(), id, rating, now)
+	c := s.now()
+	entry, err := s.store.SetRating(r.Context(), id, rating, c.Now)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
@@ -55,7 +54,7 @@ func (s *Server) handleRating(w http.ResponseWriter, r *http.Request) {
 	if rating > 0 {
 		text = fmt.Sprintf("%s · оцінка %d", entry.Media.Title, rating)
 	}
-	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, today,
+	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, c,
 		toastView{Text: text, EntryID: entry.ID})
 }
 
@@ -64,7 +63,7 @@ func (s *Server) handleRestore(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	_, today, _ := s.now()
+	c := s.now()
 
 	entry, err := s.store.Restore(r.Context(), id)
 	if err != nil {
@@ -79,7 +78,7 @@ func (s *Server) handleRestore(w http.ResponseWriter, r *http.Request) {
 		rowOOB = "beforebegin:#entry-" + strconv.FormatInt(succ, 10)
 	}
 
-	s.respondAddedAt(w, r, entry, today, toastView{
+	s.respondAddedAt(w, r, entry, c, toastView{
 		Text:    entry.Media.Title + " · повернуто",
 		EntryID: entry.ID,
 	}, false, true, rowOOB)
@@ -90,13 +89,13 @@ func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	now, today, _ := s.now()
+	c := s.now()
 
-	entry, err := s.store.SetNote(r.Context(), id, strings.TrimSpace(r.FormValue("note")), now)
+	entry, err := s.store.SetNote(r.Context(), id, strings.TrimSpace(r.FormValue("note")), c.Now)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
 	}
-	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, today,
+	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, c,
 		toastView{Text: entry.Media.Title + " · нотатку збережено", EntryID: entry.ID})
 }

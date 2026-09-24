@@ -12,31 +12,6 @@ import (
 	"github.com/ndmik-dev/sofar/internal/store"
 )
 
-// Prefixes narrow the search to one type. The manual-only kinds jump straight
-// to the form: there is no catalog behind them, so searching would be theatre.
-var kindPrefixes = map[string]string{
-	"с": "show", "s": "show",
-	"а": "anime", "a": "anime",
-	"ф": "movie", "f": "movie", "m": "movie",
-	"к": "book", "b": "book",
-	"і": "game", "и": "game", "g": "game",
-	"н": "course", "c": "course",
-	"м": "manga", "манга": "manga", "manga": "manga",
-}
-
-var manualKinds = map[string]bool{"book": true, "game": true, "course": true, "manga": true}
-
-// Kinds a catalog can answer for. Courses have no such thing anywhere, so a
-// missing-key message would be a lie rather than a hint.
-var catalogKinds = map[string]bool{"book": true, "game": true, "manga": true}
-
-var unitForKind = map[string]string{
-	"show": "episode", "anime": "episode",
-	"book": "page", "game": "hour",
-	"movie":  "minute",
-	"course": "lesson", "manga": "volume",
-}
-
 type searchResult struct {
 	TMDBType  string
 	TMDBID    int
@@ -166,24 +141,10 @@ func manualFormFor(title, kind string) *manualForm {
 		Open:      unit == "none",
 	}
 	f.SubtitleLabel, f.SubtitlePlaceholder = subtitleField(kind)
-	for _, k := range kindNav {
-		f.Kinds = append(f.Kinds, kindChoice{Kind: k.Kind, Label: kindLabels[k.Kind], On: k.Kind == kind})
+	for _, k := range kinds {
+		f.Kinds = append(f.Kinds, kindChoice{Kind: k.Kind, Label: k.Label, On: k.Kind == kind})
 	}
 	return f
-}
-
-func subtitleField(kind string) (label, placeholder string) {
-	switch kind {
-	case "book":
-		return "Автор", "можна пропустити"
-	case "game":
-		return "Платформа", "PC, PS5, Switch…"
-	case "manga":
-		return "Автор", "мангака"
-	case "course":
-		return "Платформа", "Coursera, YouTube, курси в компанії…"
-	}
-	return "Оригінал", "назва мовою оригіналу"
 }
 
 func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
@@ -406,12 +367,12 @@ func (s *Server) finishAdd(w http.ResponseWriter, r *http.Request, mediaID int64
 		return
 	}
 
-	_, today, _ := s.now()
+	c := s.now()
 	toast := toastView{Text: entry.Media.Title + " · вже на полиці", EntryID: entryID}
 	if created {
 		toast = toastView{Text: entry.Media.Title + " · " + statusWords[status], EntryID: entryID, Undo: true}
 	}
-	s.respondAdded(w, r, entry, today, toast, created, created)
+	s.respondAdded(w, r, entry, c, toast, created, created)
 }
 
 func validStatus(v string) (string, bool) {

@@ -88,7 +88,7 @@ func (s *Server) handleImport(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) renderImport(w http.ResponseWriter, r *http.Request, page importPage) {
-	now, _, _ := s.now()
+	c := s.now()
 	statusCounts, err := s.store.CountsByStatus(r.Context(), defaultUserID)
 	if err != nil {
 		s.fail(w, r, err)
@@ -100,7 +100,7 @@ func (s *Server) renderImport(w http.ResponseWriter, r *http.Request, page impor
 		return
 	}
 	page.Title = "Імпорт"
-	page.Now = now
+	page.Now = c.Now
 	page.NavView = navViewFrom(statusCounts, kindCounts, "/import", false)
 	page.Disabled = !s.catalog.Enabled()
 	s.render(w, r, "import.html", page)

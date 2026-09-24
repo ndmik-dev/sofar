@@ -25,33 +25,20 @@ type settingsPage struct {
 	Backup   backupView
 }
 
-var settingsMeta = map[string]struct {
-	UnitsLabel string
-	Steps      []int
-}{
-	"show":   {"серії", []int{1, 2}},
-	"anime":  {"серії", []int{1, 2}},
-	"movie":  {"хвилини", []int{1, 5, 10}},
-	"book":   {"сторінки", []int{1, 5, 10, 25}},
-	"game":   {"години", []int{1, 2}},
-	"course": {"уроки", []int{1, 2}},
-	"manga":  {"розділи", []int{1, 5, 10}},
-}
-
 func (s *Server) settingRows(r *http.Request) ([]settingRow, error) {
 	saved, err := s.store.TypeSettings(r.Context(), defaultUserID)
 	if err != nil {
 		return nil, err
 	}
 	var out []settingRow
-	for _, k := range kindNav {
+	for _, k := range kinds {
 		row := settingRow{
 			Kind:       k.Kind,
-			Label:      k.Label,
+			Label:      k.Nav,
 			Depth:      "units",
-			Step:       1,
-			UnitsLabel: settingsMeta[k.Kind].UnitsLabel,
-			Steps:      settingsMeta[k.Kind].Steps,
+			Step:       k.Steps[0],
+			UnitsLabel: unitsSwitchLabel(k),
+			Steps:      k.Steps,
 		}
 		if ts, ok := saved[k.Kind]; ok {
 			row.Depth, row.Step = ts.Depth, ts.Step
@@ -93,7 +80,7 @@ func (s *Server) handleSettings(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleSetSetting(w http.ResponseWriter, r *http.Request) {
 	kind := r.PathValue("kind")
-	meta, ok := settingsMeta[kind]
+	meta, ok := kindByName[kind]
 	if !ok {
 		http.Error(w, "unknown kind", http.StatusBadRequest)
 		return

@@ -35,8 +35,8 @@ type exportFile struct {
 }
 
 func (s *Server) handleExport(w http.ResponseWriter, r *http.Request) {
-	now, _, _ := s.now()
-	out := exportFile{App: "sofar", ExportedAt: now.Format(time.RFC3339)}
+	c := s.now()
+	out := exportFile{App: "sofar", ExportedAt: c.Now.Format(time.RFC3339)}
 
 	for _, status := range []string{"active", "backlog", "done", "dropped"} {
 		entries, err := s.store.ListEntries(r.Context(), defaultUserID, status)
@@ -71,7 +71,7 @@ func (s *Server) handleExport(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	name := fmt.Sprintf("sofar-%s.json", now.Format("2006-01-02"))
+	name := fmt.Sprintf("sofar-%s.json", c.Now.Format("2006-01-02"))
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
 	w.Header().Set("Cache-Control", "no-store")

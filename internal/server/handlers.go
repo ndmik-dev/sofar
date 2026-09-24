@@ -1,10 +1,8 @@
 package server
 
 import (
-	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -18,182 +16,6 @@ const (
 	defaultUserID = 1
 	staleAfter    = 30 * 24 * time.Hour
 )
-
-var kindLabels = map[string]string{
-	"show":   "серіал",
-	"anime":  "аніме",
-	"movie":  "фільм",
-	"book":   "книга",
-	"game":   "гра",
-	"course": "курс",
-	"manga":  "манга",
-}
-
-var kindNav = []struct{ Kind, Label string }{
-	{"show", "Серіали"},
-	{"anime", "Аніме"},
-	{"movie", "Фільми"},
-	{"book", "Книги"},
-	{"manga", "Манґа"},
-	{"game", "Ігри"},
-	{"course", "Курси"},
-}
-
-var statusWords = map[string]string{
-	"active":  "у процесі",
-	"backlog": "у «колись»",
-	"done":    "у завершених",
-	"dropped": "у кинутих",
-}
-
-type navItem struct {
-	Key    string
-	Label  string
-	Href   string
-	Count  int
-	Active bool
-}
-
-type kindFilter struct {
-	Label string
-	Kind  string
-	Count int
-	Clear string
-}
-
-type kindItem struct {
-	Label string
-	Kind  string
-	Href  string
-	Count int
-	On    bool
-}
-
-type row struct {
-	EntryID   int64
-	Title     string
-	Sub       string
-	Kind      string
-	KindLabel string
-	Mode      string
-	Blocks    []domain.Block
-	Percent   int
-	Status    string
-	Pos       string
-	PosSub    string
-	Total     int
-	Btn       string
-	BtnWide   bool
-	Rating    int
-	Step      int
-	SeasonEnd int
-	Statuses  []statusOption
-	Aired     string
-	LinkURL   string
-	Stale     bool
-	Selected  bool
-}
-
-type summaryView struct {
-	Waiting     int
-	WaitingTime string
-	Airing      int
-	Active      int
-	// What to watch if you sat down now. Information, not a button.
-	Next   *nextUp
-	OOB    bool
-	Render bool
-	Off    bool
-}
-
-type nextUp struct {
-	EntryID int64
-	Title   string
-	Label   string
-	Mins    int
-}
-
-type statusOption struct {
-	Value string
-	Label string
-	On    bool
-}
-
-type toastView struct {
-	Text       string
-	EntryID    int64
-	Undo       bool
-	Restore    bool
-	BackStatus string
-}
-
-type removedRow struct {
-	EntryID int64
-	Toast   toastView
-	Summary summaryView
-	Nav     navView
-}
-
-type navView struct {
-	Nav   []navItem
-	Kinds []kindItem
-	Kind  string
-	Base  string
-	OOB   bool
-}
-
-type addedRow struct {
-	Row     row
-	Toast   toastView
-	Summary summaryView
-	Nav     navView
-	Step    *positionStep
-	Flow    *flowItem
-	ShowRow bool
-	RowOOB  string
-}
-
-type flowItem struct {
-	Title  string
-	Kind   string
-	Status string
-	Label  string
-}
-
-type positionStep struct {
-	EntryID  int64
-	Title    string
-	Total    int
-	Unit     string
-	Hint     string
-	BySeason bool
-	Seasons  []domain.Season
-	LastS    int
-	LastE    int
-}
-
-type listPage struct {
-	Title string
-	// Nothing in this list at all, as opposed to nothing under this bucket.
-	Bare    bool
-	NavView navView
-	Now     time.Time
-	Rows    []row
-	Fresh   []row
-	Stale   []row
-	Years   []yearGroup
-	Filters []filterChip
-	Filter  *kindFilter
-	Summary summaryView
-	Empty   bool
-}
-
-type moveResponse struct {
-	Row     row
-	Summary summaryView
-	Nav     navView
-	Toast   toastView
-}
 
 func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/active", http.StatusFound)
@@ -209,94 +31,17 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("ok"))
 }
 
-func (s *Server) now() (time.Time, string, int64) {
-	now := time.Now().In(s.cfg.Loc)
-	return now, s.cfg.Day(now).Format("2006-01-02"), now.Add(-staleAfter).Unix()
+// clock is one request's idea of the time, taken once so every helper down
+// the line agrees on which day it is and what counts as stale.
+type clock struct {
+	Now         time.Time
+	Today       string
+	StaleBefore int64
 }
 
-func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	now, today, staleBefore := s.now()
-
-	entries, err := s.store.ListEntries(ctx, defaultUserID, "active")
-	if err != nil {
-		s.fail(w, r, err)
-		return
-	}
-	statusCounts, err := s.store.CountsByStatus(ctx, defaultUserID)
-	if err != nil {
-		s.fail(w, r, err)
-		return
-	}
-	kindCounts, err := s.store.CountsByKind(ctx, defaultUserID, "active")
-	if err != nil {
-		s.fail(w, r, err)
-		return
-	}
-	sum, err := s.store.Summary(ctx, defaultUserID, today, staleBefore)
-	if err != nil {
-		s.fail(w, r, err)
-		return
-	}
-
-	kind := r.URL.Query().Get("kind")
-	page := listPage{
-		Title:   "У процесі",
-		NavView: navViewWithKind(statusCounts, kindCounts, "/active", kind, false),
-		Now:     now,
-		Summary: summaryFrom(sum),
-	}
-	page.Summary.Next = s.nextUp(ctx, today, staleBefore)
-
-	since := s.cfg.Day(now).AddDate(0, 0, -domain.FreshDays).Format("2006-01-02")
-	for _, e := range entries {
-		if kind != "" && e.Media.Kind != kind {
-			continue
-		}
-		rw := buildRow(e, today)
-		if label, ok := freshVolume(e, now); ok {
-			rw.Aired = label
-			page.Fresh = append(page.Fresh, rw)
-			continue
-		}
-		if u, ok := domain.JustAired(e.Units, e.Position, since, today); ok {
-			rw.Aired = "вийшла " + domain.Label(u, domain.MultiSeason(e.Units))
-			page.Fresh = append(page.Fresh, rw)
-			continue
-		}
-		if e.UpdatedAt < staleBefore {
-			rw.Stale = true
-			page.Stale = append(page.Stale, rw)
-			continue
-		}
-		page.Rows = append(page.Rows, rw)
-	}
-	// The first row on screen, not the first in the query: under a kind
-	// filter those differ, and the keyboard used to start on nothing.
-	switch {
-	case len(page.Fresh) > 0:
-		page.Fresh[0].Selected = true
-	case len(page.Rows) > 0:
-		page.Rows[0].Selected = true
-	case len(page.Stale) > 0:
-		page.Stale[0].Selected = true
-	}
-	page.Empty = len(page.Rows) == 0 && len(page.Stale) == 0 && len(page.Fresh) == 0
-	// The element stays in the page even with nothing to show, so an
-	// out-of-band swap has a target the moment the first row lands. Under a
-	// kind filter the figures describe the whole list, not what is on screen,
-	// so they stay hidden rather than contradict it.
-	page.Summary.Off = page.Empty || kind != ""
-	if kind != "" {
-		page.Filter = &kindFilter{
-			Label: kindLabels[kind],
-			Kind:  kind,
-			Count: len(page.Rows) + len(page.Stale) + len(page.Fresh),
-			Clear: "/active",
-		}
-	}
-
-	s.render(w, r, "active.html", page)
+func (s *Server) now() clock {
+	now := time.Now().In(s.cfg.Loc)
+	return clock{Now: now, Today: s.cfg.Day(now).Format("2006-01-02"), StaleBefore: now.Add(-staleAfter).Unix()}
 }
 
 func (s *Server) handleAdvance(w http.ResponseWriter, r *http.Request) {
@@ -304,7 +49,7 @@ func (s *Server) handleAdvance(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	now, today, _ := s.now()
+	c := s.now()
 
 	var abs *int
 	if raw := r.FormValue("abs"); raw != "" {
@@ -348,12 +93,12 @@ func (s *Server) handleAdvance(w http.ResponseWriter, r *http.Request) {
 		source = "setup"
 	}
 
-	move, err := s.store.AdvanceFrom(r.Context(), id, delta, abs, now, source)
+	move, err := s.store.AdvanceFrom(r.Context(), id, delta, abs, c.Now, source)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
 	}
-	s.respondMove(w, r, move, today)
+	s.respondMove(w, r, move, c)
 }
 
 func (s *Server) handleUndo(w http.ResponseWriter, r *http.Request) {
@@ -361,18 +106,18 @@ func (s *Server) handleUndo(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	now, today, _ := s.now()
+	c := s.now()
 
-	move, err := s.store.Undo(r.Context(), id, now)
+	move, err := s.store.Undo(r.Context(), id, c.Now)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
 	}
 	if !move.Changed {
-		s.respondMoveWith(w, r, move, today, toastView{Text: "Нема чого скасовувати"})
+		s.respondMoveWith(w, r, move, c, toastView{Text: "Нема чого скасовувати"})
 		return
 	}
-	s.respondMove(w, r, move, today)
+	s.respondMove(w, r, move, c)
 }
 
 func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
@@ -388,13 +133,13 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	now, today, _ := s.now()
+	c := s.now()
 	before, err := s.store.GetEntry(r.Context(), id)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
 	}
-	entry, err := s.store.SetStatus(r.Context(), id, status, now)
+	entry, err := s.store.SetStatus(r.Context(), id, status, c.Now)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
@@ -403,7 +148,7 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	// A row that no longer belongs on the open list has to leave it, the same
 	// way a deleted one does — otherwise it lingers until a reload.
 	if !viewingList(r, entry.Status) {
-		s.renderSidebands(w, r, removedRow{
+		s.renderSidebands(w, r, c, removedRow{
 			EntryID: id,
 			Toast: toastView{
 				Text:       entry.Media.Title + " · " + statusWords[entry.Status],
@@ -413,14 +158,13 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, today,
+	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, c,
 		toastView{Text: entry.Media.Title + " · " + statusWords[entry.Status], EntryID: id})
 }
 
-func (s *Server) sidebands(r *http.Request, today string) (summaryView, navView, error) {
-	_, _, staleBefore := s.now()
+func (s *Server) sidebands(r *http.Request, c clock) (summaryView, navView, error) {
 	base := currentBase(r)
-	sum, err := s.store.Summary(r.Context(), defaultUserID, today, staleBefore)
+	sum, err := s.store.Summary(r.Context(), defaultUserID, c.Today, c.StaleBefore)
 	if err != nil {
 		return summaryView{}, navView{}, err
 	}
@@ -434,52 +178,15 @@ func (s *Server) sidebands(r *http.Request, today string) (summaryView, navView,
 	}
 
 	view := summaryFrom(sum)
-	view.Next = s.nextUp(r.Context(), today, staleBefore)
+	view.Next = s.nextUp(r.Context(), c.Today, c.StaleBefore)
 	view.OOB = true
 	view.Render = base == "/active"
 	view.Off = view.Off || currentKind(r) != ""
 	return view, navViewFrom(statusCounts, kindCounts, base, true), nil
 }
 
-func navViewFrom(statusCounts, kindCounts map[string]int, active string, oob bool) navView {
-	return navViewWithKind(statusCounts, kindCounts, active, "", oob)
-}
-
-func navViewWithKind(statusCounts, kindCounts map[string]int, active, kind string, oob bool) navView {
-	nv := navView{OOB: oob, Kind: kind, Base: active}
-	kindBase := active
-	if _, isList := pathStatus[active]; !isList {
-		// Year, settings and import do not filter by kind, so their type links
-		// lead back to the main list — and the counts beside them must describe
-		// that list, not everything on the shelf.
-		kindBase = "/active"
-	}
-	for _, n := range []struct{ Label, Href, Key string }{
-		{"У процесі", "/active", "active"},
-		{"Колись", "/backlog", "backlog"},
-		{"Завершено", "/done", "done"},
-		{"Кинуто", "/dropped", "dropped"},
-	} {
-		nv.Nav = append(nv.Nav, navItem{
-			Key: n.Key, Label: n.Label, Href: n.Href, Count: statusCounts[n.Key], Active: n.Href == active,
-		})
-	}
-	for _, k := range kindNav {
-		href := kindBase + "?kind=" + k.Kind
-		if k.Kind == kind {
-			href = kindBase
-		}
-		nv.Kinds = append(nv.Kinds, kindItem{
-			Label: k.Label, Kind: k.Kind, Href: href,
-			Count: kindCounts[k.Kind], On: k.Kind == kind,
-		})
-	}
-	return nv
-}
-
-func (s *Server) renderSidebands(w http.ResponseWriter, r *http.Request, removed removedRow) {
-	_, today, _ := s.now()
-	sum, nav, err := s.sidebands(r, today)
+func (s *Server) renderSidebands(w http.ResponseWriter, r *http.Request, c clock, removed removedRow) {
+	sum, nav, err := s.sidebands(r, c)
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -488,12 +195,12 @@ func (s *Server) renderSidebands(w http.ResponseWriter, r *http.Request, removed
 	s.renderFragment(w, r, "removed-row", removed)
 }
 
-func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry store.Entry, today string, toast toastView, created, showRow bool) {
-	s.respondAddedAt(w, r, entry, today, toast, created, showRow, "afterbegin:#rows")
+func (s *Server) respondAdded(w http.ResponseWriter, r *http.Request, entry store.Entry, c clock, toast toastView, created, showRow bool) {
+	s.respondAddedAt(w, r, entry, c, toast, created, showRow, "afterbegin:#rows")
 }
 
-func (s *Server) respondAddedAt(w http.ResponseWriter, r *http.Request, entry store.Entry, today string, toast toastView, created, showRow bool, rowOOB string) {
-	sum, nav, err := s.sidebands(r, today)
+func (s *Server) respondAddedAt(w http.ResponseWriter, r *http.Request, entry store.Entry, c clock, toast toastView, created, showRow bool, rowOOB string) {
+	sum, nav, err := s.sidebands(r, c)
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -502,7 +209,7 @@ func (s *Server) respondAddedAt(w http.ResponseWriter, r *http.Request, entry st
 	// The archive groups rows by year, so a bare prepend would land outside
 	// the groups — rows only insert live on flat lists.
 	resp := addedRow{
-		Row:     buildRow(entry, today),
+		Row:     buildRow(entry, c.Today),
 		Toast:   toast,
 		Summary: sum,
 		Nav:     nav,
@@ -526,73 +233,25 @@ func (s *Server) respondAddedAt(w http.ResponseWriter, r *http.Request, entry st
 	s.renderFragment(w, r, "added-row", resp)
 }
 
-// Asking "where did you stop" only makes sense for something you are actually
-// watching, that has units to count, and that is still at zero.
-func positionStepFor(e store.Entry, created bool) *positionStep {
-	if !created || e.Status != "active" || e.Depth == "status" {
-		return nil
-	}
-	if !e.Media.TotalUnits.Valid || e.Position > 0 {
-		return nil
-	}
-	total := int(e.Media.TotalUnits.Int64)
-	if total <= 1 {
-		return nil
-	}
-	unit := domain.UnitMany(e.Media.Unit)
-	hint := fmt.Sprintf("усього %d", total)
-	if unit != "" {
-		hint += " " + unit
-	}
-	step := &positionStep{
-		EntryID: e.ID,
-		Title:   e.Media.Title,
-		Total:   total,
-		Unit:    unit,
-		Hint:    hint,
-	}
-
-	// Asking for an absolute episode number is asking someone to add up season
-	// lengths in their head. With more than one season, ask the way people
-	// actually remember it.
-	if seasons := domain.Seasons(e.Units); len(seasons) > 1 {
-		step.BySeason = true
-		step.Seasons = seasons
-		last := seasons[len(seasons)-1]
-		step.LastS, step.LastE = last.Number, last.Episodes
-	}
-	return step
+func (s *Server) respondMove(w http.ResponseWriter, r *http.Request, move store.Move, c clock) {
+	s.respondMoveWith(w, r, move, c, toastFor(move))
 }
 
-func (s *Server) respondMove(w http.ResponseWriter, r *http.Request, move store.Move, today string) {
-	s.respondMoveWith(w, r, move, today, toastFor(move))
-}
-
-func (s *Server) respondMoveWith(w http.ResponseWriter, r *http.Request, move store.Move, today string, toast toastView) {
+func (s *Server) respondMoveWith(w http.ResponseWriter, r *http.Request, move store.Move, c clock, toast toastView) {
 	// The sidebar rides along: a status change moves a title between lists,
 	// and counts that only refresh on the next click read as broken.
-	sum, nav, err := s.sidebands(r, today)
+	sum, nav, err := s.sidebands(r, c)
 	if err != nil {
 		s.fail(w, r, err)
 		return
 	}
 
 	s.renderFragment(w, r, "move-response", moveResponse{
-		Row:     buildRow(move.Entry, today),
+		Row:     buildRow(move.Entry, c.Today),
 		Summary: sum,
 		Nav:     nav,
 		Toast:   toast,
 	})
-}
-
-var statusPaths = map[string]string{
-	"active": "/active", "backlog": "/backlog",
-	"done": "/done", "dropped": "/dropped",
-}
-
-var pathStatus = map[string]string{
-	"/active": "active", "/backlog": "backlog",
-	"/done": "done", "/dropped": "dropped",
 }
 
 // currentBase is the list page the request was made from, so out-of-band nav
@@ -636,39 +295,6 @@ func viewingList(r *http.Request, status string) bool {
 	return u.Path == statusPaths[status]
 }
 
-func unitWords(e store.Entry) (one, few, many string) {
-	f, ok := domain.Units[e.Media.Unit]
-	if !ok {
-		return "", "", ""
-	}
-	return f.One, f.Few, f.Many
-}
-
-func toastFor(move store.Move) toastView {
-	if !move.Changed {
-		return toastView{}
-	}
-	one, few, many := unitWords(move.Entry)
-	switch {
-	case move.To < move.From:
-		return toastView{
-			Text:    fmt.Sprintf("%s · назад на %d", move.Entry.Media.Title, move.To),
-			EntryID: move.Entry.ID,
-			Undo:    true,
-		}
-	case move.Finished:
-		return toastView{Text: move.Entry.Media.Title + " · завершено", EntryID: move.Entry.ID, Undo: true}
-	case one != "":
-		return toastView{
-			Text:    move.Entry.Media.Title + " · " + domain.Count(move.To, one, few, many),
-			EntryID: move.Entry.ID,
-			Undo:    true,
-		}
-	default:
-		return toastView{Text: move.Entry.Media.Title + " · оновлено", EntryID: move.Entry.ID}
-	}
-}
-
 func (s *Server) entryID(w http.ResponseWriter, r *http.Request) (int64, bool) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id <= 0 {
@@ -684,157 +310,4 @@ func (s *Server) failEntry(w http.ResponseWriter, r *http.Request, err error) {
 		return
 	}
 	s.fail(w, r, err)
-}
-
-func summaryFrom(s store.Summary) summaryView {
-	return summaryView{
-		Render:      true,
-		Off:         s.Active == 0,
-		Waiting:     s.Waiting,
-		WaitingTime: domain.HoursMins(s.WaitingMins),
-		Airing:      s.Airing,
-		Active:      s.Active,
-	}
-}
-
-// nextUp names the episode to watch now. A failure here costs one line of
-// the page, not the page, so it is logged and swallowed.
-func (s *Server) nextUp(ctx context.Context, today string, staleBefore int64) *nextUp {
-	id, err := s.store.NextUp(ctx, defaultUserID, today, staleBefore)
-	if err != nil {
-		s.log.Warn("next up", "err", err)
-		return nil
-	}
-	if id == 0 {
-		return nil
-	}
-	e, err := s.store.GetEntry(ctx, id)
-	if err != nil {
-		return nil
-	}
-	for _, u := range e.Units {
-		if u.Idx != e.Position+1 {
-			continue
-		}
-		label := domain.Label(u, domain.MultiSeason(e.Units))
-		if u.Title != "" {
-			label += " «" + u.Title + "»"
-		}
-		return &nextUp{EntryID: e.ID, Title: e.Media.Title, Label: label, Mins: u.Runtime}
-	}
-	return nil
-}
-
-// freshVolume answers the same question JustAired answers for episodes: has
-// something you have not read turned up lately.
-func freshVolume(e store.Entry, now time.Time) (string, bool) {
-	if e.WatchVol <= e.Position || e.WatchFoundAt == 0 {
-		return "", false
-	}
-	if now.Sub(time.Unix(e.WatchFoundAt, 0)) > domain.FreshDays*24*time.Hour {
-		return "", false
-	}
-	return fmt.Sprintf("вийшов том %d", e.WatchVol), true
-}
-
-// volumeTrack is true for something counted in volumes with a known count and
-// no unit rows of its own to draw from.
-func volumeTrack(e store.Entry) bool {
-	return e.Media.Unit == "volume" && len(e.Units) == 0 &&
-		e.Media.TotalUnits.Valid && e.Media.TotalUnits.Int64 > 1
-}
-
-func buildRow(e store.Entry, today string) row {
-	rw := row{
-		EntryID:   e.ID,
-		Title:     e.Media.Title,
-		Rating:    int(e.Rating.Int64),
-		Kind:      e.Media.Kind,
-		KindLabel: kindLabels[e.Media.Kind],
-		Step:      max(e.Step, 1),
-		LinkURL:   e.LinkURL,
-		Btn:       "+",
-	}
-	if rw.Step > 1 {
-		// «+10» beside a bare «+» on every other row is an unexplained
-		// number; «+10 стор.» is a step.
-		rw.Btn = fmt.Sprintf("+%d %s", rw.Step, domain.Units[e.Media.Unit].Short)
-		rw.BtnWide = true
-	}
-
-	total := int(e.Media.TotalUnits.Int64)
-	hasTotal := e.Media.TotalUnits.Valid
-	rw.Total = total
-
-	switch {
-	case e.Depth == "status":
-		rw.Mode = "status"
-		rw.Status = e.Status
-		rw.Btn = "✓"
-		rw.Pos = "—"
-		rw.Sub = e.Media.TitleOrig
-		rw.Statuses = []statusOption{
-			{"backlog", "хочу", e.Status == "backlog"},
-			{"active", "у процесі", e.Status == "active"},
-			{"done", "завершив", e.Status == "done"},
-		}
-	case !hasTotal:
-		rw.Mode = "open"
-		rw.Pos = strconv.Itoa(e.Position)
-		rw.PosSub = "без межі"
-		rw.Sub = e.Media.TitleOrig
-	case len(e.Units) > 0:
-		rw.Mode = "cells"
-		rw.Blocks = domain.BuildTiered(e.Units, e.Position, today)
-		rw.SeasonEnd = domain.CurrentSeasonEnd(rw.Blocks)
-		rw.Pos = fmt.Sprintf("%d / %d", e.Position, total)
-		rw.PosSub = remainingLabel(domain.RemainingFrom(e.Units, e.Position, today))
-		if next := domain.NextLabel(e.Units, e.Position); next != "" {
-			rw.Sub = "далі " + next
-		} else {
-			rw.Sub = "усе переглянуто"
-		}
-	case volumeTrack(e):
-		// Volumes are countable things you finish one by one, which is what a
-		// track is for. A solid bar hides that a series has thirteen of them.
-		rw.Mode = "cells"
-		rw.Blocks = domain.BuildVolumes(total, e.Position)
-		rw.SeasonEnd = total
-		rw.Pos = fmt.Sprintf("%d / %d", e.Position, total)
-		rw.PosSub = domain.Count(total-e.Position, "том", "томи", "томів") + " лишилось"
-		if e.Position >= total {
-			rw.PosSub = "усе прочитано"
-		}
-		rw.Sub = e.Media.TitleOrig
-	default:
-		rw.Mode = "bar"
-		if total > 0 {
-			rw.Percent = e.Position * 100 / total
-		}
-		rw.Pos = fmt.Sprintf("%d / %d", e.Position, total)
-		rw.PosSub = fmt.Sprintf("%d%%", rw.Percent)
-		rw.Sub = e.Media.TitleOrig
-	}
-
-	return rw
-}
-
-func remainingLabel(rem domain.Remaining) string {
-	if rem.Left == 0 {
-		return "завершено"
-	}
-	if rem.Waiting > 0 && rem.Waiting < rem.Left {
-		return domain.Count(rem.Waiting, "чекає", "чекають", "чекають")
-	}
-	if t := domain.HoursMins(rem.LeftMins); t != "" {
-		return fmt.Sprintf("%d · %s", rem.Left, t)
-	}
-	return fmt.Sprintf("лишилось %d", rem.Left)
-}
-
-func orDefault(v, def string) string {
-	if v == "" {
-		return def
-	}
-	return v
 }

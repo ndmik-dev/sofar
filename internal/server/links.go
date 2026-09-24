@@ -80,12 +80,12 @@ func (s *Server) handleAddLink(w http.ResponseWriter, r *http.Request) {
 		label = given
 	}
 
-	now, today, _ := s.now()
-	if err := s.store.AddLink(r.Context(), id, link, label, now); err != nil {
+	c := s.now()
+	if err := s.store.AddLink(r.Context(), id, link, label, c.Now); err != nil {
 		s.fail(w, r, err)
 		return
 	}
-	s.respondEntry(w, r, id, today, toastView{Text: label + " · посилання додано"})
+	s.respondEntry(w, r, id, c, toastView{Text: label + " · посилання додано"})
 }
 
 func (s *Server) handleDeleteLink(w http.ResponseWriter, r *http.Request) {
@@ -102,15 +102,15 @@ func (s *Server) handleDeleteLink(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	_, today, _ := s.now()
-	s.respondEntry(w, r, id, today, toastView{Text: "Посилання прибрано"})
+	c := s.now()
+	s.respondEntry(w, r, id, c, toastView{Text: "Посилання прибрано"})
 }
 
-func (s *Server) respondEntry(w http.ResponseWriter, r *http.Request, id int64, today string, toast toastView) {
+func (s *Server) respondEntry(w http.ResponseWriter, r *http.Request, id int64, c clock, toast toastView) {
 	entry, err := s.store.GetEntry(r.Context(), id)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
 	}
-	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, today, toast)
+	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, c, toast)
 }

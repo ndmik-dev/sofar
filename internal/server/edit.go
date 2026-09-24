@@ -33,12 +33,12 @@ func (s *Server) handleEdit(w http.ResponseWriter, r *http.Request) {
 		ed.SetTotal, ed.Total = true, n
 	}
 
-	now, today, _ := s.now()
-	entry, err := s.store.UpdateDetails(r.Context(), id, ed, now)
+	c := s.now()
+	entry, err := s.store.UpdateDetails(r.Context(), id, ed, c.Now)
 	if err != nil {
 		s.failEntry(w, r, err)
 		return
 	}
-	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, today,
+	s.respondMoveWith(w, r, store.Move{Entry: entry, Changed: true}, c,
 		toastView{Text: entry.Media.Title + " · збережено", EntryID: entry.ID})
 }

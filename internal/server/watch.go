@@ -46,7 +46,7 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	now, today, _ := s.now()
+	c := s.now()
 	// Check the entry exists first: without this a missing id reaches SQLite
 	// and comes back as a foreign-key failure, which is a 500 for what is
 	// plainly a 404.
@@ -54,7 +54,7 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 		s.failEntry(w, r, err)
 		return
 	}
-	if err := s.store.SetWatch(r.Context(), id, catalog.ReleaseSource, query, now); err != nil {
+	if err := s.store.SetWatch(r.Context(), id, catalog.ReleaseSource, query, c.Now); err != nil {
 		s.fail(w, r, err)
 		return
 	}
@@ -66,7 +66,7 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 		s.log.Warn("first watch check", "query", query, "err", err)
 		text = "Стежу за «" + query + "» · видавця зараз не чути"
 	} else if newest, found := newestVolume(vols); found {
-		if err := s.store.RecordRelease(r.Context(), id, newest.Volume, newest.Title, newest.URL, now); err != nil {
+		if err := s.store.RecordRelease(r.Context(), id, newest.Volume, newest.Title, newest.URL, c.Now); err != nil {
 			s.fail(w, r, err)
 			return
 		}
@@ -75,7 +75,7 @@ func (s *Server) handleWatch(w http.ResponseWriter, r *http.Request) {
 		text = "Стежу за «" + query + "» · томів поки не знайшов"
 	}
 
-	s.respondEntry(w, r, id, today, toastView{Text: text})
+	s.respondEntry(w, r, id, c, toastView{Text: text})
 }
 
 func (s *Server) handleUnwatch(w http.ResponseWriter, r *http.Request) {
@@ -87,8 +87,8 @@ func (s *Server) handleUnwatch(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	_, today, _ := s.now()
-	s.respondEntry(w, r, id, today, toastView{Text: "Більше не стежу"})
+	c := s.now()
+	s.respondEntry(w, r, id, c, toastView{Text: "Більше не стежу"})
 }
 
 func newestVolume(vols []catalog.Release) (catalog.Release, bool) {

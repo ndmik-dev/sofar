@@ -307,19 +307,23 @@ daily use. Nothing here is implemented yet; it is the list to work from.
 
 ### Cleanups
 
-- `handleActive` is the one list that does not go through `renderList`; it
-  builds fresh/stale/rows by hand. Give `listSpec` a hook for the active
-  split so all four lists share one path.
-- `handlers.go` at 800 lines mixes view types, handlers, sidebands and row
-  building. `views.go` for the types, `rows.go` for `buildRow`/`toastFor`/
-  `remainingLabel`; handlers stay.
-- `sidebands` recomputes `staleBefore` via `s.now()` although the caller
-  already has it; pass it in.
-- The `AGENTS.md` "podcasts" lesson and the migration `0008_podcasts_open` are
-  history now — fine to keep, but README still lists podcasts nowhere and the
-  nav has seven kinds; make sure `kindNav`, `kindLabels`, `unitForKind` and
-  the CSS `--k-*` tokens are the same seven, in one place, so adding a kind is
-  one edit.
+All done, September 2026:
+
+- ~~`handleActive` does not go through `renderList`.~~ It does now:
+  `fillActive` is the third case beside `fillBacklog` and `fillArchive`, and
+  the first-row selection is one switch for all four lists.
+- ~~`handlers.go` at 800 lines.~~ Split: `views.go` holds the view types and
+  the nav builders, `rows.go` builds rows, toasts and the summary, `kinds.go`
+  is the kind table, `handlers.go` keeps the handlers and respond helpers.
+- ~~`sidebands` recomputes `staleBefore`.~~ `s.now()` returns one `clock`
+  (now, today, stale-before) that is taken once per request and passed down to
+  every respond helper.
+- ~~Seven kinds in four places.~~ One `kinds` slice: label, nav name, unit,
+  steps, palette prefixes, manual/catalog flags, subtitle field. `kindLabels`,
+  `unitForKind`, `manualKinds`, `catalogKinds`, `kindPrefixes` and the settings
+  rows derive from it; `TestKindsAreCompleteEverywhere` checks each kind has
+  its `--k-*` colour in every theme block. Side effect: the manga settings
+  switch said «розділи» and now says «томи».
 
 ### Design
 
