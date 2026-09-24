@@ -307,6 +307,16 @@ except `⇧Space`, one page or one minute at a time.
 | 3 | Type something you do not have | Only catalog results, no shelf section |
 | 4 | **Імпорт** → Завантажити JSON | A `sofar-YYYY-MM-DD.json` with every list, positions, ratings, notes and links |
 
+## TC-21a · Backups
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | **Налаштування** → Резервна копія, fresh install | «ще не було», only **Зробити зараз** |
+| 2 | Click **Зробити зараз** | The row now says «остання <today> · N МБ · 1 копія» and **Завантажити** appears |
+| 3 | Click **Завантажити** | A `sofar-YYYY-MM-DD.db` downloads; `sqlite3 file "pragma integrity_check"` says `ok` |
+| 4 | Click **Зробити зараз** again the same day | Still 1 копія — the day's file is replaced, not duplicated |
+| 5 | Check the server log after 04:20 | `backup written file=sofar-… pruned=0` |
+
 ## TC-22 · What aired
 
 Needs a running show with a recent episode you have not watched.

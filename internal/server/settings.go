@@ -22,6 +22,7 @@ type settingsPage struct {
 	NavView  navView
 	Now      time.Time
 	Settings []settingRow
+	Backup   backupView
 }
 
 var settingsMeta = map[string]struct {
@@ -76,11 +77,17 @@ func (s *Server) handleSettings(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
+	backup, err := s.backupView()
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
 	s.render(w, r, "settings.html", settingsPage{
 		Title:    "Налаштування",
 		NavView:  navViewFrom(statusCounts, kindCounts, "/settings", false),
 		Now:      time.Now().In(s.cfg.Loc),
 		Settings: rows,
+		Backup:   backup,
 	})
 }
 

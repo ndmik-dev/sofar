@@ -78,6 +78,8 @@ func (s *Server) routes() error {
 	s.mux.HandleFunc("GET /year", s.handleYear)
 	s.mux.HandleFunc("GET /year/{y}", s.handleYear)
 	s.mux.HandleFunc("GET /export", s.handleExport)
+	s.mux.HandleFunc("GET /backup", s.handleBackupDownload)
+	s.mux.HandleFunc("POST /backup", s.handleBackupNow)
 	s.mux.HandleFunc("GET /import", s.handleImport)
 	s.mux.HandleFunc("POST /import", s.handleImportRun)
 	s.mux.HandleFunc("GET /settings", s.handleSettings)

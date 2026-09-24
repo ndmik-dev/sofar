@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -11,6 +12,7 @@ import (
 type Config struct {
 	Addr      string
 	DBPath    string
+	BackupDir string
 	Dev       bool
 	Fixtures  bool
 	Loc       *time.Location
@@ -38,6 +40,10 @@ func Load() (Config, error) {
 		GamesKey:  env("RAWG_KEY", ""),
 		CacheDir:  env("SOFAR_CACHE", "cache"),
 	}
+
+	// Backups sit beside the database, so the one volume that holds state
+	// holds its copies too: /data/backups in the container.
+	cfg.BackupDir = env("SOFAR_BACKUPS", filepath.Join(filepath.Dir(cfg.DBPath), "backups"))
 
 	// Fixtures follow dev mode unless asked otherwise: an empty database is
 	// meant to stay empty once you have your own titles in it.

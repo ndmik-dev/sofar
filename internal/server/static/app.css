@@ -1134,6 +1134,7 @@ button.kb:hover { border-color: var(--mid); color: var(--fg); }
 .strow .sw button:last-child { border-right: 0; }
 .strow .sw button.on { background: var(--fg); color: var(--bg); }
 .strow .sw button:hover:not(.on) { color: var(--fg); background: var(--ln2); }
+.strow .acts { display: inline-flex; gap: 8px; }
 .strow .pv { font-family: var(--mono); font-size: 11px; color: var(--mut); display: flex; align-items: center; }
 
 /* The palette inserts rows out-of-band; the moment one lands, the empty state

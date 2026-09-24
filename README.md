@@ -35,6 +35,7 @@ A real environment variable always wins over the file.
 | `SOFAR_ADDR` | `:8099` | listen address |
 | `SOFAR_DB` | `sofar.db` | SQLite file |
 | `SOFAR_CACHE` | `cache` | on-disk cache of catalog responses |
+| `SOFAR_BACKUPS` | `backups` beside the db | nightly `VACUUM INTO` copies, newest 14 kept |
 | `SOFAR_DEV` | unset | disk templates, hot reload, fixtures |
 | `SOFAR_FIXTURES` | on in dev | `0` seeds nothing, so a cleared database stays cleared |
 | `SOFAR_TZ` | `Europe/Kyiv` | timezone for day boundaries |
@@ -215,6 +216,13 @@ own is a different job from adding one. A shelf hit links to
 `/export` downloads everything as one JSON file — a dump, not an API: it
 answers once, promises no compatibility and has no client.
 
+Every night at 04:20 the nightly job writes a `VACUUM INTO` copy of the whole
+database to `SOFAR_BACKUPS` and keeps the newest fourteen. That is the same
+disk, so it protects against a bad migration, not a dead volume: once a month
+open **Налаштування → Резервна копія** and download the newest one. There is no
+bucket and no cron outside the process — the person who owns the data carries
+the copy.
+
 `/import` takes a pasted list, one title per line, and looks each up in TMDB.
 A year in brackets narrows the search, `title | 12` sets a starting position,
 and the first column of a CSV works as well. An exact title beats a popular
@@ -304,6 +312,8 @@ POST /settings/{kind}
 GET  /import                paste a list of titles
 POST /import
 GET  /export                everything as one JSON file
+GET  /backup                newest nightly copy of the database
+POST /backup                make a copy now
 GET  /login
 POST /login
 POST /logout

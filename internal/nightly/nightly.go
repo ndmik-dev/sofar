@@ -19,6 +19,9 @@ const (
 	refreshEvery = 20 * time.Hour
 	betweenCalls = 700 * time.Millisecond
 	keepDeleted  = 30 * 24 * time.Hour
+	// Two weeks of nightly copies: enough to notice a bad day and go back past
+	// it, small enough that a shelf never fills the volume.
+	keepBackups = 14
 )
 
 type Job struct {
@@ -94,6 +97,22 @@ func (j *Job) checkWatches(ctx context.Context, now time.Time) {
 	}
 }
 
+// backup writes tonight's copy and drops the oldest ones. A failed copy is
+// logged loudly and nothing else is skipped: a missing backup is bad, a stale
+// shelf on top of it is worse.
+func (j *Job) backup(ctx context.Context, now time.Time) {
+	f, err := j.store.Backup(ctx, j.cfg.BackupDir, now)
+	if err != nil {
+		j.log.Error("backup failed", "dir", j.cfg.BackupDir, "err", err)
+		return
+	}
+	removed, err := store.PruneBackups(j.cfg.BackupDir, keepBackups)
+	if err != nil {
+		j.log.Error("prune backups", "err", err)
+	}
+	j.log.Info("backup written", "file", f.Name, "bytes", f.Size, "pruned", removed)
+}
+
 func (j *Job) nextRun(now time.Time) time.Time {
 	next := time.Date(now.Year(), now.Month(), now.Day(), j.cfg.DayStart, 20, 0, 0, j.cfg.Loc)
 	if !next.After(now) {
@@ -105,6 +124,10 @@ func (j *Job) nextRun(now time.Time) time.Time {
 // Once is the whole night's work, exported so it can be triggered by hand.
 func (j *Job) Once(ctx context.Context) {
 	now := time.Now().In(j.cfg.Loc)
+
+	// The copy comes first: whatever the rest of the night does to the data,
+	// the file from before it exists.
+	j.backup(ctx, now)
 
 	if n, err := j.store.PurgeDeleted(ctx, now.Add(-keepDeleted)); err != nil {
 		j.log.Error("purge deleted", "err", err)

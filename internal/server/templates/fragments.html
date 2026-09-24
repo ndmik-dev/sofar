@@ -238,6 +238,17 @@
 </div>
 {{end}}
 
+{{define "backup-row"}}
+<div class="strow" id="backup-row">
+  <span class="tn">Копія бази</span>
+  <span class="acts">
+    <button type="button" class="ghostbtn" hx-post="/backup" hx-target="#backup-row" hx-swap="outerHTML">Зробити зараз</button>
+    {{if .Has}}<a class="ghostbtn" href="/backup">Завантажити</a>{{end}}
+  </span>
+  <span class="pv">{{if .Has}}остання {{.Last}} · {{.Size}} · {{.Count}} {{plural .Count "копія" "копії" "копій"}}{{else}}ще не було{{end}}</span>
+</div>
+{{end}}
+
 {{define "import-results"}}
 {{if .Results}}
 <div class="impres">

@@ -108,7 +108,7 @@ time left = `(total_units - position) * runtime_min`.
 | ✅ | **M8.5** Edit and import | 3 h | Fix a saved entry, paste an archive |
 | ✅ | **M8.6** Password | 1.5 h | Nothing public without it |
 | ✅ | **M8.7** Links, nightly, shelf search, export | 5 h | The list keeps itself current |
-| | **M9** Deploy | 5 h | Live on a domain — done; **backups are not** (see §8) |
+| ✅ | **M9** Deploy | 5 h | Live on a domain, nightly copies, monthly download |
 | | **M10** Pocket | 3 h | PWA, installs on a phone |
 
 About 58 hours spent of roughly 61. Dark theme and the responsive layout landed
@@ -164,8 +164,9 @@ runtime through the progress log rather than behind it.
 ### M9 · Deploy — 5 h
 
 A nightly job in the same process refreshing `airing='returning'` shows and
-purging entries deleted more than 30 days ago. Dokploy, domain, HTTPS, a daily
-`sqlite3 .backup` to S3.
+purging entries deleted more than 30 days ago. Dokploy, domain, HTTPS, a nightly
+`VACUUM INTO` beside the database and a download button in settings for the
+monthly off-box copy — no S3, no credentials, no second process.
 
 **Done when:** it runs on a domain and a backup has completed.
 
@@ -289,12 +290,10 @@ daily use. Nothing here is implemented yet; it is the list to work from.
 
 ### Fix first
 
-- **There are no backups.** The whole state is one SQLite file on a Dokploy
-  volume, and nothing copies it anywhere. Day boundary logic, the progress log,
-  every manga watch — one disk failure away. Port the nightly `VACUUM INTO`
-  from an earlier project (`internal/store/backup.go`, keeps the newest N under
-  `/data/backups`), run it from the existing nightly job, and pull a copy
-  off-box once a month. This is the only item on this page that matters.
+- ~~**There are no backups.**~~ Done: `store.Backup` runs first thing in the
+  nightly job, keeps fourteen under `/data/backups`, and **Налаштування →
+  Резервна копія** downloads the newest. The off-box copy is a monthly habit,
+  not a cron — the volume and its copies are still one disk.
 - **Row selection under a kind filter.** `handleActive` sets
   `rw.Selected = i == 0` on the unfiltered index; when the first entry is
   filtered out by `?kind=`, no row is selected and the keyboard layer starts
@@ -350,7 +349,7 @@ shape — and it holds in both themes. Notes, not complaints:
 
 ### Ideas, in the order they would earn their place
 
-1. **Backups** (above). Not an idea — a debt.
+1. ~~**Backups**~~ (above). Done.
 2. **PWA / phone** (M10). The one place a media tracker is used is a phone at
    23:40. Manifest, icon, standalone display; nothing else.
 3. **"Next up" on the summary strip**: the single episode/volume you would
