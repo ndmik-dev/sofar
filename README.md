@@ -72,8 +72,6 @@ watching.
 
 ### On a phone
 
-<img src="docs/screens/phone.png" width="360" alt="Phone: figures in two columns, one big button per row, a tab bar at the bottom">
-
 Add it to the home screen and it opens as an app. Same pages, same CSS:
 figures in two columns, one thumb-sized button per row, the four lists in a
 tab bar. There is no service worker on purpose — a list that could be stale
@@ -81,7 +79,7 @@ is worse than one that says it cannot load.
 
 Both themes follow the system; **Налаштування** can pin one.
 
-<img src="docs/screens/active-light.png" width="720" alt="The same list in the light theme">
+<img src="docs/screens/active-dark.png" width="720" alt="The same list in the dark theme">
 
 ## What it does
 
