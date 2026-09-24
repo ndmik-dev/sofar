@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ndmik-dev/sofar/internal/domain"
 	"github.com/ndmik-dev/sofar/internal/store"
 )
 
@@ -34,12 +35,6 @@ var unitForKind = map[string]string{
 	"book": "page", "game": "hour",
 	"movie":  "minute",
 	"course": "lesson", "manga": "volume",
-}
-
-var unitLabels = map[string]string{
-	"episode": "серій", "page": "сторінок", "hour": "годин",
-	"chapter": "розділів", "lesson": "уроків", "minute": "хвилин",
-	"volume": "томів", "none": "",
 }
 
 type searchResult struct {
@@ -167,7 +162,7 @@ func manualFormFor(title, kind string) *manualForm {
 		Kind:      kind,
 		KindLabel: kindLabels[kind],
 		Unit:      unit,
-		UnitLabel: unitLabels[unit],
+		UnitLabel: domain.UnitMany(unit),
 		Open:      unit == "none",
 	}
 	f.SubtitleLabel, f.SubtitlePlaceholder = subtitleField(kind)

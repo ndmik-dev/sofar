@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 )
 
@@ -40,4 +41,26 @@ func (s *Store) Summary(ctx context.Context, userID int64, today string, staleBe
 	}
 
 	return out, nil
+}
+
+// NextUp is the one thing to watch if you sat down now: the entry that has
+// an aired episode waiting and has gone longest without a move. Derived, not
+// stored — the answer changes with every press of Space.
+func (s *Store) NextUp(ctx context.Context, userID int64, today string, staleBefore int64) (int64, error) {
+	var id int64
+	err := s.DB.QueryRowContext(ctx, `
+		SELECT e.id
+		FROM entry e
+		JOIN unit u ON u.media_id = e.media_id AND u.idx = e.position + 1
+		WHERE e.user_id = ? AND e.status = 'active' AND e.deleted_at IS NULL
+		  AND e.updated_at >= ? AND u.air_date IS NOT NULL AND u.air_date <= ?
+		ORDER BY e.updated_at ASC, e.id ASC
+		LIMIT 1`, userID, staleBefore, today).Scan(&id)
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, fmt.Errorf("next up: %w", err)
+	}
+	return id, nil
 }

@@ -330,6 +330,19 @@ Real device, not a narrowed window: install prompts only show on one.
 | 5 | Tap `+1`, then a season block | Progress moves; the panel fills the screen with ✕ at the top |
 | 6 | Swipe the strip of a long show sideways | The whole tier scrolls; the current season keeps full-size cells |
 
+## TC-23 · The September review
+
+| # | Do | Expect |
+|---|---|---|
+| 1 | Click a title in any list | The panel opens, same as `↵`; clicking a cell or the button still does what it did |
+| 2 | Look under the figures on **У процесі** | A «далі» line naming one episode: the show that has waited longest with something aired |
+| 3 | Watch that episode (`Space`) | The line changes to the next show without a reload |
+| 4 | Look at a book with step 10 | The button says `+10 стор.`, not `+10` |
+| 5 | Open **Колись** on an empty list | No time buckets, «Поки порожньо» pointing at ⌘K |
+| 6 | Open **Рік** on a fresh database | One sentence and a faint heatmap, no zeros |
+| 7 | `?kind=книги` on **У процесі** when the newest entry is a series | The first *book* is selected, not nothing |
+| 8 | Light theme, select a row | The tint is clearly darker than the palette hover |
+
 ## TC-22 · What aired
 
 Needs a running show with a recent episode you have not watched.

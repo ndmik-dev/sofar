@@ -1,7 +1,7 @@
 :root {
   --bg:#F5F7F6; --fg:#131A18; --ac:#0E6B5A;
   --ln:#DCE2E0; --ln2:#E9EDEB; --cell:#DEE5E2;
-  --mut:#94A09C; --mid:#5A6562; --el:#FFFFFF; --sel:#EBF3F0; --bar:#EFF2F1;
+  --mut:#94A09C; --mid:#5A6562; --el:#FFFFFF; --sel:#DFEAE5; --bar:#EFF2F1;
 
   --k-show:#1F4E79; --k-anime:#A6401A; --k-movie:#5B3A8C;
   --k-book:#0F6B4F; --k-game:#8A5A14; --k-course:#9C2E68;
@@ -151,6 +151,25 @@ a { color: inherit; text-decoration: none; }
 .sum > div { flex: 0 0 auto; }
 .sum div { padding: 13px 24px; border-right: 1px solid var(--ln2); }
 .sum div:last-child { border-right: 0; margin-left: auto; text-align: right; }
+/* One line under the figures: what to watch if you sat down now. It is
+   information, so it takes no action colour — only the label is tinted. */
+.next {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 10px 24px 12px;
+  font-size: 14px;
+  color: var(--mid);
+  border-bottom: 1px solid var(--ln);
+}
+.next b { color: var(--fg); font-weight: 500; }
+.next .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ac); }
+.next.off { display: none; }
+
+.year-hint { padding: 22px 24px 8px; font-size: 16px; max-width: 44ch; border-bottom: 1px solid var(--ln); }
+.year-hint em { font-style: normal; color: var(--mut); display: block; font-size: 13.5px; margin-top: 4px; line-height: 1.5; }
+.heat.faint { opacity: .35; }
+
 .sum .n { font-family: var(--cond); font-size: 24px; font-weight: 700; line-height: 1; }
 .sum .n s {
   text-decoration: none;
@@ -188,13 +207,17 @@ a { color: inherit; text-decoration: none; }
 
 .rw {
   display: grid;
-  grid-template-columns: minmax(220px, 340px) 70px minmax(0, 1fr) 140px 24px 32px;
+  grid-template-columns: minmax(220px, 340px) 70px minmax(0, 1fr) 140px 24px minmax(32px, max-content);
   gap: 20px;
   align-items: center;
   padding: 13px 24px;
   border-bottom: 1px solid var(--ln2);
 }
 .rw.on { background: var(--sel); box-shadow: inset 2px 0 0 var(--ac); }
+/* The title is the way in for a mouse; a click that only selects reads as
+   nothing happening. */
+.rw .lb { cursor: pointer; }
+.rw .lb:hover .nm { text-decoration: underline; text-decoration-color: var(--ln); text-underline-offset: 3px; }
 .rw.stale { opacity: .5; }
 .rw > * { min-width: 0; }
 
@@ -256,7 +279,7 @@ a { color: inherit; text-decoration: none; }
   justify-self: end;
   font-family: var(--mono);
 }
-.pl.w { font-size: 11.5px; font-weight: 600; letter-spacing: .01em; }
+.pl.w { width: auto; min-width: 32px; padding: 0 8px; white-space: nowrap; font-size: 11.5px; font-weight: 600; letter-spacing: .01em; }
 .rw.on .pl { background: var(--ac); border-color: var(--ac); color: #fff; }
 
 /* Cells shrink rather than wrap: a track is always one line, however long.
@@ -757,7 +780,7 @@ button.kb:hover { border-color: var(--mid); color: var(--fg); }
   .sum .n { font-size: 26px; }
 
 
-  .tp, .fbar, .ft, .gl { padding-left: 16px; padding-right: 16px; }
+  .tp, .fbar, .ft, .gl, .next, .year-hint { padding-left: 16px; padding-right: 16px; }
   .ft { font-size: 10px; gap: 12px; }
 
   #palette, #help { margin-top: 6vh; }
@@ -1221,7 +1244,7 @@ dialog .step .pstep { grid-template-columns: 168px 1fr; }
    measure: the list can be cramped while the window is wide. */
 @container (max-width: 820px) {
   .rw {
-    grid-template-columns: 1fr auto 28px;
+    grid-template-columns: 1fr auto minmax(28px, max-content);
     grid-template-areas: "name type del" "track track btn" "pos pos btn";
     gap: 6px 12px;
     padding: 12px 16px;
@@ -1245,7 +1268,7 @@ dialog .step .pstep { grid-template-columns: 168px 1fr; }
    thumb does here. Kind and rating move to the panel. */
 @media (max-width: 720px) {
   .rw {
-    grid-template-columns: minmax(0, 1fr) auto 24px 48px;
+    grid-template-columns: minmax(0, 1fr) auto 24px minmax(48px, max-content);
     grid-template-areas: "name name name btn" "track pos del btn";
     gap: 6px 10px;
     padding: 10px 16px;
@@ -1257,7 +1280,8 @@ dialog .step .pstep { grid-template-columns: 168px 1fr; }
     grid-area: btn;
     align-self: center;
     justify-self: end;
-    width: 48px;
+    width: auto;
+    min-width: 48px;
     height: 48px;
     border-radius: 8px;
     font-size: 17px;

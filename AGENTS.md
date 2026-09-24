@@ -32,6 +32,8 @@ produces a 500 that looks like a bug. Restart after Go changes.
   `partials` in `render.go`.
 - No frontend build step. One hand-written `app.css` driven by the tokens at the
   top of the file. No Tailwind.
+- Unit words (серія / серії / серій / сер.) live in `domain.Units`, once. Do
+  not add a second map in a handler: three of them drifted apart before.
 - Catalogs fill in metadata but never define progress units, and never become a
   hard dependency — the manual form must always work.
 - Commit messages: lowercase, short, no co-author trailer. Commit as you go.

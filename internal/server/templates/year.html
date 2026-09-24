@@ -9,15 +9,19 @@
           onclick="navigator.clipboard.writeText(this.dataset.copy); this.textContent='скопійовано ✓'; var b=this; setTimeout(function(){b.textContent='⌘C копіювати текстом'},1600)">⌘C копіювати текстом</button>
 </div>
 
+{{if .Empty}}
+<div class="year-hint">Перша серія — і тут зʼявиться рік.<em>Години, серії, книги і стрік рахуються з логу прогресу; нічого вводити не треба.</em></div>
+{{else}}
 <div class="big4">
   <div><div class="n">{{.Hours}}</div><div class="u">годин</div>{{with .HoursSub}}<div class="d">{{.}}</div>{{end}}</div>
   <div><div class="n">{{.Episodes}}</div><div class="u">{{plural .Episodes "серія" "серії" "серій"}}</div><div class="d">+{{.Films}} {{plural .Films "фільм" "фільми" "фільмів"}}</div></div>
   <div><div class="n">{{.Books}}</div><div class="u">{{plural .Books "книга" "книги" "книг"}}</div>{{if .Pages}}<div class="d">{{.Pages}} стор.</div>{{end}}</div>
   <div><div class="n">{{.Streak.Best}}</div><div class="u">рекорд стріку</div><div class="d">зараз <em>{{.Streak.Current}}</em></div></div>
 </div>
+{{end}}
 
 <div class="gl">Рік по днях</div>
-<div class="heat">
+<div class="heat{{if .Empty}} faint{{end}}">
   {{range .Weeks}}<div class="cl">{{range .Cells}}{{if lt .Level 0}}<b class="void"></b>{{else}}<b class="l{{.Level}}{{with .Kind}} k-{{.}}{{end}}"{{with .Title}} title="{{.}}"{{end}}></b>{{end}}{{end}}</div>{{end}}
 </div>
 <div class="lgnd">

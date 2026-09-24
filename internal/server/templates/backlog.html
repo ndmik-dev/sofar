@@ -6,12 +6,14 @@
   <a href="{{.Clear}}">зняти фільтр ✕</a>
 </div>
 {{end}}
+{{if not .Bare}}
 <div class="tp sub">
   <span class="q">У мене є:</span>
   {{range .Filters}}
   <a class="chp{{if .On}} on{{end}}" href="{{.Href}}">{{.Label}}</a>
   {{end}}
 </div>
+{{end}}
 
 {{if .Rows}}
 {{if not .Filter}}
@@ -35,8 +37,13 @@
 {{if not .Rows}}
 <div class="empty">
   <div class="trk"><i class="u"></i><i class="u"></i><i class="u"></i><i class="u"></i><i class="u"></i></div>
+  {{if .Bare}}
+  <h1>Поки порожньо</h1>
+  <p><b>⌘K</b>, назва — і каталог підтягне решту. Бакети часу зʼявляться, коли буде з чого вибирати.</p>
+  {{else}}
   <h1>Нічого не підходить</h1>
   <p>Спробуй інший проміжок часу або додай щось через <b>⌘K</b>.</p>
+  {{end}}
 </div>
 {{end}}
 

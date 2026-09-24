@@ -213,6 +213,10 @@ Rows with an unwatched episode that aired in the last two weeks move to a
 own is a different job from adding one. A shelf hit links to
 `/{list}?focus={id}`, which selects and scrolls to that row.
 
+Under the figures on «У процесі» one line says what to watch now: the show
+that has gone longest without a move and has an episode out. It is a query,
+not a setting, and it changes with every press of Space.
+
 `/export` downloads everything as one JSON file — a dump, not an API: it
 answers once, promises no compatibility and has no client.
 

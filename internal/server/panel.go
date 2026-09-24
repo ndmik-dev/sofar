@@ -131,7 +131,7 @@ func buildPanel(e store.Entry, pace store.Pace, today string, loc *time.Location
 	p.Meta = panelMeta(e)
 	p.Statuses = panelStatuses(e.Status)
 	p.SubtitleLabel, _ = subtitleField(e.Media.Kind)
-	p.UnitLabel = unitLabels[e.Media.Unit]
+	p.UnitLabel = domain.UnitMany(e.Media.Unit)
 	p.Total = int(e.Media.TotalUnits.Int64)
 	p.Pos = e.Position
 	// A total can only be typed while nothing is drawn from real episodes.
@@ -183,8 +183,7 @@ func panelMeta(e store.Entry) string {
 	}
 	if e.Media.TotalUnits.Valid && e.Media.Unit != "none" {
 		total := int(e.Media.TotalUnits.Int64)
-		parts = append(parts, domain.Count(total, unitForms[e.Media.Unit][0],
-			unitForms[e.Media.Unit][1], unitForms[e.Media.Unit][2]))
+		parts = append(parts, domain.UnitCount(total, e.Media.Unit))
 	}
 	if e.Media.RuntimeMin > 0 && e.Media.Unit == "episode" {
 		parts = append(parts, fmt.Sprintf("~%d хв", e.Media.RuntimeMin))
@@ -193,16 +192,6 @@ func panelMeta(e store.Entry) string {
 		parts = append(parts, "ще виходить")
 	}
 	return strings.Join(parts, " · ")
-}
-
-var unitForms = map[string][3]string{
-	"episode": {"серія", "серії", "серій"},
-	"page":    {"сторінка", "сторінки", "сторінок"},
-	"hour":    {"година", "години", "годин"},
-	"chapter": {"розділ", "розділи", "розділів"},
-	"lesson":  {"урок", "уроки", "уроків"},
-	"minute":  {"хвилина", "хвилини", "хвилин"},
-	"volume":  {"том", "томи", "томів"},
 }
 
 func countSeasons(units []domain.Unit) int {

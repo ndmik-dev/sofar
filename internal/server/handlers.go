@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -43,16 +44,6 @@ var statusWords = map[string]string{
 	"backlog": "у «колись»",
 	"done":    "у завершених",
 	"dropped": "у кинутих",
-}
-
-var unitNames = map[string]string{
-	"episode": "серій",
-	"page":    "сторінок",
-	"hour":    "год",
-	"chapter": "розділів",
-	"lesson":  "уроків",
-	"minute":  "хв",
-	"volume":  "томів",
 }
 
 type navItem struct {
@@ -108,9 +99,18 @@ type summaryView struct {
 	WaitingTime string
 	Airing      int
 	Active      int
-	OOB         bool
-	Render      bool
-	Off         bool
+	// What to watch if you sat down now. Information, not a button.
+	Next   *nextUp
+	OOB    bool
+	Render bool
+	Off    bool
+}
+
+type nextUp struct {
+	EntryID int64
+	Title   string
+	Label   string
+	Mins    int
 }
 
 type statusOption struct {
@@ -173,7 +173,9 @@ type positionStep struct {
 }
 
 type listPage struct {
-	Title   string
+	Title string
+	// Nothing in this list at all, as opposed to nothing under this bucket.
+	Bare    bool
 	NavView navView
 	Now     time.Time
 	Rows    []row
@@ -244,14 +246,14 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 		Now:     now,
 		Summary: summaryFrom(sum),
 	}
+	page.Summary.Next = s.nextUp(ctx, today, staleBefore)
 
 	since := s.cfg.Day(now).AddDate(0, 0, -domain.FreshDays).Format("2006-01-02")
-	for i, e := range entries {
+	for _, e := range entries {
 		if kind != "" && e.Media.Kind != kind {
 			continue
 		}
 		rw := buildRow(e, today)
-		rw.Selected = i == 0
 		if label, ok := freshVolume(e, now); ok {
 			rw.Aired = label
 			page.Fresh = append(page.Fresh, rw)
@@ -268,6 +270,16 @@ func (s *Server) handleActive(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		page.Rows = append(page.Rows, rw)
+	}
+	// The first row on screen, not the first in the query: under a kind
+	// filter those differ, and the keyboard used to start on nothing.
+	switch {
+	case len(page.Fresh) > 0:
+		page.Fresh[0].Selected = true
+	case len(page.Rows) > 0:
+		page.Rows[0].Selected = true
+	case len(page.Stale) > 0:
+		page.Stale[0].Selected = true
 	}
 	page.Empty = len(page.Rows) == 0 && len(page.Stale) == 0 && len(page.Fresh) == 0
 	// The element stays in the page even with nothing to show, so an
@@ -422,6 +434,7 @@ func (s *Server) sidebands(r *http.Request, today string) (summaryView, navView,
 	}
 
 	view := summaryFrom(sum)
+	view.Next = s.nextUp(r.Context(), today, staleBefore)
 	view.OOB = true
 	view.Render = base == "/active"
 	view.Off = view.Off || currentKind(r) != ""
@@ -526,7 +539,7 @@ func positionStepFor(e store.Entry, created bool) *positionStep {
 	if total <= 1 {
 		return nil
 	}
-	unit := unitNames[e.Media.Unit]
+	unit := domain.UnitMany(e.Media.Unit)
 	hint := fmt.Sprintf("усього %d", total)
 	if unit != "" {
 		hint += " " + unit
@@ -623,15 +636,12 @@ func viewingList(r *http.Request, status string) bool {
 	return u.Path == statusPaths[status]
 }
 
-// unitNames is the genitive plural used after a fixed total ("усього 86
-// серій"). Naming an arbitrary number needs all three forms, which is what
-// unitForms holds.
 func unitWords(e store.Entry) (one, few, many string) {
-	f, ok := unitForms[e.Media.Unit]
+	f, ok := domain.Units[e.Media.Unit]
 	if !ok {
 		return "", "", ""
 	}
-	return f[0], f[1], f[2]
+	return f.One, f.Few, f.Many
 }
 
 func toastFor(move store.Move) toastView {
@@ -687,6 +697,34 @@ func summaryFrom(s store.Summary) summaryView {
 	}
 }
 
+// nextUp names the episode to watch now. A failure here costs one line of
+// the page, not the page, so it is logged and swallowed.
+func (s *Server) nextUp(ctx context.Context, today string, staleBefore int64) *nextUp {
+	id, err := s.store.NextUp(ctx, defaultUserID, today, staleBefore)
+	if err != nil {
+		s.log.Warn("next up", "err", err)
+		return nil
+	}
+	if id == 0 {
+		return nil
+	}
+	e, err := s.store.GetEntry(ctx, id)
+	if err != nil {
+		return nil
+	}
+	for _, u := range e.Units {
+		if u.Idx != e.Position+1 {
+			continue
+		}
+		label := domain.Label(u, domain.MultiSeason(e.Units))
+		if u.Title != "" {
+			label += " «" + u.Title + "»"
+		}
+		return &nextUp{EntryID: e.ID, Title: e.Media.Title, Label: label, Mins: u.Runtime}
+	}
+	return nil
+}
+
 // freshVolume answers the same question JustAired answers for episodes: has
 // something you have not read turned up lately.
 func freshVolume(e store.Entry, now time.Time) (string, bool) {
@@ -718,7 +756,9 @@ func buildRow(e store.Entry, today string) row {
 		Btn:       "+",
 	}
 	if rw.Step > 1 {
-		rw.Btn = fmt.Sprintf("+%d", rw.Step)
+		// «+10» beside a bare «+» on every other row is an unexplained
+		// number; «+10 стор.» is a step.
+		rw.Btn = fmt.Sprintf("+%d %s", rw.Step, domain.Units[e.Media.Unit].Short)
 		rw.BtnWide = true
 	}
 

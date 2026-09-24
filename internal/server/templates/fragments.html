@@ -26,6 +26,9 @@
     <div class="u">у процесі</div>
   </div>
 </div>
+<div class="next{{if or .Off (not .Next)}} off{{end}}" id="next-up"{{if .OOB}} hx-swap-oob="true"{{end}}>
+  {{with .Next}}<span class="k">далі</span><span><b>{{.Title}}</b> · {{.Label}}{{with .Mins}} · {{.}} хв{{end}}</span>{{end}}
+</div>
 {{end}}
 
 {{define "toast"}}

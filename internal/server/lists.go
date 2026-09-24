@@ -121,6 +121,12 @@ func (s *Server) renderList(w http.ResponseWriter, r *http.Request, spec listSpe
 	default:
 		fillArchive(&page, entries, today)
 	}
+	switch {
+	case len(page.Rows) > 0:
+		page.Rows[0].Selected = true
+	case len(page.Years) > 0 && len(page.Years[0].Rows) > 0:
+		page.Years[0].Rows[0].Selected = true
+	}
 
 	s.render(w, r, spec.Page, page)
 }
@@ -129,6 +135,7 @@ func (s *Server) fillBacklog(page *listPage, entries []store.Entry, filter, kind
 	if filter == "" {
 		filter = "long"
 	}
+	page.Bare = len(entries) == 0
 	limit := 1 << 30
 	for _, b := range timeBuckets {
 		href := "/backlog?t=" + b.Key
@@ -231,7 +238,7 @@ func durationLabels(e store.Entry, mins int) (main, sub string) {
 	}
 	if e.Media.TotalUnits.Valid && e.Media.Unit != "none" {
 		total := int(e.Media.TotalUnits.Int64)
-		return strconv.Itoa(total), unitNames[e.Media.Unit]
+		return strconv.Itoa(total), domain.UnitMany(e.Media.Unit)
 	}
 	return "—", ""
 }

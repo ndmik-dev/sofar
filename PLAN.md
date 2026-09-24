@@ -298,13 +298,12 @@ daily use. Nothing here is implemented yet; it is the list to work from.
   nightly job, keeps fourteen under `/data/backups`, and **Налаштування →
   Резервна копія** downloads the newest. The off-box copy is a monthly habit,
   not a cron — the volume and its copies are still one disk.
-- **Row selection under a kind filter.** `handleActive` sets
-  `rw.Selected = i == 0` on the unfiltered index; when the first entry is
-  filtered out by `?kind=`, no row is selected and the keyboard layer starts
-  nowhere. Select the first *rendered* row.
-- **Two unit dictionaries disagree.** `unitNames` (handlers.go) says
-  `год`/`хв`, `unitLabels` (search.go) says `годин`/`хвилин`. One map in
-  `domain`, used by both, and `unitForms` beside it.
+- ~~**Row selection under a kind filter.**~~ Done: every list selects the
+  first *rendered* row — fresh before current before stale on `/active`, the
+  first row or the first year group elsewhere.
+- ~~**Two unit dictionaries disagree.**~~ Done: there were three, not two
+  (`unitNames`, `unitLabels`, `unitForms`). One `domain.Units` table now, with
+  the short form for the step button beside the three cases.
 
 ### Cleanups
 
@@ -330,26 +329,25 @@ shape — and it holds in both themes. Notes, not complaints:
 - The summary strip ("вийшло й чекає · якщо все додивитись · ще виходять ·
   у процесі") is the best screen in the app; it answers the evening question
   before the list does. Keep it the first thing on `/active`.
-- Season blocks `S1 … S6` plus the current season's cells read well; the
-  `+10` step button on a book reads as an unexplained number next to `+` on
-  everything else. Either label it (`+10 стор.`) or make step visible in the
-  panel where it is set.
-- The empty backlog shows the time buckets with nothing to filter. Hide the
-  buckets when the list is empty; the "Нічого не підходить" copy assumes a
-  filter was applied.
-- `/year` with a fresh database shows four zeros and an empty heatmap. A first
-  sentence ("перша серія — і тут зʼявиться рік") beats four zeros.
-- Row hover and the selected-row tint are close in value in the light theme;
-  worth one notch more contrast on `--sel`.
-- **A click on the title does not open the panel.** It selects the row; only
-  `Enter` opens. For the mouse that reads as "nothing happened". Title click
-  should do what `Enter` does.
+- ~~Season blocks read well; the `+10` step button reads as an unexplained
+  number.~~ Done: a step above one carries its unit, `+10 стор.`, `+2 сер.`.
+- ~~The empty backlog shows the time buckets with nothing to filter.~~ Done:
+  no buckets and «Поки порожньо» when the list is bare; «Нічого не підходить»
+  only when a bucket hides something.
+- ~~`/year` with a fresh database shows four zeros.~~ Done: one sentence and a
+  faint heatmap until the first counted minute.
+- ~~Selected-row tint too close in the light theme.~~ Done: `--sel` one notch
+  darker (`#DFEAE5`). There was no row hover rule to collide with; the
+  closeness was with the palette's hover, which shares the token.
+- ~~**A click on the title does not open the panel.**~~ Done: a click on the
+  title block opens the panel like Enter; a click elsewhere on the row still
+  only selects, so the cells and buttons keep their own meaning.
 - Empty states across the app are numbers or "Порожньо". The first screen after
-  `rm sofar.db` should say what to do next in one sentence — the palette exists,
-  the empty page should point at it.
+  `rm sofar.db` should say what to do next in one sentence — backlog and year
+  do now; `/active` already pointed at the palette.
 - One accent per screen holds here: `--ac` is the action, `.new` is attention.
-  Keep it that way when adding "next up" to the summary strip — it is
-  information, not a button.
+  «Далі ·» under the summary keeps it: the label is tinted, the title is not,
+  and nothing there is a button. It is a query (`store.NextUp`), not a table.
 
 ### Ideas, in the order they would earn their place
 

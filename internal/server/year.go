@@ -44,6 +44,9 @@ type yearPage struct {
 	Weeks    []heatWeek
 	Months   []monthBar
 	Copy     string
+	// Not a single counted minute, page or film: say so in a sentence
+	// instead of four zeros.
+	Empty bool
 }
 
 var monthNames = [12]string{"січ", "лют", "бер", "кві", "тра", "чер", "лип", "сер", "вер", "жов", "лис", "гру"}
@@ -113,6 +116,10 @@ func (s *Server) handleYear(w http.ResponseWriter, r *http.Request) {
 		Streak:   streak,
 		Weeks:    buildHeat(stats, year, now, s.cfg.Loc),
 		Months:   buildMonths(stats),
+	}
+	page.Empty = stats.Mins == 0 && stats.Episodes == 0 && stats.Films == 0 && stats.Pages == 0 && books == 0
+	if page.Hours == "" {
+		page.Hours = "0"
 	}
 	if stats.Mins >= 24*60 {
 		page.HoursSub = fmt.Sprintf("≈ %d діб поспіль", stats.Mins/(24*60))

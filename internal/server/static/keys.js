@@ -230,11 +230,17 @@
   // Clicking a row selects it. Without this the keyboard kept acting on
   // whatever the arrows last touched, so Space after a click hit the wrong
   // title — the one bug that makes mouse and keyboard feel like two apps.
+  // The title goes further: it opens the panel, the same as Enter. For the
+  // mouse a click that only highlights the row read as nothing happening.
   document.addEventListener("click", function (e) {
     var row = e.target.closest(".rw[data-entry]");
-    if (!row || row === selected()) return;
-    select(row, false);
-    if (panelOpen()) loadPanel();
+    if (!row) return;
+    var onTitle = !!e.target.closest(".lb");
+    if (row !== selected()) {
+      select(row, false);
+      if (panelOpen()) loadPanel();
+    }
+    if (onTitle && !panelOpen()) loadPanel();
   });
 
   // A track lets you click any episode to jump there. A bar had no way back
