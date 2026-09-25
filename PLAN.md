@@ -272,7 +272,7 @@ Recorded so they are not repeated.
 
 ## 7. Open questions
 
-1. ~~**Domain**~~ — settled: a subdomain of `the author's domain`.
+1. ~~**Domain**~~ — settled: a subdomain of the author's own domain.
 2. **Posters** — TMDB returns image URLs and they are stored. Nothing displays
    them yet; the M7 panel is the first place they would earn their space.
 3. **A second manga source.** Probed: Mal'opus and Artbooks have sitemaps with
